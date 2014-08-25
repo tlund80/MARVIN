@@ -1,0 +1,39 @@
+<library path="lib/libstereo_device">
+
+  <class name="stereo_camera/StereoCamera" type="nodelet_stereo_camera::StereoCamera" base_class_type="nodelet::Nodelet">
+    <description> Basic stereo camera nodelet.  </description>
+  </class>
+
+
+</library>
+
+<library path="lib/libstereo_preprocess">
+
+  <class name="stereo_camera/StereoPreprocess" type="nodelet_stereo_camera::StereoPreprocess" base_class_type="nodelet::Nodelet">
+    <description> Preprocessing all.  </description>
+  </class>
+</library>
+
+<library path="lib/libstereo_crop">
+
+  <class name="stereo_camera/StereoCrop" type="nodelet_stereo_camera::StereoCrop" base_class_type="nodelet::Nodelet">
+    <description> cropping the center of the image  </description>
+  </class>
+</library>
+
+<library path="lib/libstereo_downsample">
+
+  <class name="stereo_camera/StereoDownsample" type="nodelet_stereo_camera::StereoDownsample" base_class_type="nodelet::Nodelet">
+    <description> cropping the center of the image  </description>
+  </class>
+</library>
+
+<library path="lib/libstereo_point_cloud">
+
+  <class name="stereo_camera/StereoPointCloud" type="nodelet_stereo_camera::StereoPointCloud" base_class_type="nodelet::Nodelet">
+    <description> producing point clouds  </description>
+  </class>
+</library>
+
+
+

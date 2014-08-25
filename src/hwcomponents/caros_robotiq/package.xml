@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package>
+  <name>caros_robotiq</name>
+  <version>0.0.1</version>
+  <description> robotiq hand drivers </description>
+  <maintainer email="jimali@mmmi.sdu.dk">jimali</maintainer>
+  <license>BSD</license>
+  <url type="website">https://gitlab.com/caro-sdu/caros/wikis/home</url>
+  <url type="repository">https://gitlab.com/caro-sdu/caros.git</url>
+  <url type="bugtracker">https://gitlab.com/caro-sdu/caros/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>caros_common</build_depend>
+  <build_depend>caros_control</build_depend>
+  <build_depend>roscpp</build_depend>
+
+
+  <run_depend>message_runtime</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>caros_common</run_depend>
+  <run_depend>caros_control</run_depend>
+  <run_depend>roscpp</run_depend>
+  <export>
+    <rosdoc config="rosdoc.yaml" />
+  </export>
+</package>

@@ -1,0 +1,23 @@
+bumblebeeRight:
+  serial: 8511446
+  calibration_raw_file: calibrationFiles/BumbleBee2-60-8511446_raw.txt
+  camera_postion_file: calibrationFiles/position_8511446.txt
+bumblebeeLeft:
+  serial: 11072220
+  calibration_raw_file: calibrationFiles/BumbleBee2-60-11072220_raw.txt
+  camera_postion_file: calibrationFiles/position_11072220.txt
+bumblebeeCenter:
+  serial: 11072182
+  calibration_raw_file: calibrationFiles/BumbleBee2-60-11072182_raw.txt
+  camera_postion_file: calibrationFiles/position_11072182.txt
+pikeFront:
+  serial_left: 268902421
+  serial_right: 268902422
+  calibration_raw_file: 0
+  camera_postion_file: 0
+pikeBack:
+  serial_left: 268939431
+  serial_right: 268939432 
+  calibration_raw_file: calibrationFiles/Pike-268939431-268939432_raw.txt
+  camera_postion_file: calibrationFiles/position_268939431.txt
+

@@ -1,0 +1,10 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+\b openni_launch_marvin 
+
+Package containing launch scripts for launching OpenNI devices on MARVIN. For more information, see the wiki page.
+
+
+*/

@@ -1,0 +1,39 @@
+<launch>
+ <!--   <env name="ROS_MASTER_URI" value="http://tek-marvin-1.sandbox.tek.sdu.dk:11315"/> -->
+    <rosparam file="$(find stereo_camera)/marvin_cameras.yaml" command="load" />
+  <node ns="pikeBack" pkg="nodelet" type="nodelet" name="pike_back_manager"  args="manager" output="screen"/>
+
+    <node   pkg="nodelet" type="nodelet" name="pikeBack" args="load stereo_camera/StereoCamera pikeBack/pike_back_manager" output="screen">
+  <!-- <remap from="/pikeBack/out" to="remapped_output"/> -->
+  </node>
+
+   <node  pkg="nodelet" type="nodelet" name="pikeBackPreprocess" args="load stereo_camera/StereoPreprocess pikeBack/pike_back_manager" output="screen">
+   <!-- <remap from="/pikeBackCrop/out" to="remapped_output"/>-->
+  </node>
+
+   <node  pkg="nodelet" type="nodelet" name="pikeBackCrop" args="load stereo_camera/StereoCrop pikeBack/pike_back_manager" output="screen">
+   <!-- <remap from="/pikeBackCrop/out" to="remapped_output"/>-->
+  </node>
+
+<node  pkg="nodelet" type="nodelet" name="pikeBackDownsample" args="load stereo_camera/StereoDownsample pikeBack/pike_back_manager" output="screen">
+   <!-- <remap from="/pikeBackDownsample/out" to="remapped_output"/>-->
+  </node>
+
+
+<group >
+    <node name="imageViewLeftRaw" pkg="image_view" type="image_view" respawn="false" >
+     <remap from="image" to="/pikeBack/left/image_raw/"/>
+     </node>
+
+    <node name="imageViewLeftColorRect" pkg="image_view" type="image_view" respawn="false" >
+     <remap from="image" to="/pikeBack/left/image_rect_color/"/>
+     </node>
+<!--
+    <node name="imageViewLeftColorRectCrop" pkg="image_view" type="image_view" respawn="false" >
+     <remap from="image" to="/pikeBack/crop/left/image_rect_color/"/>
+     </node>
+  -->
+  
+  </group>
+
+</launch>

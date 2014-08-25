@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package>
+  <name>freenect_launch_marvin</name>
+  <version>0.0.1</version>
+  <description>CAROS freenect lancher node</description>
+  <maintainer email="thso@dti.dk">thso</maintainer>
+  <license>BSD</license>
+ <!-- <url type="website">https://gitlab.com/caro-sdu/caros/wikis/home</url>
+  <url type="repository">https://gitlab.com/caro-sdu/caros.git</url>
+  <url type="bugtracker">https://gitlab.com/caro-sdu/caros/issues</url>-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rosconsole</build_depend>
+  <build_depend>pcl_ros</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>freenect_launch</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>rosconsole</run_depend>
+  <run_depend>pcl_ros</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>freenect_launch</run_depend>
+
+  <export>
+    <rosdoc config="rosdoc.yaml" />
+  </export>
+</package>

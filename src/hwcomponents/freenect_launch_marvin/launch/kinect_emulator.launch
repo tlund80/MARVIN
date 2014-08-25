@@ -1,0 +1,34 @@
+<launch>
+  <arg name="camera" default="camera" /> 
+  <arg name="machine" default="localhost" /> 
+  <arg name="actual_camera" default="camera" /> 
+  <arg name="respawn" default="false" />
+  <arg     if="$(arg respawn)" name="bond" value="" />
+  <arg unless="$(arg respawn)" name="bond" value="--no-bond" />     
+  
+  <arg name="manager" value="$(arg camera)_nodelet_manager" />
+  <arg name="debug" default="false" /> <!-- Run manager in GDB? -->
+  <include file="$(find freenect_launch)/launch/includes/manager.launch">
+    <arg name="name" value="$(arg manager)" />
+    <arg name="debug" value="$(arg debug)" />
+  </include>
+  
+     <!-- Instead publish registered XYZRGB point cloud -->
+  <node pkg="nodelet" type="nodelet" name="points_xyzrgb_$(arg camera)" machine="$(arg machine)"
+        args="load depth_image_proc/point_cloud_xyzrgb $(arg manager) $(arg bond)"
+	respawn="$(arg respawn)">
+    <!-- Explicit topic remappings, shouldn't need all of these -->
+    <remap from="rgb/image_rect_color"        to="$(arg actual_camera)/rgb/image_rect_color" />
+    <remap from="rgb/camera_info"             to="$(arg actual_camera)/rgb/camera_info" />
+    <remap from="depth_registered/image_rect" to="$(arg actual_camera)/depth_registered/image_rect_raw" />
+    <remap from="depth_registered/points"     to="$(arg camera)/depth_registered/points" />
+  </node>
+  
+  <rosparam command="load" file="$(find freenect_launch_marvin)/position_$(arg actual_camera).yaml" ns="$(arg camera)" />
+
+  <!-- Publish global extrinsic calibration -->
+   <node pkg="freenect_launch_marvin" type="freenect_broadcaster" name="$(arg camera)" machine="$(arg machine)"/>
+   
+   <node name="set_kinect_ratio_$(arg actual_camera)" pkg="dynamic_reconfigure" type="dynparam" args="set /$(arg actual_camera)/driver data_skip 1" machine="$(arg machine)" />
+
+</launch>
