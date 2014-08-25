@@ -1,0 +1,55 @@
+<WorkCell name="MoveBotsScene">
+  <!-- Left robot -->
+  
+<Frame name="UR1Mount" refframe="WORLD" type="Fixed">
+<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+</Frame>
+
+<Include file="robots/UR1.model.wc.xml" />
+
+
+<Frame name="UR2Mount" refframe="UR1Mount" type="Movable">
+<RPY>178.209 1.406 -0.775</RPY><Pos>-0.00234 -1.04563 0.01599</Pos>
+</Frame>
+
+
+<Include file="robots/UR2.model.wc.xml" />
+
+
+  <Frame name="TrakstarBase" refframe="UR1.Base" type="Movable">
+  	<RPY>180.000 0 0</RPY><Pos>0.83 -0.53 0.128</Pos>
+  </Frame>
+
+<Frame name="UR1_TCP" refframe = "UR1.TCP">
+<RPY>0 0 0</RPY>
+<Pos>0 0 0.070</Pos>
+</Frame>
+
+<Drawable name="CylinderGeo" refframe="UR1.TCP">
+<RPY>0 0 0</RPY><Pos>0 0 0.053</Pos>
+<Cylinder radius="0.05" z="0.07"/>
+</Drawable>
+
+
+<Include file="SchunkSDH/SchunkHand.xml" />
+
+<Include file="Environment.wc.xml" />
+ 
+<Include file="cameras/Cameras.model.wc.xml" />
+
+<Include file="../models/cranfield-40/cranfield-assembled.inc.xml" />
+
+<Frame name="BB1_CAM_FRAME" refframe = "UR1.Base">
+<Transform>
+-0.882404 0.277218 -0.380149 0.642097 
+0.470383 0.502392 -0.725494 0.266794 
+ -0.0101359 -0.818995 -0.573711 0.728093
+</Transform>
+</Frame>
+
+
+<!-- Collision setup -->
+<ProximitySetup file="ProximitySetup.xml" />
+ 
+	
+</WorkCell>

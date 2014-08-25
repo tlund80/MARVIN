@@ -1,0 +1,27 @@
+<launch>
+  <!--
+  	Instantiates all hardware components of the Marvin setup
+  	bumblebee's, kinect's, pike's, ur1 with FT sensor and SDH, ur2 with PG70, 
+  
+  	TODO
+   -->
+  
+  <include file="$(find marvin_common)/marvin.machine" />
+
+  <group >
+	
+	<node name="SDH1" pkg="sdh" type="runsdh" respawn="false" machine="marvin-4">
+		<param name="properties" value="$(find sdh)/sdh1.prop.xml"/>
+	</node>
+ 	<node name="UR1" pkg="universalrobots" type="ur" args="$(find universalrobots)/ur1.prop.xml $(find universalrobots)/../../workcell/MarvinCalibrationScene2teleoperate.xml" 		respawn="false" machine="marvin-4"/>
+	<node name="FT1" pkg="netft" type="netft" respawn="false" machine="marvin-4">
+	  <param name="host" value="192.168.100.2"/>
+	</node>
+	
+    <!-- These files are relative to object_test/src/input/ -->
+
+	<param name="workcellMarvin" value="workcell/MarvinCalibrationScene2teleoperate.xml"/>
+	<param name="tasksFile" value="beam_learned.sym.task.xml"/>
+
+  </group>
+</launch>

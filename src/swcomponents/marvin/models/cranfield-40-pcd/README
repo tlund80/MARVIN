@@ -1,0 +1,6 @@
+This is the 40 mm thick cranfield description, represented as XYZ point clouds [m] (binary PCD format).
+
+All the models in the "cranfield-40" set have been resampled to 1 mm resolution.
+
+All the "assemb*" models, containing (partially) assembled CF parts,
+are saved as binary to save space.

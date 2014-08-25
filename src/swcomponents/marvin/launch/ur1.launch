@@ -1,0 +1,7 @@
+<launch>
+	<include file="$(find marvin)/launch/marvin.machine" />
+	<param name="/workcell" value="$(find marvin)/scene/Marvin.model.wc.xml"/>	
+	<node name="UR1" pkg="universalrobots" type="ur" respawn="false" machine="marvin-4">
+  		<param name="properties" value="$(find universalrobots)/ur1.prop.xml"/>
+	</node>  
+</launch>

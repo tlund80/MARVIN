@@ -1,0 +1,71 @@
+ <!-- Bolt -->
+ <Frame name="Bolt_s" refframe="WORLD" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+ </Frame>
+ <Drawable name="BoltGeo" refframe="Bolt_s">
+  <RPY>-90 0 0</RPY><Pos>-0.0156 0.02 -0.06</Pos>
+  <Polytope file="bolt"/>
+</Drawable>
+
+
+<!-- Bolt Angular -->
+ <Frame name="BoltAngular_s" refframe="WORLD" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+ </Frame>
+ <Drawable name="BoltAngularGeo" refframe="BoltAngular_s">
+  <RPY>0 0 -90</RPY><Pos>-0.016 -0.06 0.02</Pos>
+  <Polytope file="boltangular"/>
+</Drawable>
+<!-- <Drawable name="BoltAngularGeo" refframe="BoltAngular">
+  <RPY>0 0 0</RPY><Pos>-0.016 -0.02 -0.06</Pos>
+  <Polytope file="boltangular"/>
+</Drawable>-->
+
+<!-- Faceplate -->
+ <Frame name="Faceplate_s" refframe="WORLD" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+ </Frame>
+ <Drawable name="faceplateGeo" refframe="Faceplate_s">
+  <RPY>-90 0 0</RPY><Pos>-0.041 0.122 -0.032</Pos>
+  <Polytope file="faceplate"/>
+</Drawable>
+
+<!-- Shaft -->
+ <Frame name="Shaft_s" refframe="WORLD" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+ </Frame>
+ <Drawable name="ShaftGeo" refframe="Shaft_s">
+  <RPY>180 0 0</RPY><Pos>0.0265 0.022 -0.06</Pos> 
+<!--  <RPY>180 0 0</RPY><Pos>0.005 -0.005 -0.045</Pos>-->
+  <Polytope file="shaft"/>
+</Drawable>
+
+<!-- Separator -->
+ <Frame name="Separator_s" refframe="WORLD" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+ </Frame>
+ <Drawable name="SeparatorGeo" refframe="Separator_s">
+<!--   <RPY>-90 0 0</RPY><Pos>-0.0485 0.12 -0.032</Pos> -->
+  <RPY>-90 5 0</RPY><Pos>-0.010 0.12 -0.010</Pos>
+  <Polytope file="separator"/>
+</Drawable>
+
+
+<!-- Pendulum for teleoperation -->
+<!-- <Frame name="Pendulum" refframe="WORLD" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+ </Frame>
+ <Drawable name="PendulumGeo" refframe="Pendulum">
+  <RPY>0 -10 -85</RPY><Pos>-0.02 -0.04 0.202</Pos>
+  <Polytope file="pendulum"/>
+</Drawable>-->
+
+<!-- Pendulum for pose estimation -->
+ <Frame name="Pendulum_s" refframe="WORLD" type="Movable">
+<!--   	<RPY>0 0 0</RPY><Pos>-0.025 -0.575 0.2</Pos> -->
+	<RPY>0 0 0</RPY><Pos>0.0 0.0 0.0</Pos>
+ </Frame>
+ <Drawable name="PendulumGeo" refframe="Pendulum_s">
+  <RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+  <Polytope file="pendulum"/>
+</Drawable>

@@ -1,0 +1,6 @@
+<launch>
+	<include file="$(find marvin)/launch/marvin.machine" />
+	<node name="SDH1" pkg="sdh" type="runsdh" respawn="false" machine="marvin-4">
+		<param name="properties" value="$(find sdh)/sdh1.prop.xml"/>
+	</node>
+</launch>

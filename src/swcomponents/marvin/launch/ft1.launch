@@ -1,0 +1,8 @@
+<launch>
+	<include file="$(find marvin)/launch/marvin.machine" />
+	<node name="FT1" pkg="netft" type="netft" respawn="false" machine="marvin-4">
+	  <param name="host" value="192.168.100.2"/>
+	  <param name="calibfile" value="$(find marvin)/calibration/ft/ft1calib_sdh.xml"/>
+	  <param name="robot" value="UR1"/>
+	</node>
+</launch>

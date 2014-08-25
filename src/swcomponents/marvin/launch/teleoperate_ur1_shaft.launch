@@ -1,0 +1,23 @@
+<launch>
+  <include file="$(find marvin)/launch/marvin.machine" />
+
+  <param name="workcell" value="$(find marvin)/scene/Marvin.model.wc.xml"/>
+
+  <group >
+	<!-- the default marvin workcell -->
+	
+	
+	<!-- start the teleoperate nodes -->
+	<node name="tele1" pkg="teleoperate" type="teleoperate" respawn="false" machine="marvin-1" output="screen" >
+		<param name="robot" value="UR1"/>
+		<param name="rate" value="100"/>
+		<param name="PushSensor" value="/trakstar/pushed"/>
+		<param name="PoseArray" value="/trakstar/poses_raw"/>
+		<param name="PoseIdx" value="3"/>
+		<param name="zoffset" value="0.01"/>
+		<param name="zoffset_tcp" value="0.32"/>
+	</node>
+
+	
+  </group>
+</launch>

@@ -1,0 +1,70 @@
+<WorkCell name="MoveBotsScene">
+  <!-- Left robot -->
+  
+<Frame name="UR1Mount" refframe="WORLD" type="Fixed">
+<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+</Frame>
+
+<Include file="robots/UR1.model.wc.xml" />
+
+
+<Frame name="UR2Mount" refframe="UR1Mount" type="Movable">
+<RPY>178.209 1.406 -0.775</RPY><Pos>-0.00234 -1.04563 0.01599</Pos>
+</Frame>
+
+
+<Include file="robots/UR2.model.wc.xml" />
+<Frame name="TESTFRAME" refframe = "UR2_TCP">
+<RPY>222 0 90</RPY>
+<Pos>0 0 0.055</Pos>
+</Frame>
+<Frame name="UR2_TCP" refframe = "UR2.TCP">
+<RPY>0 0 0</RPY>
+<Pos>0 0 0.0</Pos>
+</Frame>
+
+
+<Drawable name="CylinderGeoUR2" refframe="UR2.TCP">
+<RPY>0 0 0</RPY><Pos>0 0 0.025</Pos>
+<Cylinder radius="0.05" z="0.050"/>
+</Drawable>
+
+<Frame name="RobotiqMount" refframe = "UR2_TCP">
+<RPY>222 0 90</RPY>
+<Pos>0 0 0.038</Pos>
+</Frame>
+
+<Include file="Robotiq-3/robotiq-3.xml" />
+
+
+  <Frame name="TrakstarBase" refframe="UR1.Base" type="Movable">
+  	<RPY>180.000 0 0</RPY><Pos>0.83 -0.53 0.128</Pos>
+  </Frame>
+
+<Frame name="UR1_TCP" refframe = "UR1.TCP">
+<RPY>0 0 0</RPY>
+<Pos>0 0 0.055</Pos>
+</Frame>
+
+<Drawable name="CylinderGeo" refframe="UR1.TCP">
+<RPY>0 0 0</RPY><Pos>0 0 0.0275</Pos>
+<Cylinder radius="0.05" z="0.055"/>
+</Drawable>
+
+<Frame name="SDHMount" refframe = "UR1_TCP">
+<RPY>180 0 0</RPY>
+<Pos>0 0 0.0</Pos>
+</Frame>
+
+<Include file="SchunkSDH/SchunkHand.xml" />
+
+
+<Include file="Environment.wc.xml" />
+ 
+<Include file="cameras/Cameras.model.wc.xml" />
+
+<!-- Collision setup -->
+<ProximitySetup file="ProximitySetup.xml" />
+ 
+	
+</WorkCell>

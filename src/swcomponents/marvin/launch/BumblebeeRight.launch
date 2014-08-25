@@ -1,0 +1,29 @@
+<launch>
+	<include file="$(find marvin)/launch/marvin.machine" />
+	<arg name="machine" default="marvin-1" />
+
+    <rosparam file="$(find stereo_camera)/marvin_cameras.yaml" command="load" />
+  	<node ns="bumblebeeRight" pkg="nodelet" type="nodelet" name="stereo_right_manager" args="manager" output="screen" machine="$(arg machine)"/>
+  	<node   pkg="nodelet" type="nodelet" name="bumblebeeRight" args="load stereo_camera/StereoCamera bumblebeeRight/stereo_right_manager" output="screen" machine="$(arg machine)">
+    	<!-- <remap from="/bumblebeeRight/out" to="remapped_output"/> -->
+  	</node>
+
+   	<node  pkg="nodelet" type="nodelet" name="bumblebeeRightPreprocess" args="load stereo_camera/StereoPreprocess bumblebeeRight/stereo_right_manager" output="screen" machine="$(arg machine)">
+   		<!-- <remap from="/bumblebeeRightPreprocess/out" to="remapped_output"/>-->
+  	</node>
+
+      <node  pkg="nodelet" type="nodelet" name="bumblebeeRightPointCloud" args="load stereo_camera/StereoPointCloud bumblebeeRight/stereo_right_manager" output="screen">
+       <!-- <remap from="/bumblebeeRightPreprocess/out" to="remapped_output"/>-->
+      </node>
+
+	<group>
+    	<node name="imageViewRightRaw" pkg="image_view" type="image_view" respawn="false" >
+     		<remap from="image" to="/bumblebeeRight/left/image_raw/"/>
+     	</node>
+
+    	<node name="imageViewRightColorRect" pkg="image_view" type="image_view" respawn="false" >
+     		<remap from="image" to="/bumblebeeRight/left/image_rect_color/"/>
+     	</node>
+	</group>	
+	
+</launch>

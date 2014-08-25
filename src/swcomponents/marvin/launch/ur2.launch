@@ -1,0 +1,6 @@
+<launch>
+	<include file="$(find marvin)/launch/marvin.machine" />
+	<node name="UR2" pkg="universalrobots" type="ur" respawn="false" machine="marvin-4">
+  		<param name="properties" value="$(find universalrobots)/ur2.prop.xml"/>
+	</node>  
+</launch>

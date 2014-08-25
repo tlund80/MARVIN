@@ -1,0 +1,10 @@
+<launch>
+	<include file="$(find marvin)/launch/marvin.machine" />
+
+	<group >
+  		<param name="/models/workcell" value="$(find marvin)/scene/Marvin.model.wc.xml"/>	
+		<include file="$(find marvin)/launch/ur1.launch" />
+		<include file="$(find marvin)/launch/sdh1.launch" />
+		<include file="$(find marvin)/launch/ft1.launch" />
+  	</group>
+</launch>

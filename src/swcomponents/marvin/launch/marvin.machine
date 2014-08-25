@@ -1,0 +1,6 @@
+<launch>
+  <machine name="marvin-1" address="tek-marvin-1.sandbox.tek.sdu.dk" env-loader="~/.rosLaunchScript.sh"/>
+  <machine name="marvin-2" address="tek-marvin-2.sandbox.tek.sdu.dk" env-loader="~/.rosLaunchScript.sh"/>
+  <machine name="marvin-3" address="tek-marvin-3.sandbox.tek.sdu.dk" env-loader="~/.rosLaunchScript.sh"/>
+  <machine name="marvin-4" address="tek-marvin-4.sandbox.tek.sdu.dk" env-loader="~/.rosLaunchScript.sh"/>
+</launch>

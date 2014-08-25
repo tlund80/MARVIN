@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find marvin_common)/marvin.machine" />
+  <node name="PG70" pkg="schunkpg70" type="pg70" args="$(find schunkpg70)/pg70.prop.xml" respawn="false" machine="marvin-4"/>
+</launch>

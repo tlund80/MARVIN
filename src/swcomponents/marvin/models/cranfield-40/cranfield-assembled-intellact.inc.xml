@@ -1,0 +1,82 @@
+
+<!-- Baseplate -->
+ <Frame name="Baseplate" refframe="UR1.Base" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 0.5 0</Pos>
+ </Frame>
+ <Drawable name="faceplateGeo" refframe="Baseplate">
+  <Polytope file="faceplate-centered.stl"/>
+</Drawable>
+
+<!-- faceplate -->
+ <Frame name="Faceplate" refframe="Baseplate" type="Movable">
+  	<RPY>0 180 0</RPY><Pos>0 0 0.081</Pos>
+ </Frame>
+ <Drawable name="faceplateGeo" refframe="Faceplate">
+  <Polytope file="faceplate-centered.stl"/>
+</Drawable>
+
+ <!-- Bolt 1-->
+ <Frame name="Bolt1" refframe="Baseplate" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0.084 0.064 0.0405</Pos>
+ </Frame>
+ <Drawable name="Bolt1Geo" refframe="Bolt1">
+  <Polytope file="bolt-sensor-centered.stl"/>
+ </Drawable>
+
+ <!-- Bolt 2-->
+ <Frame name="Bolt2" refframe="Baseplate" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>-0.084 0.064 0.0405</Pos>
+ </Frame>
+ <Drawable name="Bolt2Geo" refframe="Bolt2">
+  <Polytope file="bolt-sensor-centered.stl"/>
+ </Drawable>
+
+
+<!-- Bolt Square 1-->
+ <Frame name="SquareBolt1" refframe="Baseplate" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0.054 -0.095 0.0405</Pos>
+ </Frame>
+ <Drawable name="BoltSquare1Geo" refframe="SquareBolt1">
+  <Polytope file="bolt-angular-1.3z.stl"/>
+</Drawable>
+
+<!-- Bolt Square 2-->
+ <Frame name="SquareBolt2" refframe="Baseplate" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>-0.054 -0.095 0.0405</Pos>
+ </Frame>
+ <Drawable name="BoltSquare2Geo" refframe="SquareBolt2">
+  <Polytope file="bolt-angular-1.3z.stl"/>
+</Drawable>
+
+<!-- Shaft -->
+ <Frame name="Shaft" refframe="Baseplate" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 -0.02 0.0405</Pos>
+ </Frame>
+ <Drawable name="ShaftGeo" refframe="Shaft">
+  <Polytope file="shaft-centered.stl"/>
+</Drawable>
+
+<!-- Separator -->
+ <Frame name="Separator" refframe="Baseplate" type="Movable">
+  	<RPY>0 0 0</RPY><Pos>0 -0.095 0.0405</Pos>
+ </Frame>
+ <Drawable name="SeparatorGeo" refframe="Separator">
+  <Polytope file="separator-centered.stl"/>
+</Drawable>
+
+<!-- Pendulum  -->
+ <Frame name="Pendulum" refframe="Baseplate" type="Movable">
+	<RPY>0 0 0</RPY><Pos>0 0.07 0.0405</Pos>
+ </Frame>
+ <Drawable name="PendulumGeo" refframe="Pendulum">
+  <Polytope file="pendulum-centered.stl"/>
+</Drawable>
+
+<!-- Pendulum Head -->
+ <!-- Frame name="PendulumHead" refframe="Baseplate" type="Movable">
+	<RPY>0 0 0</RPY><Pos>0.0 0.0 0.0</Pos>
+ </Frame>
+ <Drawable name="PendulumHeadGeo" refframe="PendulumHead">
+  <RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+  <Polytope file="pendulum_head-centered.stl"/>
+</Drawable -->

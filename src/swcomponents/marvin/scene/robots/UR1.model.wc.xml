@@ -1,0 +1,40 @@
+<SerialDevice name="UR1">
+
+<Frame name="Base">
+	<RPY> 0 0 0 </RPY> <Pos> 0 0 0.0892</Pos>
+</Frame>
+
+<DHJoint name="Joint1" alpha="0" a="0" d="0" offset="0" type="schilling" />
+<DHJoint name="Joint2" alpha="90" a="0" d="0" offset="0" type="schilling" />
+<DHJoint name="Joint3" alpha="0" a="-0.425" b="0" offset="0" type="HGP" />
+<DHJoint name="Joint4" alpha="0" a="-0.39243" b="0" offset="0" type="HGP" />
+<DHJoint name="Joint5" alpha="90" a="0" d="0.109" offset="0" type="schilling" />
+<DHJoint name="Joint6" alpha="-90" a="0" d="0.093" offset="0" type="schilling" />
+
+<Frame name="TCP" refframe="Joint6">
+	<RPY>0 0 0</RPY><Pos>0 0 0.084</Pos>
+</Frame>
+
+<!--
+<Frame name="Marker" refframe="TCP">
+	<RPY>90 0 0</RPY><Pos>0 0 0.07</Pos>
+</Frame>
+-->
+ <Include file="Device.xml" />
+ 
+  <PosLimit refjoint="Joint1" min="-180" max="180" />
+  <PosLimit refjoint="Joint2" min="-170" max="20" />
+  <PosLimit refjoint="Joint3" min="-180" max="180" />
+  <!--<PosLimit refjoint="Joint4" min="-179" max="179" />-->
+  <PosLimit refjoint="Joint4" min="-270" max="270" />
+  <PosLimit refjoint="Joint5" min="-120" max="120" />
+  <PosLimit refjoint="Joint6" min="-200" max="200" />
+ <!--
+<Drawable name="MarkerGeo" refframe="Marker">
+  <RPY> 0 0 0 </RPY> <Pos> 0 0 0 </Pos>
+  <Polytope file="marker/marker" />
+</Drawable>
+-->
+ <CollisionSetup file="EasyBotCollisionSetup.xml" />
+ <Q name="Home">-2 -1.5707963267948966 0 -1.5707963267948966 0 0</Q>
+</SerialDevice>

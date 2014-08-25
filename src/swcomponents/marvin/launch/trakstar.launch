@@ -1,0 +1,17 @@
+<launch>
+	<include file="$(find marvin)/launch/marvin.machine" />
+	<group>
+		<node pkg="nodelet" type="nodelet" name="trakstarNodeletManager" args="manager" output="screen" machine="marvin-1">
+			<rosparam command="load" file="$(find trakstar)/trakstar.yaml"  />
+		</node>
+		<node pkg="nodelet" type="nodelet" name="trakstar" args="load trakstar/TrakstarRawNodelet trakstarNodeletManager" output="screen" machine="marvin-1">
+			<param name="rate" type="double" value="200"/>
+		    <param name="frame" type="string" value="TrakStarBase"/>
+		</node>  
+		 
+		<node pkg="nodelet" type="nodelet" name="trakstarCalib" args="load trakstar/TrakstarCalibratedNodelet trakstarNodeletManager" output="screen" machine="marvin-1">
+		    <remap from="/trakstarCalib/in" to="/trakstar/TrakstarState_raw"/>
+		</node>
+		
+	</group>
+</launch>

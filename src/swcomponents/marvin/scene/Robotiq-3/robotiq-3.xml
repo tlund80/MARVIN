@@ -1,0 +1,167 @@
+<!-- the schunk hand but without the dependency -->
+
+<TreeDevice name="Robotiq-3">
+  <!-- CollisionSetup file="CollisionSetup.prox.xml" / -->
+	
+  <Frame name="Base">
+    <RPY> 0 0 0 </RPY> <Pos>0 0 0</Pos>
+  </Frame>
+
+  <!-- This define the position of a grasp tcp for power grasps -->  
+  <Frame name="GTCP1" refframe="Base" type="Fixed" >
+    <RPY> 0 0 -90 </RPY> <Pos>0 0.16 0</Pos>
+ <!--   <Property name="qopen" type="Q">0 0 0 -15 0 0 0 0 0 0</Property>
+    <Property name="qclose" type="Q">55 90 60 -15 55 90 60 55 90 60</Property>
+    <Property name="minJawWidth" type="double">0.01</Property>
+    <Property name="maxJawWidth" type="double">0.05</Property>-->
+  </Frame>
+  
+  <!-- this define the position for wide precision grasps between all three fingers --> 
+  <Frame name="GTCP2" refframe="Base" type="Fixed">
+    <RPY> 0 0 -90 </RPY> <Pos>0 0.21 0</Pos>
+    <!--<Property name="qopen" type="Q">0 0 0 -15 0 0 0 0 0 0</Property>
+    <Property name="qclose" type="Q">55 0 -20 -15 55 0 -20 55 0 -20</Property>
+   <!-- <Property name="minJawWidth" type="double">0.001</Property>
+    <Property name="maxJawWidth" type="double">0.10</Property>-->
+  </Frame>
+
+  <!-- this define the position for narrow precision grasps between all three fingers --> 
+  <Frame name="GTCP3" refframe="Base" type="Fixed">
+    <RPY> 0 0 -90 </RPY> <Pos>0 0.21 0</Pos>
+ <!--   <Property name="qopen" type="Q">0 0 0 9 0 0 0 0 0 0</Property>
+    <Property name="qclose" type="Q">55 0 -20 9 55 0 -20 55 0 -20</Property>
+    <Property name="minJawWidth" type="double">0.001</Property>
+    <Property name="maxJawWidth" type="double">0.10</Property>-->
+  </Frame>
+
+  <!-- and this define the position for precision grasps between two fingers --> 
+   <Frame name="GTCP4" refframe="Base" type="Fixed">
+    <RPY> 0 -90 -90 </RPY> <Pos>-0.050 0.21 0</Pos>
+   <!-- <Property name="qopen" type="Q">0 0 0 -16 30 0 0 30 0 0</Property>
+    <Property name="qclose" type="Q">0 0 0 9 30 0 0 30 0 0</Property>
+        <Property name="minJawWidth" type="double">0.001</Property>
+    <Property name="maxJawWidth" type="double">0.05</Property>-->
+  </Frame>
+  
+  
+  <!-- Definition of a finger -->
+  <Define id="finger">
+	<Joint name="Joint1" type="Revolute">
+     <RPY> 0 0 0 </RPY> <Pos> 0 0 0</Pos></Joint>
+	<Joint name="Joint2" type="Revolute">
+     <RPY> 0 0 0 </RPY> <Pos> 0 0.056986 0</Pos></Joint>
+    <Joint name="Joint3" type="Revolute">
+     <RPY> 0 0 0 </RPY> <Pos> 0 0.0381 0</Pos></Joint>
+    <Frame name="TCP" type="EndEffector">
+     <RPY> 0 0 0 </RPY> <Pos> 0 0 0</Pos></Frame>
+     
+         <!-- Define limits -->
+    <PosLimit refjoint="Joint1" min="0" max="66" />
+    <PosLimit refjoint="Joint2" min="0" max="90" />
+    <PosLimit refjoint="Joint3" min="-20" max="90" />
+    <VelLimit refjoint="Joint1" max="100" />
+    <VelLimit refjoint="Joint2" max="100" />
+    <VelLimit refjoint="Joint3" max="100" />
+    <AccLimit refjoint="Joint1" max="1000" />
+    <AccLimit refjoint="Joint2" max="1000" />
+    <AccLimit refjoint="Joint3" max="1000" />
+    
+
+      <Drawable name="Join1Geo" refframe="Joint1" >
+	  <RPY> 0 180 0 </RPY> <Pos> 0 0 0</Pos>
+	  <Polytope file="geometry/bin/m-finger-base-a" /></Drawable>
+
+      <Drawable name="Join2Geo" refframe="Joint2" >
+	  <RPY> 0 180 0 </RPY> <Pos> 0 0 0</Pos>
+	  <Polytope file="geometry/bin/m-finger-mid-a" /></Drawable>
+
+      <Drawable name="Join3Geo" refframe="Joint3" >
+	  <RPY> 0 180 0 </RPY> <Pos> 0 0 0</Pos>
+	  <Polytope file="geometry/bin/m-finger-tip-a" /></Drawable>
+  </Define>
+ 
+ <Frame name="f1" refframe="Base" ></Frame>
+ <Frame name="F1Base">
+  <RPY> -32.5 0 0 </RPY> <Pos>0.04448 0.0968 0 </Pos></Frame>
+
+ <SerialChain name="f1">
+  <Use id="finger" />
+ </SerialChain>
+
+
+ <Frame name="f2" refframe="Base">
+  <RPY> 0 0 0 </RPY> <Pos>0 0 0</Pos></Frame>
+ <Frame name="F2Base" type="Movable">
+  <RPY> 0 -90 0 </RPY> <Pos>-0.059 0.0752 0.0366</Pos></Frame>
+ <Joint name="F2Joint1" type="Revolute">
+  <RPY> 0 0 0 </RPY> <Pos> 0 0 0</Pos></Joint>
+ <PosLimit refjoint="F2Joint1" min="-16" max="10" />
+ <VelLimit refjoint="F2Joint1" max="28" />
+ <AccLimit refjoint="F2Joint1" max="100" />
+ <Frame name="F2Joint1Rev" type="Movable">
+  <RPY> -90 -57 90 </RPY> <Pos>0.00 0.0214 -0.0143</Pos></Frame>
+ <Drawable name="F2Joint1Geo" refframe="F2Joint1" >
+  <RPY> 0 90 0 </RPY> <Pos> 0 0 0</Pos>
+  <Polytope file="geometry/bin/m-finger-socket-a" /></Drawable>
+
+
+ <SerialChain name="f2">
+  <Use id="finger" />
+ </SerialChain>
+
+ <Frame name="f3" refframe="Base">
+  <RPY> 0 0 0 </RPY> <Pos>0 0 0</Pos></Frame>
+ <Frame name="F3Base" type="Movable">
+  <RPY> 0 -90 0 </RPY> <Pos>-0.059 0.0752 -0.0366</Pos></Frame>
+ <Joint name="F3Joint1" type="Revolute">
+  <RPY> 0 0 0 </RPY> <Pos> 0 0 0</Pos>
+  <Depend on="F2Joint1" gain="-1" offset="0" />
+ </Joint>
+ <Frame name="F3Joint1Rev">
+  <RPY> -90 -57 90 </RPY> <Pos>0.0 0.0214 -0.0143</Pos></Frame>
+ 
+  
+ <PosLimit refjoint="F3Joint1" min="-90" max="90" />
+ <VelLimit refjoint="F3Joint1" max="28" />
+ <AccLimit refjoint="F3Joint1" max="100" />
+ 
+ <Drawable name="F3Joint1Geo" refframe="F3Joint1" >
+  <RPY> 0 90 0 </RPY> <Pos> 0 0 0</Pos>
+  <Polytope file="geometry/bin/m-finger-socket-a" /></Drawable>
+
+ 
+ <SerialChain name="f3">
+  <Use id="finger" />
+ </SerialChain>
+ 
+ <!-- ADD DRAWABLES -->
+  
+  
+ <Drawable name="BaseGeo" refframe="Base" >
+  <RPY> 0 0 0 </RPY> <Pos> 0 0.05537 0</Pos>
+  <Polytope file="geometry/bin/m-base" /></Drawable>
+
+<Drawable name="Connector1_1" refframe="Base" >
+<RPY>0 90 0 </RPY> <Pos> -0.08 0.04 0.01</Pos>
+<Cylinder radius="0.0075" z="0.045"/>
+</Drawable>
+<Drawable name="Connector1_2" refframe="Base" >
+<RPY>0 0 90 </RPY> <Pos> -0.095	 0.025 0.01</Pos>
+<Cylinder radius="0.005" z="0.03"/>
+</Drawable>
+
+<Drawable name="Connector2" refframe="Base" >
+<RPY>0 90 0 </RPY> <Pos> -0.08 0.04 -0.01</Pos>
+<Cylinder radius="0.0075" z="0.0450"/>
+</Drawable>
+
+<Drawable name="Connector2_2" refframe="Base" >
+<RPY>0 0 90 </RPY> <Pos> -0.095	 0.025 -0.01</Pos>
+<Cylinder radius="0.005" z="0.03"/>
+</Drawable>
+ 
+ <!--Q name="Home">0 0 0 0 0 0 0</Q -->
+ <!--Q name="Open"> 0 0 0 0 0 0</Q-->
+ 
+ <ProximitySetup file="colsetup.prox.xml" />
+</TreeDevice>
