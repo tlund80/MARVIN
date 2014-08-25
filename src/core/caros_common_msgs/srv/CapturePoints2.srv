@@ -1,0 +1,8 @@
+# REQUEST
+# stereo param
+int64 max_disparity
+int64 blocksize
+---
+# RESPONSE
+# Input scene
+sensor_msgs/PointCloud2 outputScene
