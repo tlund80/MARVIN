@@ -1,0 +1,8 @@
+# a 6 vector describing tool velocity in {l_x,l_y,l_z,a_x,a_y,a_z} 
+# with l being the linear velocity in m per sec and a being the vector that is
+# rotated about and the length of a the angular rotation velocity in rad/sec 
+geometry_msgs/Twist vel
+
+---
+bool success
+ 

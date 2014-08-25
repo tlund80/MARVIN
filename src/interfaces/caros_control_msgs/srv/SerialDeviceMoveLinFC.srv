@@ -1,0 +1,18 @@
+#Path to be executed
+geometry_msgs/Transform pos_target
+
+# 6D Force torque target
+geometry_msgs/Wrench wrench_target
+
+# Control gains for the force control. 0 means 100% position control. Values != 0 means force control but with the numerical value
+# determining the gains.
+float32[6] ctrl_gains
+
+# reference frame, optional if empty then the previously defined frame should be used 
+string refname
+
+#Path to be executed
+geometry_msgs/Transform offset
+
+---
+bool success
