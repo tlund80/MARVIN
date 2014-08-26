@@ -1,0 +1,30 @@
+<DynamicWorkcell workcell="salt_cylinder.wc.xml">
+  <PhysicsEngine>
+   <!--CollisionMargin>0.001</CollisionMargin-->
+   <RestitutionModel>Newton</RestitutionModel>
+   <ContactModel>Guendel</ContactModel>
+   <AutoDisable>true</AutoDisable>
+   <Property name="StepMethod">WorldStep</Property> 
+ </PhysicsEngine>
+
+ <Gravity>0 0 -9.82</Gravity>
+ 
+ <Include file="../../DynamicMaterialDataBase.xml"/>
+ 
+ <!-- Now define all the rigid bodies that exist in the workcell, remember to
+      reference the RigidBody to a movableframe -->
+ <RigidBody frame="object">
+  <Mass>0.6</Mass>
+  <EstimateInertia />
+  <Integrator>Euler</Integrator>
+  <MaterialID>Plastic</MaterialID>
+  <!--Property name="LinearDamping" type="float">0.5</Property>
+  <Property name="AngularDamping" type="float">0.5</Property-->  
+ </RigidBody>
+
+<FixedBody frame="Floor">
+  <MaterialID>Plastic</MaterialID> </FixedBody>
+ 
+ <Include file="../../grippers/SDH/SchunkHandV2/SchunkHandTactile0.dwc.xml"/>
+ 
+</DynamicWorkcell>

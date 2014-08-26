@@ -1,0 +1,61 @@
+<TreeDevice name="PG70">
+ <Frame name="Base" type="Movable" />
+
+ <!-- We create this as a virtual joint, only used to control the two dependent joints -->
+ 
+ <Joint name="RightFinger" type="Prismatic">
+  <RPY> 0 0 90 </RPY> <Pos> 0 -0.045 0.93 </Pos>
+ </Joint>
+ <Frame name="TCPRight" refframe="RightFinger" type="EndEffector">
+ </Frame>
+
+ <!-- Frame name="TCP" refframe="Jaw" type="EndEffector">
+  <RPY> 0 0 0 </RPY> <Pos> 0 0 0.093</Pos> 
+ </Frame -->
+
+ <Joint name="LeftFinger" refframe="Base" type="Prismatic">
+  <RPY> 0 0 90 </RPY> <Pos> 0 0.045 0.93</Pos> 
+  <Depend on="RightFinger" gain="-1" offset="0" />
+ </Joint>
+ <Frame name="TCPLeft" refframe="LeftFinger" type="EndEffector">
+ </Frame>
+
+ <Frame name="TCP" refframe="Base" type="Fixed">
+<RPY> 0 0 0 </RPY> <Pos> 0 0.00 1.28</Pos> 
+ </Frame>
+
+<!-- Define limits -->
+  <PosLimit refjoint="RightFinger" min="0" max="0.35" />
+  <VelLimit refjoint="RightFinger" max="0.282" />
+  <AccLimit refjoint="RightFinger" max="0.0328" />
+
+  
+ <!--Joint name="RightFinger" refframe="Base" type="Prismatic">
+  <RPY> 0 0 90 </RPY> <Pos> 0 -0.0045 0.093 </Pos>
+  <Depend on="Jaw" gain="1" offset="0" />
+ </Joint -->
+
+<!-- And know we add the geometry -->
+ <Drawable name="BaseGeo" refframe="Base">
+  <Polytope file="Geometry/cubex10" /></Drawable>
+<!--
+ <Drawable name="LeftGeo" refframe="LeftFinger">
+  <RPY> 0 0 -0 </RPY> <Pos> 0 0.005 0</Pos>
+  <Polytope file="Geometry/basejawSmall" /></Drawable>
+
+ <Drawable name="RightGeo" refframe="RightFinger">
+  <RPY> 0 180 -0 </RPY> <Pos> 0 0.005 0</Pos>
+  <Polytope file="Geometry/basejawSmall" /></Drawable>
+--->
+ <Drawable name="LeftGeo" refframe="LeftFinger">
+  <RPY> 0 0 -0 </RPY> <Pos> 0 0  -0.045</Pos>
+  <Polytope file="Geometry/gripper_metal2x10d" /></Drawable>
+
+ <Drawable name="RightGeo" refframe="RightFinger">
+  <RPY> 0 180 -0 </RPY> <Pos> 0 0 0.045</Pos>
+  <Polytope file="Geometry/gripper_metal2x10d" /></Drawable>
+
+
+ <CollisionSetup file="CollisionSetup.xml" />
+
+</TreeDevice>

@@ -1,0 +1,39 @@
+<WorkCell name="empty_sdh_scene">
+  
+<Frame name="handoffset" refframe="WORLD">
+	<RPY >0 -180 0</RPY> <Pos>0.2 0.2 0.29</Pos> 
+</Frame>
+ <Include file="../../grippers/SDH/SchunkHandV2/SchunkHand.wc.xml" />
+ 
+<!-- <Frame name="object" refframe="WORLD" type="Movable">
+	<Transform>
+	1.0 0.0 0.0 0.0
+	0.0 1.0 0.0 0.0
+	0.0 0.0 1.0 0.037063 <!-- 0.0176 --> 
+<!--	</Transform> -->
+
+<!--    <Drawable name="ObjectGeo">
+	 <Polytope file="../../objects/uibkmodel.stl"/>
+    </Drawable>
+ </Frame> -->
+
+  <!--<Frame name="ProjPlane" refframe="WORLD" type="Movable">
+    <RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+    <Drawable name="PlaneGeo">
+	  <RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+	  <Polytope file="Geometry/proj_plane"/>
+	</Drawable>  
+  </Frame>-->
+ 
+  <Frame name="Floor" refframe="WORLD">
+    <RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+  </Frame>
+	
+  <Drawable name="PlaneGeo" refframe="Floor">
+	<RPY>0 0 0</RPY><Pos>0 0 0</Pos>
+	<Polytope file="../Scene_Geometry/plane_5x5"/>
+  </Drawable>  
+
+ <!--CollisionSetup file="../CollisionSetup.xml" /-->
+ </WorkCell>
+ 

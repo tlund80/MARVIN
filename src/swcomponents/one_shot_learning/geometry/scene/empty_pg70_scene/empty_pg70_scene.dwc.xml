@@ -1,0 +1,57 @@
+<DynamicWorkcell workcell="empty_pg70_scene.wc.xml">
+
+  <PhysicsEngine>
+   <!--CollisionMargin>0.001</CollisionMargin-->
+   <RestitutionModel>Newton</RestitutionModel>
+   <ContactModel>Guendel</ContactModel>
+   <AutoDisable>true</AutoDisable>
+   <Property name="StepMethod">WorldStep</Property> 
+ </PhysicsEngine>
+
+ <Gravity>0 0 -9.82</Gravity>
+ 
+ <Include file="../../DynamicMaterialDataBase.xml"/>
+ 
+ <!-- Now define all the rigid bodies that exist in the workcell, remember to
+      reference the RigidBody to a movableframe -->
+<!-- <RigidBody frame="object">
+  <Mass>0.6</Mass>
+  <EstimateInertia />
+  <Integrator>Euler</Integrator>
+  <MaterialID>Plastic</MaterialID>
+  <!--Property name="LinearDamping" type="float">0.5</Property>
+  <Property name="AngularDamping" type="float">0.5</Property-->  
+<!-- </RigidBody>-->
+
+<!--<RigidDevice device="PG70">
+ 	<ForceLimit joint="RightFinger">51.0</ForceLimit>	
+	<ForceLimit joint="LeftFinger">51.0</ForceLimit>	
+	<KinematicBase frame="Base">
+		<MaterialID>Plastic</MaterialID>
+	</KinematicBase> 
+    
+	<RigidJoint joint="RightFinger">
+	  <Mass>0.2</Mass>
+	  <EstimateInertia />
+	  <MaterialID>Rubber</MaterialID>
+	</RigidJoint>
+
+	<RigidJoint joint="LeftFinger">
+	  <Mass>0.2</Mass>
+	  <EstimateInertia />
+	  <MaterialID>Rubber</MaterialID>
+	</RigidBody>
+  </RigidDevice>
+-->
+<!--<FixedBody frame="Floor">
+  <MaterialID>Plastic</MaterialID> 
+</FixedBody>-->
+ 
+<!-- <PDDeviceController name="GraspController" device="PG70" type="Position">
+  <Sync>False</Sync>
+  <PDParams>10 0.003</PDParam>
+  <TimeStep> 0.01 </TimeStep>
+ </PDDeviceController>
+</DynamicWorkcell>
+-->
+</DynamicWorkcell>
