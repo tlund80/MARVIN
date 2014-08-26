@@ -35,7 +35,7 @@ catkin_package(
 #  LIBRARIES ${library_name}
   # CATKIN_DEPENDS:
   # - rosconsole is not used in the header files, so should not be added to the list here.
-  CATKIN_DEPENDS message_runtime roscpp std_msgs
+  CATKIN_DEPENDS message_runtime std_msgs
   #DEPENDS RobWork
 )
 
@@ -57,11 +57,11 @@ set(SRCFILES
 #### SDH Node
 ########################################################################
 add_executable(kinectVibratorTest  src/KinectVibratorTest.cpp ${SRCFILES})
-add_dependencies(kinectVibratorTest kinectVibratorTest_generate_messages_cpp)
+add_dependencies(kinectVibratorTest kinect_vibrator_generate_messages_cpp)
 target_link_libraries(kinectVibratorTest ${catkin_LIBRARIES})
 
 add_executable(kinectVibratorServiceInterfaceTest  src/kinectVibratorServerInterfaceTest.cpp ${SRCFILES})
-add_dependencies(kinectVibratorServiceInterfaceTest kinectVibratorServiceInterfaceTest_generate_messages_cpp)
+add_dependencies(kinectVibratorServiceInterfaceTest kinect_vibrator_generate_messages_cpp)
 target_link_libraries(kinectVibratorServiceInterfaceTest ${catkin_LIBRARIES})
 
 ## Declare a cpp library

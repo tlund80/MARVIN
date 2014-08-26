@@ -75,25 +75,32 @@ LINK_DIRECTORIES( ${COVIS_LIBRARY_DIRS} )
 ########################################################################
 
 add_library(stereo_device src/nodelets/stereo_camera.cpp)
+add_dependencies(stereo_device caros_common_msgs_generate_messages_cpp)
 target_link_libraries(stereo_device ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${COVIS_LIBRARIES})
 
 add_library(stereo_preprocess src/nodelets/stereo_preprocess.cpp)
+add_dependencies(stereo_preprocess caros_common_msgs_generate_messages_cpp)
 target_link_libraries(stereo_preprocess ${catkin_LIBRARIES} ${COVIS_LIBRARIES})
 
 add_library(stereo_crop src/nodelets/stereo_crop.cpp)
+add_dependencies(stereo_crop caros_common_msgs_generate_messages_cpp)
 target_link_libraries(stereo_crop ${catkin_LIBRARIES} ${COVIS_LIBRARIES})
 
 add_library(stereo_downsample src/nodelets/stereo_downsample.cpp)
+add_dependencies(stereo_downsample caros_common_msgs_generate_messages_cpp)
 target_link_libraries(stereo_downsample ${catkin_LIBRARIES} ${COVIS_LIBRARIES})
 
 add_library(stereo_point_cloud src/nodelets/stereo_point_cloud.cpp)
+add_dependencies(stereo_point_cloud  caros_common_msgs_generate_messages_cpp)
 target_link_libraries(stereo_downsample ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # executables
 add_executable(stereo_camera src/nodes/stereo_camera_node.cpp)
+add_dependencies(stereo_camera caros_common_msgs_generate_messages_cpp)
 target_link_libraries(stereo_camera ${catkin_LIBRARIES} ${COVIS_LIBRARIES})
 
 add_executable(stereo_to_points src/stereo_to_points.cpp)
+add_dependencies(stereo_to_points caros_common_msgs_generate_messages_cpp)
 target_link_libraries(stereo_to_points ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
 
 
