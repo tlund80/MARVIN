@@ -1,0 +1,30 @@
+<launch>
+   <!-- Visualizer subscribes to the topics of this node -->
+   <node pkg="point_cloud_visualization" name="point_cloud_visualization" type="point_cloud_visualization" output="screen">
+       <param name="source" value="pose_estimation_CoViS"/>
+       <param name="topic" value="result_rgbcloud"/>
+   </node>
+   
+   <node pkg="pose_estimation_CoViS" name="pose_estimation_CoViS" type="pose_estimation_CoViS" output="screen">
+
+       <!-- Topic to subscribe to! -->
+       <param name="global_topic" value="/global/cloud_pcd"/>
+       <param name="local_topic" value="/local/cloud_pcd"/>
+
+       <!-- Parameters -->
+       <param name="table" value="true"/> <!-- kinect= true stereo = false -->
+       <param name="planar" value="false"/>
+       <param name="outliers" value="true"/>
+       <param name="reverse" value="false"/>
+       <param name="far" value="1500"/>
+       <param name="gravity" value="false"/>
+       <param name="verbose" value="false"/>
+      
+       <param name="cothres" value="0.75"/>
+       <param name="leaf" value="8.0"/> <!--8.0 -->
+       <param name="radius" value="25"/> <!--25-->
+       <param name="threshold" value="10"/>
+       <param name="fraction" value="0.25"/>
+       <param name="corrnum" value="1"/>
+   </node>
+</launch>

@@ -1,0 +1,20 @@
+# Input model
+sensor_msgs/PointCloud2[] model
+# Label of object to detect (name of the model. Has same length as model array)!
+string[] model_name
+
+# Upper coplanarity fraction 
+float64 coplanarity_fraction
+# Reverse Feature matching 
+bool reverse
+# CoorNum
+int32 coorNum
+# Verbose
+bool verbose
+# Gravity
+bool gravity
+ 
+---
+#Boost UUID of the models as string use for recognition (index of id and model_name corresponds)
+string[] model_id
+

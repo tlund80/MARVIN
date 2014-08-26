@@ -1,0 +1,34 @@
+# REQUEST
+
+# Input scene (optional!! for testing) 
+sensor_msgs/PointCloud2 scene
+
+# List of Boost uuid of objects which should be recognized in the scene
+string[] model_id
+
+#Print result to the screen?
+bool print
+
+# ROS Topic to multi view scene for local refinement Optional!! No topic = No local refinement
+string multi_view_topic 
+
+bool local_refinement
+
+---
+# RESPONSE
+# The input cloud labeled with labels_int, according to the detected objects 
+sensor_msgs/PointCloud2 labeled_cloud
+
+# Boost uuid of each object detected
+string[] detected_obj_id
+# Labels of detected objects, same size as detected_obj_id
+string[] detected_obj_name
+# Status of each instance. False if nothing is detected
+bool[] status
+# Poses of detected objects, size equal to size(labels_int)*16
+geometry_msgs/Transform[] poses
+# Object inlier fraction in the estimation of each instance [0,1]
+float64[] inlier_fraction
+# Estimation error of each instance if detected
+float64[] error
+
