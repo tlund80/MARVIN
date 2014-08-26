@@ -43,6 +43,7 @@ export RobWork_DIR=~/dti_co_worker/trunk/common/RobWork/RW_new/RobWork
 export RW_ROOT=$RobWork_DIR/RobWork/
 export RWS_ROOT=$RobWork_DIR/RobWorkStudio/
 export RWHW_ROOT=$RobWork_DIR/RobWorkHardware/
+export RWSIM_ROOT=$RobWork_DIR/RobWorkSim/
 
 export CoViS_DIR=$DTI_COMMON_ROOT/CoViS/build/lib/cmake/CoViS
 

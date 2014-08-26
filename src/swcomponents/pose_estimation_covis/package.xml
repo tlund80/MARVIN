@@ -16,6 +16,7 @@
   <build_depend>tf</build_depend>
   <build_depend>point_cloud_visualization</build_depend>
   <build_depend>caros_common_msgs</build_depend>
+  <build_depend>caros_common</build_depend>
   <build_depend>pcl_ros</build_depend>
   <build_depend>geometry_msgs</build_depend> 
   <build_depend>sensor_msgs</build_depend>
@@ -25,6 +26,7 @@
   <run_depend>tf</run_depend>
   <run_depend>point_cloud_visualization</run_depend>
   <run_depend>caros_common_msgs</run_depend>
+  <run_depend>caros_common</run_depend>
   <run_depend>pcl_ros</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>

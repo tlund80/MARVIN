@@ -4,7 +4,17 @@ project(pose_estimation_covis)
 ########################################################################
 #### Catkin Packages
 ########################################################################
-find_package(catkin REQUIRED COMPONENTS message_generation roscpp tf point_cloud_visualization caros_common_msgs pcl_ros sensor_msgs geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS 
+	    message_generation 
+	    roscpp
+	    tf 
+	    point_cloud_visualization
+	    caros_common_msgs
+	    caros_common 
+	    pcl_ros
+	    sensor_msgs
+	    geometry_msgs
+)
 
 find_package(OpenCV REQUIRED)
 
