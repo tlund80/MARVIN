@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ftcalib label="seq5">
+   <m>2.73820</m><!--Mass [kg]-->
+   <a>1.57080</a><!--Tool rotation [rad]-->
+   <r>
+      <x>-0.00632</x>
+      <y>0.00592</y>
+      <z>0.07609</z>
+   </r><!--Center of gravity [m]-->
+   <bias>-36.19442 -8.08152 7.26225 -0.34492 2.50864 0.20</bias><!--Bias vector [N] and [Nm]-->
+</ftcalib>

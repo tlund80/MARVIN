@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<PropertyMap>
+
+  <Property>
+    <Name>Name</Name>
+    <Description>Name of the universal robot</Description>
+    <Value>
+      <String>UR2</String>
+    </Value>
+  </Property>
+
+  <Property>
+    <Name>IP</Name>
+    <Description>IP of the universal robot</Description>
+    <Value>
+<!--        <String>127.0.0.1</String> -->
+      <String>192.168.100.3</String>
+    </Value>
+  </Property>
+
+
+  <Property>
+    <Name>Port</Name>
+    <Description>Port of the universal robot</Description>
+    <Value>
+      <Integer>33334</Integer>
+    </Value>
+  </Property>
+	
+  <Property>
+    <Name>ScriptFile</Name>
+    <Description>File containing the script for the univesal robot</Description>
+    <Value>
+      <String>ur2program.ur</String>
+    </Value>
+  </Property>
+  
+</PropertyMap>
+
