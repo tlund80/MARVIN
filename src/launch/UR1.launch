@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+	<!--UR1 -->
+	<node> 
+		<param name="/workcell" value="$(find marvin)/scene/Marvin.model.wc.xml"/>	
+		<node name="UR1" pkg="universalrobots" type="ur" respawn="false" machine="marvin-4">
+		<param name="properties" value="$(find universalrobots)/ur1.prop.xml"/>
+	</node> 
+ 
+	<!--<node name="kinect_vibrator" pkg="kinect_vibrator" type="kinectVibratorTest" respawn="false" machine="marvin-4"/>-->
+
+</launch>
