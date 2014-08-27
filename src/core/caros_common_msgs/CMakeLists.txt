@@ -44,7 +44,8 @@ add_message_files(
   ECVTexlets2D.msg
   ECVTexlets3D.msg
   StereoCalibration.msg
-  CameraCalibration.msg
+  CameraCalibration.msg 
+  TimeSignal.msg
 )
 
 add_service_files(

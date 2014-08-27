@@ -6,16 +6,32 @@
 #include <rw/math/Transform3D.hpp>
 #include <rw/math/VelocityScrew6D.hpp>
 
-#include "marvin_common/URStop.h"
-#include "marvin_common/URMoveL.h"
-#include "marvin_common/URMoveQ.h"
-#include "marvin_common/URServo.h"
-#include "marvin_common/URServoQ.h"
+//#include "marvin_common/URStop.h"
+//#include "marvin_common/URMoveL.h"
+//#include "marvin_common/URMoveQ.h"
+//#include "marvin_common/URServo.h"
+//#include "marvin_common/URServoQ.h"
 
-#include "marvin_common/RobotState.h"
-#include "marvin_common/WrenchData.h" 
-#include "marvin_common/TimeSignal.h"
-#include "marvin_common/MarvinUtils.hpp"
+#include <caros_common_msgs/Stop.h>
+#include <caros_control_msgs/SerialDeviceMoveLin.h>
+#include <caros_control_msgs/SerialDeviceMovePTP.h>
+#include <caros_control_msgs/SerialDeviceMovePTP_T.h>
+#include <caros_control_msgs/SerialDeviceMoveVelQ.h>
+#include <caros_control_msgs/SerialDeviceMoveVelT.h>
+#include <caros_control_msgs/SerialDeviceMoveLinFC.h>
+#include <caros_control_msgs/SerialDeviceForceControlStart.h>
+#include <caros_control_msgs/SerialDeviceForceControlUpdate.h>
+#include <caros_control_msgs/SerialDeviceForceControlStop.h>
+
+#include <caros_control_msgs/RobotState.h>
+#include <caros_control_msgs/WrenchData.h>
+#include <caros_common_msgs/TimeSignal.h>
+
+
+//#include "marvin_common/RobotState.h"
+//#include "marvin_common/WrenchData.h" 
+//#include "marvin_common/TimeSignal.h"
+//#include "marvin_common/MarvinUtils.hpp"
 
 #include "ros/ros.h" 
 #include <string>
@@ -55,24 +71,24 @@ protected:
 
 	double getLoopRate();
 	void publish(const rw::math::Q& q);
-	void publish(const marvin_common::RobotState& state);
-	void publish(const marvin_common::WrenchData& data);
+	void publish(const caros_control_msgs::RobotState& state);
+	void publish(const caros_control_msgs::WrenchData& data);
 
 	const std::string& name() { return _service_name; };
 
 private:
-	void timeSignal(marvin_common::TimeSignal::ConstPtr time);
+	void timeSignal(caros_common_msgs::TimeSignal::ConstPtr time);
 
-	bool moveLHandle(marvin_common::URMoveL::Request& request, marvin_common::URMoveL::Response& response);
-	bool moveQHandle(marvin_common::URMoveQ::Request& request, marvin_common::URMoveQ::Response& response);
+	bool moveLHandle(caros_control_msgs::SerialDeviceMoveLin::Request& request, caros_control_msgs::SerialDeviceMoveLin::Response& response);
+	bool moveQHandle(caros_control_msgs::SerialDeviceMovePTP::Request& request, caros_control_msgs::SerialDeviceMovePTP::Response& response);
 
-	bool safeMoveLHandle(marvin_common::URMoveL::Request& request, marvin_common::URMoveL::Response& response);
-	bool safeMoveQHandle(marvin_common::URMoveQ::Request& request, marvin_common::URMoveQ::Response& response);
+	bool safeMoveLHandle(caros_control_msgs::SerialDeviceMoveLin::Request& request, caros_control_msgs::SerialDeviceMoveLin::Response& response);
+	bool safeMoveQHandle(caros_control_msgs::SerialDeviceMovePTP::Request& request, caros_control_msgs::SerialDeviceMovePTP::Response& response);
 
-	bool servoHandle(marvin_common::URServo::Request& request, marvin_common::URServo::Response& response);
-	bool servoQHandle(marvin_common::URServoQ::Request& request, marvin_common::URServoQ::Response& response);
+	bool servoHandle(caros_control_msgs::SerialDeviceMovePTP::Request& request, caros_control_msgs::SerialDeviceMovePTP::Response& response);
+	bool servoQHandle(caros_control_msgs::SerialDeviceMovePTP::Request& request, caros_control_msgs::SerialDeviceMovePTP::Response& response);
 
-	bool stopHandle(marvin_common::URStop::Request& request, marvin_common::URStop::Response& response);
+	bool stopHandle(caros_common_msgs::Stop::Request& request, caros_common_msgs::Stop::Response& response);
 	bool pauseHandle();
 	bool startHandle();
 	bool waitHandle();

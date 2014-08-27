@@ -24,6 +24,7 @@
 #include <pcl_conversions/pcl_conversions.h>
    
 #include <std_msgs/String.h>
+
 #include <sstream>
 #include <string>
 #include <QThread>

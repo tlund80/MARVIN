@@ -35,6 +35,7 @@ add_message_files(
   FILES
   RobotState.msg
   GripperState.msg
+  WrenchData.msg
 )
 
 generate_messages(

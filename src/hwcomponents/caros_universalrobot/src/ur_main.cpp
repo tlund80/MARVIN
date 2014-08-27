@@ -5,7 +5,7 @@
 #include <rw/loaders/WorkCellLoader.hpp>
 #include <rwhw/netft/FTCompensation.hpp>
 #include <boost/bind.hpp>
-#include <marvin_common_rw/RwRos.hpp>
+#include <caros/common.hpp>
 
 
 using namespace rw::loaders;
@@ -19,11 +19,11 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "universalrobots");
 
-    ros::NodeHandle nh("~");
-    std::string name = nh.getNamespace();
-    std::string propertyFile;
-    nh.getParam("properties", propertyFile);
-
+	ros::NodeHandle nh("~");
+	std::string name = nh.getNamespace();
+	std::string propertyFile;
+	nh.getParam("/properties", propertyFile);
+	ROS_INFO_STREAM("properties: " << propertyFile);
 	PropertyMap properties = XMLPropertyLoader::load( propertyFile );
 	if (!properties.has("Name")) {
 		ROS_ERROR("No property named 'Name' found in property file");
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
 	WorkCell::Ptr workcell;
 	try {
-		workcell = RwRos::getWorkCell();
+		workcell = caros::getWorkCell();
 	} catch (const Exception& exp) {
 	    ROS_ERROR_STREAM("Unable to open file '"<<argv[1]<<"'");
 	    ROS_ERROR_STREAM("Error: "<<exp.what());

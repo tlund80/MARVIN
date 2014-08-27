@@ -2,15 +2,24 @@
 #ifndef UNIVERSALROBOTS_HPP
 #define UNIVERSALROBOTS_HPP
 
-#include "marvin_common/WrenchData.h"
-#include <marvin_common_rw/SerialDeviceServiceInterface.hpp>
-#include <marvin_common/URServo.h>
-#include <marvin_common/URServoQ.h>
-#include <marvin_common/SerialDeviceForceControlStart.h>
-#include <marvin_common/SerialDeviceForceControlUpdate.h>
-#include <marvin_common/SerialDeviceForceControlStop.h>
+#include <caros_control_msgs/WrenchData.h>
+#include <../../../MARVIN/src/interfaces/caros_control/include/caros/SerialDeviceServiceInterface.hpp>
+
+//#include <marvin_common/URServo.h>
+//#include <marvin_common/URServoQ.h>
+#include <caros_common_msgs/Start.h>
+#include <caros_common_msgs/Stop.h>
+#include <caros_control_msgs/SerialDeviceMoveLin.h>
+#include <caros_control_msgs/SerialDeviceMovePTP.h>
+#include <caros_control_msgs/SerialDeviceMovePTP_T.h>
+#include <caros_control_msgs/SerialDeviceMoveVelQ.h>
+#include <caros_control_msgs/SerialDeviceMoveVelT.h>
+#include <caros_control_msgs/SerialDeviceMoveLinFC.h>
+#include <caros_control_msgs/SerialDeviceForceControlStart.h>
+#include <caros_control_msgs/SerialDeviceForceControlUpdate.h>
+#include <caros_control_msgs/SerialDeviceForceControlStop.h>
 #include <rw/invkin/JacobianIKSolver.hpp>
-#include "URServiceInterface.hpp"
+//#include "URServiceInterface.hpp"
 
 #include <rw/common/PropertyMap.hpp>
 #include <rw/math/Transform3D.hpp>
@@ -36,49 +45,57 @@ protected:
 	virtual void loop();
 	virtual void stopDriver();
 
-	virtual bool moveL(const std::vector<rw::math::Transform3D<> >& targets, const std::vector<float>& blendValues, float speed);
+/*	virtual bool moveL(const std::vector<rw::math::Transform3D<> >& targets, const std::vector<float>& blendValues, float speed);
 	virtual bool moveQ(const std::vector<rw::math::Q>& targets, const std::vector<float>& blendValues, float speed);
 	virtual bool safeMoveQ(const std::vector<rw::math::Q>& targets, const std::vector<float>& blendValues, float speed);
 	virtual bool safeMoveL(const std::vector<rw::math::Transform3D<> >& targets, const std::vector<float>& blendValues, float speed);
 
-    virtual bool servoQ(const rw::math::Q& qtarget);
+	virtual bool servoQ(const rw::math::Q& qtarget);
+	virtual bool servoT(const rw::math::Transform3D<>& target);
+*/	
+	bool moveL(const std::vector<rw::math::Transform3D<> >& targets, const std::vector<float>& blendValues, float speed);
+	bool moveQ(const std::vector<rw::math::Q>& targets, const std::vector<float>& blendValues, float speed);
+	bool safeMoveQ(const std::vector<rw::math::Q>& targets, const std::vector<float>& blendValues, float speed);
+	bool safeMoveL(const std::vector<rw::math::Transform3D<> >& targets, const std::vector<float>& blendValues, float speed);
+
+	virtual bool servoQ(const rw::math::Q& qtarget);
 	virtual bool servoT(const rw::math::Transform3D<>& target);
 
 
 	//! @brief move robot in a linear Cartesian path
-	virtual bool moveLin(marvin_common::SerialDeviceMoveLin::Request& request,
-				  marvin_common::SerialDeviceMoveLin::Response& response);
+	virtual bool moveLin(caros_control_msgs::SerialDeviceMoveLin::Request& request,
+				  caros_control_msgs::SerialDeviceMoveLin::Response& response);
 
 	//! @brief move robot from point to point
-	virtual bool movePTP(marvin_common::SerialDeviceMovePTP::Request& request,
-				  marvin_common::SerialDeviceMovePTP::Response& response);
+	virtual bool movePTP(caros_control_msgs::SerialDeviceMovePTP::Request& request,
+				  caros_control_msgs::SerialDeviceMovePTP::Response& response);
 
 	//! @brief move robot from point to point but using a pose as target (require invkin)
-	virtual bool movePTP_T(marvin_common::SerialDeviceMovePTP_T::Request& request,
-				  marvin_common::SerialDeviceMovePTP_T::Response& response);
+	virtual bool movePTP_T(caros_control_msgs::SerialDeviceMovePTP_T::Request& request,
+				  caros_control_msgs::SerialDeviceMovePTP_T::Response& response);
 
-	virtual bool servoQ(marvin_common::SerialDeviceMovePTP::Request& request,
-				  marvin_common::SerialDeviceMovePTP::Response& response);
+	virtual bool servoQ(caros_control_msgs::SerialDeviceMovePTP::Request& request,
+				  caros_control_msgs::SerialDeviceMovePTP::Response& response);
 
 	//! @brief move robot from point to point but using a pose as target (require invkin)
-	virtual bool servoT(marvin_common::SerialDeviceMovePTP_T::Request& request,
-				  marvin_common::SerialDeviceMovePTP_T::Response& response);
+	virtual bool servoT(caros_control_msgs::SerialDeviceMovePTP_T::Request& request,
+				  caros_control_msgs::SerialDeviceMovePTP_T::Response& response);
 
 
 	//! @brief move robot in a servoing fasion
-	virtual bool moveVelQ(marvin_common::SerialDeviceMoveVelQ::Request& request,
-				   marvin_common::SerialDeviceMoveVelQ::Response& response);
+	virtual bool moveVelQ(caros_control_msgs::SerialDeviceMoveVelQ::Request& request,
+				   caros_control_msgs::SerialDeviceMoveVelQ::Response& response);
 
-	virtual bool moveVelT(marvin_common::SerialDeviceMoveVelT::Request& request,
-				   marvin_common::SerialDeviceMoveVelT::Response& response);
+	virtual bool moveVelT(caros_control_msgs::SerialDeviceMoveVelT::Request& request,
+				   caros_control_msgs::SerialDeviceMoveVelT::Response& response);
 
 	//! move robot with a hybrid position/force control
-	virtual bool moveLinFC(marvin_common::SerialDeviceMoveLinFC::Request& request,
-				     	   marvin_common::SerialDeviceMoveLinFC::Response& response);
+	virtual bool moveLinFC(caros_control_msgs::SerialDeviceMoveLinFC::Request& request,
+				     	   caros_control_msgs::SerialDeviceMoveLinFC::Response& response);
 
 	//! hard stop the robot,
-	virtual bool stop(marvin_common::Stop::Request& request,
-					  marvin_common::Stop::Response& response);
+	virtual bool stop(caros_common_msgs::Stop::Request& request,
+					  caros_common_msgs::Stop::Response& response);
 
 	//! pause the robot, should be able to continue trajectory
 	//virtual bool pause(marvin_common::Pause::Request& request,
@@ -89,17 +106,17 @@ protected:
 	//								    marvin_common::ConfigBool::Request& response){return false;};
 
 
-	bool servoHandle(marvin_common::URServo::Request& request, marvin_common::URServo::Response& response);
-	bool servoQHandle(marvin_common::URServoQ::Request& request, marvin_common::URServoQ::Response& response);
+	bool servoHandle(caros_control_msgs::SerialDeviceMovePTP::Request& request, caros_control_msgs::SerialDeviceMovePTP::Response& response);
+	bool servoQHandle(caros_control_msgs::SerialDeviceMovePTP::Request& request, caros_control_msgs::SerialDeviceMovePTP::Response& response);
 
-	bool forceControlStart(marvin_common::SerialDeviceForceControlStart::Request& request,
-					    marvin_common::SerialDeviceForceControlStart::Response& response);
+	bool forceControlStart(caros_control_msgs::SerialDeviceForceControlStart::Request& request,
+					    caros_control_msgs::SerialDeviceForceControlStart::Response& response);
 
-	bool forceControlUpdate(marvin_common::SerialDeviceForceControlUpdate::Request& request,
-				 	 	 marvin_common::SerialDeviceForceControlUpdate::Response& response);
+	bool forceControlUpdate(caros_control_msgs::SerialDeviceForceControlUpdate::Request& request,
+				 	 	 caros_control_msgs::SerialDeviceForceControlUpdate::Response& response);
 
-	bool forceControlStop(marvin_common::SerialDeviceForceControlStop::Request& request,
-			 	 	   marvin_common::SerialDeviceForceControlStop::Response& response);
+	bool forceControlStop(caros_control_msgs::SerialDeviceForceControlStop::Request& request,
+			 	 	   caros_control_msgs::SerialDeviceForceControlStop::Response& response);
 
 
 
@@ -122,11 +139,11 @@ private:
 
 	rw::invkin::JacobianIKSolver::Ptr _iksolver;
 	rw::kinematics::State _state;
-    ros::ServiceServer _srvServo;
-    ros::ServiceServer _srvServoQ;
-    ros::ServiceServer _srvForceModeStart;
-    ros::ServiceServer _srvForceModeUpdate;
-    ros::ServiceServer _srvForceModeStop;
+	ros::ServiceServer _srvServo;
+	ros::ServiceServer _srvServoQ;
+	ros::ServiceServer _srvForceModeStart;
+	ros::ServiceServer _srvForceModeUpdate;
+	ros::ServiceServer _srvForceModeStop;
 
 	bool _useFTCollisionDetection;
 	double _driverTimeOffset;
@@ -140,7 +157,7 @@ private:
 	//rw::math::VelocityScrew6D<> _servoVelocity;
 
 	bool updateFTBias();
-	void addFTData(const marvin_common::WrenchData::ConstPtr& state);
+	void addFTData(const caros_control_msgs::WrenchData::ConstPtr& state);
  
 //	void servo();
     rw::math::QMetric::Ptr _q2cmetric;

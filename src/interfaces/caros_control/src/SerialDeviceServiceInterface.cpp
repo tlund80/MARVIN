@@ -38,10 +38,10 @@ void SerialDeviceServiceInterface::initNodeHandle(){
     _srvServoT = _nodeHnd.advertiseService("servoT", &SerialDeviceServiceInterface::servoT, this);
 
     _srvStop = _nodeHnd.advertiseService("stop", &SerialDeviceServiceInterface::stop, this);
-    _srvPause = _nodeHnd.advertiseService("pause", &SerialDeviceServiceInterface::pause, this);
-    _srvStart = _nodeHnd.advertiseService("start", &SerialDeviceServiceInterface::start, this);
+  //  _srvPause = _nodeHnd.advertiseService("pause", &SerialDeviceServiceInterface::pause, this);
+  //  _srvStart = _nodeHnd.advertiseService("start", &SerialDeviceServiceInterface::start, this);
 
-    _srvSafe = _nodeHnd.advertiseService("setSafeModeEnabled", &SerialDeviceServiceInterface::setSafeModeEnabled, this);
+ //   _srvSafe = _nodeHnd.advertiseService("setSafeModeEnabled", &SerialDeviceServiceInterface::setSafeModeEnabled, this);
 }
 
 void SerialDeviceServiceInterface::publish(const RobotState& state) {

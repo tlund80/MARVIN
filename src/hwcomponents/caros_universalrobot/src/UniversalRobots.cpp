@@ -1,6 +1,6 @@
 #include "UniversalRobots.hpp"
 
-#include <marvin_common_rw/RwRos.hpp>
+#include <caros/common.hpp>
 #include <rw/invkin/IKMetaSolver.hpp>
 #include <rw/math/MetricFactory.hpp>
 #include <rw/math/Wrench6D.hpp>
@@ -20,7 +20,7 @@ UniversalRobots::UniversalRobots(WorkCell::Ptr workcell,
 								 int looprate,
 								 const std::string& wrenchTopic,
 								 rwhw::FTCompensation::Ptr pFTCompensation):
-	SerialDeviceServiceInterface(properties.get<std::string>("Name")),
+	 SerialDeviceServiceInterface(properties.get<std::string>("Name")),
 	_loopRate(looprate),
 	_workcell(workcell),
 	_device(NULL),
@@ -32,12 +32,12 @@ UniversalRobots::UniversalRobots(WorkCell::Ptr workcell,
 
 	//_srvMoveLinFC = _nodeHnd->advertiseService("servoT", &UniversalRobots::servoHandle, this);
 
-    _srvServo = _nodeHnd->advertiseService("servo", &UniversalRobots::servoHandle, this);
-    _srvServoQ = _nodeHnd->advertiseService("servoq", &UniversalRobots::servoQHandle, this);
+    //_srvServo = _nodeHnd->advertiseService("servo", &UniversalRobots::servoHandle, this);
+    //_srvServoQ = _nodeHnd->advertiseService("servoq", &UniversalRobots::servoQHandle, this);
 
-    _srvForceModeStart = _nodeHnd->advertiseService("force_mode_start", &UniversalRobots::forceControlStart, this);
-    _srvForceModeUpdate = _nodeHnd->advertiseService("force_mode_update", &UniversalRobots::forceControlUpdate, this);
-    _srvForceModeStop = _nodeHnd->advertiseService("force_mode_stop", &UniversalRobots::forceControlStop, this);
+    _srvForceModeStart = _nodeHnd.advertiseService("force_mode_start", &UniversalRobots::forceControlStart, this);
+    _srvForceModeUpdate = _nodeHnd.advertiseService("force_mode_update", &UniversalRobots::forceControlUpdate, this);
+    _srvForceModeStop = _nodeHnd.advertiseService("force_mode_stop", &UniversalRobots::forceControlStop, this);
 
 
 	if (_workcell != NULL) {
@@ -62,17 +62,24 @@ UniversalRobots::UniversalRobots(WorkCell::Ptr workcell,
 	}
 
 	int port = _properties.get<int>("Port",33333);
-
+	ROS_INFO("Connecting to UR logger at port 30003!!");
 	_urrt.connect(ip, 30003);
+	ROS_INFO("... Done!");
 	//std::cout<<"Transfer Script: "<<scriptFile<<std::endl;
+	ROS_INFO("Connecting to UR at port 30001!!");
 	_ur.connect(ip, 30001);
-
+	ROS_INFO("... Done!");
+	ROS_INFO("Starting interface!");
 	_ur.startInterface(port);
+	ROS_INFO("... Done!");
+	
+	ROS_INFO("Starting logger!");
 	_urrt.start();
+	ROS_INFO("... Done!");
 
 
 	if (wrenchTopic != "") {
-		subFTData = _nodeHnd->subscribe(wrenchTopic, 1000, &UniversalRobots::addFTData, this);
+		subFTData = _nodeHnd.subscribe(wrenchTopic, 1000, &UniversalRobots::addFTData, this);
 	}
 
 /*	if (_pNetFT != NULL) {
@@ -87,7 +94,7 @@ UniversalRobots::UniversalRobots(WorkCell::Ptr workcell,
     weights(4) = 0.20;
     weights(5) = 0.20;
     _q2cmetric = MetricFactory::makeWeightedEuclidean(weights);
-
+    ROS_INFO("... Finish initializing!");
 }
 
 void UniversalRobots::stopDriver() {
@@ -96,7 +103,7 @@ void UniversalRobots::stopDriver() {
 	_urrt.stop();
 }
 
-void UniversalRobots::addFTData(const marvin_common::WrenchData::ConstPtr& state) {
+void UniversalRobots::addFTData(const caros_control_msgs::WrenchData::ConstPtr& state) {
 	rwhw::Wrench3D wrench;
 
 	wrench.first(0) = state->wrench.force.x;
@@ -202,11 +209,11 @@ void UniversalRobots::loop() {
 
 
 	if (urData.qActual.size() == 6) {
-		marvin_common::RobotState state;
+		caros_control_msgs::RobotState state;
 		_qcurrent = urData.qActual;
-		state.q = RwRos::toRos(urData.qActual);
-		state.dq = RwRos::toRos(urData.dqActual);
-		state.header.frame_id = _nodeHnd->getNamespace();
+		state.q = caros::toRos(urData.qActual);
+		state.dq = caros::toRos(urData.dqActual);
+		state.header.frame_id = _nodeHnd.getNamespace();
         state.header.stamp = ros::Time::now();
 		state.estopped = purData.emergencyStopped;
 		if(state.estopped){
@@ -236,28 +243,28 @@ void UniversalRobots::loop() {
 
 
 
-bool UniversalRobots::movePTP(marvin_common::SerialDeviceMovePTP::Request& request,
-							  marvin_common::SerialDeviceMovePTP::Response& response)
+bool UniversalRobots::movePTP(caros_control_msgs::SerialDeviceMovePTP::Request& request,
+							  caros_control_msgs::SerialDeviceMovePTP::Response& response)
 {
 	//ROS_INFO("Start movePTP");
 	boost::mutex::scoped_lock lock(_mutex);
-	for (size_t i = 0; i<request.targets.size(); i++) {
+	for (size_t i = 0; i<request.q_targets.size(); i++) {
 		double speed = 100;
 		if(request.speeds.size()<i)
 			speed = request.speeds[i];
-		_ur.moveQ(RwRos::toRw(request.targets[i]), speed);
+		_ur.moveQ(caros::toRw(request.q_targets[i]), speed);
 	}
 	return true;
 
 }
 
-bool UniversalRobots::movePTP_T(marvin_common::SerialDeviceMovePTP_T::Request& request,
-				  				marvin_common::SerialDeviceMovePTP_T::Response& response)
+bool UniversalRobots::movePTP_T(caros_control_msgs::SerialDeviceMovePTP_T::Request& request,
+				  				caros_control_msgs::SerialDeviceMovePTP_T::Response& response)
 {
 	boost::mutex::scoped_lock lock(_mutex);
 	for (size_t i = 0; i<request.targets.size(); i++) {
 		_device->setQ(_qcurrent, _state);
-		Transform3D<> target = RwRos::toRw(request.targets[i]);
+		Transform3D<> target = caros::toRw(request.targets[i]);
 		std::vector<Q> solutions = _iksolver->solve(target, _state);
 		if (solutions.size() == 0) {
 	        ROS_ERROR_STREAM("movePTP_T: Unable to find IK solution for: " << target << _qcurrent);
@@ -268,29 +275,30 @@ bool UniversalRobots::movePTP_T(marvin_common::SerialDeviceMovePTP_T::Request& r
 	return true;
 }
 
-bool UniversalRobots::servoQ(marvin_common::SerialDeviceMovePTP::Request& request,
-							  marvin_common::SerialDeviceMovePTP::Response& response)
+bool UniversalRobots::servoQ(caros_control_msgs::SerialDeviceMovePTP::Request& request,
+							  caros_control_msgs::SerialDeviceMovePTP::Response& response)
 {
     ROS_DEBUG_STREAM("servoq ");
 	//ROS_INFO("Start movePTP");
-	if(request.targets.size()>0){
-		rw::math::Q q = RwRos::toRw(request.targets[0]);
+	if(request.q_targets.size()>0){
+		rw::math::Q q = caros::toRw(request.q_targets[0]);
 		return servoQ( q );
 	}
 	return false;
 
 }
 
-bool UniversalRobots::servoT(marvin_common::SerialDeviceMovePTP_T::Request& request,
-				  				marvin_common::SerialDeviceMovePTP_T::Response& response)
+bool UniversalRobots::servoT(caros_control_msgs::SerialDeviceMovePTP_T::Request& request,
+				  			 caros_control_msgs::SerialDeviceMovePTP_T::Response& response)
 {
   ROS_DEBUG_STREAM("servoT ");
 	if(request.targets.size()>0){
-	  rw::math::Transform3D<> trans = RwRos::toRw(request.targets[0]);
+	  rw::math::Transform3D<> trans = caros::toRw(request.targets[0]);
 	  return servoT(trans  );
 	}
 	return false;
 }
+
 
 
 bool UniversalRobots::servoT(const rw::math::Transform3D<>& target) {
@@ -321,6 +329,7 @@ bool UniversalRobots::servoT(const rw::math::Transform3D<>& target) {
     }
 */
 	//std::cout<<"Servo Q Goal = "<<closest<<std::endl;
+
     ROS_DEBUG_STREAM("driver servoq: " << closest);
 	_ur.servo(closest);
 
@@ -367,13 +376,13 @@ bool UniversalRobots::safeMoveQ(const std::vector<rw::math::Q>& targets, const s
 }
 
 
-bool UniversalRobots::moveLin(marvin_common::SerialDeviceMoveLin::Request& request,
-		  				     marvin_common::SerialDeviceMoveLin::Response& response)
+bool UniversalRobots::moveLin(caros_control_msgs::SerialDeviceMoveLin::Request& request,
+		  				     caros_control_msgs::SerialDeviceMoveLin::Response& response)
 {
   ROS_DEBUG_STREAM("moveLin");
 	//boost::mutex::scoped_lock lock(_mutex);
 	for (size_t i = 0; i<request.targets.size(); i++) {
-		Transform3D<> target = RwRos::toRw(request.targets[i]);
+		Transform3D<> target = caros::toRw(request.targets[i]);
 		float speed = request.speeds[i];
 		_ur.moveT(target, speed);
 	}
@@ -418,11 +427,11 @@ bool UniversalRobots::safeMoveL(const std::vector<rw::math::Transform3D<> >& tar
 }
 
 
-bool UniversalRobots::servoQHandle(marvin_common::URServoQ::Request& request, marvin_common::URServoQ::Response& response) {
-	ROS_DEBUG("URServiceInterface::servoQHandle");
-	Q qtarget = RwRos::toRw(request.qtarget);
+bool UniversalRobots::servoQHandle(caros_control_msgs::SerialDeviceMovePTP::Request& request, caros_control_msgs::SerialDeviceMovePTP::Response& response) {
+	//ROS_DEBUG("URServiceInterface::servoQHandle");
+	//Q qtarget = caros::toRw(request.q_targets);
 
-	return servoQ(qtarget);
+	//return servoQ(qtarget);
 
 }
 
@@ -432,23 +441,23 @@ bool UniversalRobots::servoQ(const rw::math::Q& qtarget) {
     return true;
 }
 
-bool UniversalRobots::moveVelQ(marvin_common::SerialDeviceMoveVelQ::Request& request,
-			   marvin_common::SerialDeviceMoveVelQ::Response& response)
+bool UniversalRobots::moveVelQ(caros_control_msgs::SerialDeviceMoveVelQ::Request& request,
+			   caros_control_msgs::SerialDeviceMoveVelQ::Response& response)
 {
-	Q q_vel = RwRos::toRw(request.q_vel);
+	Q q_vel = caros::toRw(request.q_vel);
 	Q qtarget = _qcurrent + q_vel*0.1;
 	servoQ(qtarget);
 	return true;
 }
 
-bool UniversalRobots::moveVelT(marvin_common::SerialDeviceMoveVelT::Request& request,
-			   marvin_common::SerialDeviceMoveVelT::Response& response)
+bool UniversalRobots::moveVelT(caros_control_msgs::SerialDeviceMoveVelT::Request& request,
+			   caros_control_msgs::SerialDeviceMoveVelT::Response& response)
 {
 	boost::mutex::scoped_lock lock(_mutex);
-	VelocityScrew6D<> t_vel = RwRos::toRw(request.vel);
+	VelocityScrew6D<> t_vel = caros::toRw(request.vel);
 	_device->setQ(_qcurrent, _state);
 	Jacobian jac = _device->baseJend(_state);
-	Jacobian jacInv( LinearAlgebra::pseudoInverseEigen(jac.e()) );
+	Jacobian jacInv( LinearAlgebra::pseudoInverse(jac.e())); //pseudoInverseEigen(jac.e()) );
 
 	Q qtarget = _qcurrent + (jacInv*t_vel)*0.1;
 	servoQ(qtarget);
@@ -457,22 +466,22 @@ bool UniversalRobots::moveVelT(marvin_common::SerialDeviceMoveVelT::Request& req
 }
 
 
-
+/*
 bool UniversalRobots::servoHandle(marvin_common::URServo::Request& request, marvin_common::URServo::Response& response) {
     std::cout<<"Delay = "<<ros::Time::now() - request.stamp<<std::endl;
-	Transform3D<> target = RwRos::toRw(request.target);
+	Transform3D<> target = caros::toRw(request.target);
 
 	return servoT(target);
 }
+*/
 
-
-bool UniversalRobots::forceControlStart(marvin_common::SerialDeviceForceControlStart::Request& request,
-	   	    						 marvin_common::SerialDeviceForceControlStart::Response& response)
+bool UniversalRobots::forceControlStart(caros_control_msgs::SerialDeviceForceControlStart::Request& request,
+	   	    						 caros_control_msgs::SerialDeviceForceControlStart::Response& response)
 {
 	std::cout<<"Received force command"<<std::endl;
 	boost::mutex::scoped_lock lock(_mutex);
 
-	Transform3D<> refToffset = RwRos::toRw(request.base2forceFrame);
+	Transform3D<> refToffset = caros::toRw(request.base2forceFrame);
 
 	rw::math::Wrench6D<> wrenchTarget;
 	wrenchTarget(0) = request.wrench.force.x;
@@ -498,8 +507,8 @@ bool UniversalRobots::forceControlStart(marvin_common::SerialDeviceForceControlS
 	return true;
 }
 
-bool UniversalRobots::forceControlUpdate(marvin_common::SerialDeviceForceControlUpdate::Request& request,
-			 marvin_common::SerialDeviceForceControlUpdate::Response& response)
+bool UniversalRobots::forceControlUpdate(caros_control_msgs::SerialDeviceForceControlUpdate::Request& request,
+					 caros_control_msgs::SerialDeviceForceControlUpdate::Response& response)
 {
 	boost::mutex::scoped_lock lock(_mutex);
 
@@ -517,8 +526,8 @@ bool UniversalRobots::forceControlUpdate(marvin_common::SerialDeviceForceControl
 	return true;
 }
 
-bool UniversalRobots::forceControlStop(marvin_common::SerialDeviceForceControlStop::Request& request,
-		 marvin_common::SerialDeviceForceControlStop::Response& response)
+bool UniversalRobots::forceControlStop(caros_control_msgs::SerialDeviceForceControlStop::Request& request,
+		caros_control_msgs::SerialDeviceForceControlStop::Response& response)
 {
 	boost::mutex::scoped_lock lock(_mutex);
 
@@ -527,8 +536,8 @@ bool UniversalRobots::forceControlStop(marvin_common::SerialDeviceForceControlSt
 }
 
 
-bool UniversalRobots::moveLinFC(marvin_common::SerialDeviceMoveLinFC::Request& request,
-			     	   	   	    marvin_common::SerialDeviceMoveLinFC::Response& response)
+bool UniversalRobots::moveLinFC(caros_control_msgs::SerialDeviceMoveLinFC::Request& request,
+			     	   	   	    caros_control_msgs::SerialDeviceMoveLinFC::Response& response)
 {
 	boost::mutex::scoped_lock lock(_mutex);
 
@@ -541,8 +550,8 @@ bool UniversalRobots::moveLinFC(marvin_common::SerialDeviceMoveLinFC::Request& r
 	State state = _workcell->getDefaultState();
 	_device->setQ(_qcurrent, state);
 
-	Transform3D<> refTtarget = RwRos::toRw(request.pos_target);
-	Transform3D<> refToffset = RwRos::toRw(request.offset);
+	Transform3D<> refTtarget = caros::toRw(request.pos_target);
+	Transform3D<> refToffset = caros::toRw(request.offset);
 	Transform3D<> baseTref = Transform3D<>::identity();
 	Transform3D<> baseTtarget = baseTref*refTtarget;
 	Transform3D<> baseToffset = baseTref*refToffset;
@@ -595,8 +604,8 @@ bool UniversalRobots::moveLinFC(marvin_common::SerialDeviceMoveLinFC::Request& r
 
 
 
-bool UniversalRobots::stop(marvin_common::Stop::Request& request,
-						   marvin_common::Stop::Response& response)
+bool UniversalRobots::stop(caros_common_msgs::Stop::Request& request,
+						   caros_common_msgs::Stop::Response& response)
 {
 	_ur.stopRobot();
 	return true;

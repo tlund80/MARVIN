@@ -1,6 +1,10 @@
 #include <caros/common.hpp>
 
 #include <rw/math.hpp>
+#include <rw/models.hpp>
+#include <rw/loaders.hpp>
+
+#include <ros/ros.h>
 
 #include <caros_common_msgs/Q.h>
 
@@ -89,4 +93,45 @@ namespace caros {
         twist.angular.z = vs(5);
         return twist;
     }
+    
+    /**
+	 * @brief gets the workcell from parameter server.
+	 *
+	 * The workcell should be placed in /models/workcell in the
+	 * parameter server.
+	 *
+	 * @note requires that ros is initialized
+	 * @return
+	 */
+	rw::models::WorkCell::Ptr getWorkCell(){
+		return getWorkCell("/workcell");
+	}
+
+	/**
+	 * @brief gets the workcell from parameter server.
+	 *
+	 * The workcell should be placed in /models/workcell in the
+	 * parameter server.
+	 *
+	 * @note requires that ros is initialized
+	 * @param paramname [in] the name of the variable in  the parameter server
+	 * @return
+	 */
+	rw::models::WorkCell::Ptr getWorkCell(const std::string& paramname){
+		ros::NodeHandle node("~");
+		std::string workcellFile;
+		node.getParam(paramname, workcellFile);
+		ROS_INFO_STREAM("loading file: " << workcellFile );
+		if(workcellFile.empty()){
+		    ROS_ERROR_STREAM("No workcell file found on parameter 'workcell' " << workcellFile);
+		    return NULL;
+		}
+		ROS_INFO_STREAM("factory: "  );
+		rw::models::WorkCell::Ptr wc = rw::loaders::WorkCellFactory::load(workcellFile);
+		ROS_INFO_STREAM("factoryloaded: " );
+		return wc;
+	}
+
+    
+    
 } // namespace

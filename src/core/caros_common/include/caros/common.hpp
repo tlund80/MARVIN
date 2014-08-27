@@ -2,6 +2,8 @@
 #define CAROS_COMMON_H_
 
 #include <rw/math.hpp>
+#include <rw/models.hpp>
+#include <rw/loaders.hpp>
 
 #include <caros_common_msgs/Q.h>
 
@@ -46,6 +48,10 @@ namespace caros {
 
     //! convert VelocityScrew6D to Twist
     geometry_msgs::Twist toRos(const rw::math::VelocityScrew6D<>& vs);
+    
+    rw::models::WorkCell::Ptr getWorkCell();
+    
+    rw::models::WorkCell::Ptr getWorkCell(const std::string& paramname);
 
     /**
      * @} end of group

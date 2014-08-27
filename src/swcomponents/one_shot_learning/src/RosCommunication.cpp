@@ -1,4 +1,4 @@
-
+#include <QtGlobal>
 
 #include <one_shot_learning/RosCommunication.hpp>
 #include <ros/package.h>
@@ -48,15 +48,15 @@ bool RosCommunication::MoveRobotLinear(std::vector<rw::math::Transform3D<double>
 	
   caros_control_msgs::SerialDeviceMoveLinRequest _req; 
   caros_control_msgs::SerialDeviceMoveLinResponse _res;
-  BOOST_FOREACH(rw::math::Transform3D<double>& target, path) {
+/*  Q_FOREACH(rw::math::Transform3D<double>& target, path) {
     _req.targets.push_back(caros::toRos(target)); 
   }
-
-  BOOST_FOREACH(float& blend, blends) {
+*/
+ /* BOOST_FOREACH(float& blend, blends) {
     _req.blends.push_back(blend);
     _req.speeds.push_back(speed);
   }
-
+*/
   if(!_moveL_srv.call(_req,_res)) return false;
   
    Q_EMIT finish();
@@ -74,7 +74,7 @@ bool RosCommunication::MoveRobotJoint(std::vector<rw::math::Q>& q, std::vector<f
   caros_control_msgs::SerialDeviceMovePTPRequest _req;
   caros_control_msgs::SerialDeviceMovePTPResponse _res;
  
-  BOOST_FOREACH(rw::math::Q& target, q) {
+ /* BOOST_FOREACH(rw::math::Q& target, q) {
      caros_common_msgs::Q _q;
      _q.data[0] = target[0];
      _q.data[1] = target[1];
@@ -90,7 +90,7 @@ bool RosCommunication::MoveRobotJoint(std::vector<rw::math::Q>& q, std::vector<f
     _req.speeds.push_back(speed);
   }
 
-
+*/
   if(!_moveJ_srv.call(_req,_res)) return false;
   
     Q_EMIT finish();

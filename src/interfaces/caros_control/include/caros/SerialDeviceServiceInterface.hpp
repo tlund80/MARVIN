@@ -15,6 +15,9 @@
 #include <caros_control_msgs/SerialDeviceMoveVelT.h>
 #include <caros_control_msgs/SerialDeviceMoveLinFC.h>
 #include <caros_common_msgs/ConfigBool.h>
+#include <caros_common_msgs/Stop.h>
+#include <caros_common_msgs/Start.h>
+#include <caros_common_msgs/Pause.h>
 #include <std_srvs/Empty.h>
 
 #include <ros/ros.h>
@@ -76,17 +79,19 @@ protected:
 	                       caros_control_msgs::SerialDeviceMoveLinFC::Response& response) = 0;
 
 	//! hard stop the robot,
-	virtual bool start(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response) = 0;
+	//virtual bool start(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response) = 0;
+	//virtual bool start(caros_common_msgs::Start::Request& request, caros_common_msgs::Start::Response& response) = 0;
 
 	//! hard stop the robot,
-	virtual bool stop(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response) = 0;
-
+	//virtual bool stop(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response) = 0;
+	virtual bool stop(caros_common_msgs::Stop::Request& request, caros_common_msgs::Stop::Response& response) = 0;
+	
 	//! pause the robot, should be able to continue trajectory
-	virtual bool pause(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response) = 0;
+	//virtual bool pause(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response) = 0;
+	//virtual bool pause(caros_common_msgs::Pause::Request& request, caros_common_msgs::Pause::Response& response) = 0;
 
 	//! enable safe mode, so that robot stops when collisions are detected
-	virtual bool setSafeModeEnabled(caros_common_msgs::ConfigBool::Request& request,
-	                                    caros_common_msgs::ConfigBool::Response& response) = 0;
+	//virtual bool setSafeModeEnabled(caros_common_msgs::ConfigBool::Request& request,caros_common_msgs::ConfigBool::Response& response) = 0;
 
 	//! publish robot state
 	void publish(const caros_control_msgs::RobotState& state);

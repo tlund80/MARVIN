@@ -33,7 +33,7 @@ void PoseSensorSIProxy::handlePoseSensorState(const caros_sensor_msgs::PoseSenso
 	boost::mutex::scoped_lock lock(_mutex);
 	_poses.resize(state.poses.size());
 	_stamp = state.header.stamp;
-	for(int i=0;i<state.poses.size();i++){
+	for(int i=0;i<int(state.poses.size());i++){
 		PoseData &pdata = _poses[i];
 		pdata.pose = caros::toRw(state.poses[i]);
 		pdata.id = state.ids[i];
