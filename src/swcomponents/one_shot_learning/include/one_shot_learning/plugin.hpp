@@ -33,6 +33,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QMap>
+#include <QMutex>
 #include <stdio.h>
 
 #include <caros/common.hpp>
@@ -93,31 +94,36 @@ public:
     void model_data(int model_index);
 
 private:
-    QVTKWidget *qv;
-    QAction *myAction;
-    QAction *myLoadAction;
-    QAction *loadSolidGTAction;
+    QVTKWidget 				*qv;
+    QAction 				*myAction;
+    QAction 				*myLoadAction;
+    QAction 				*loadSolidGTAction;
     
-    rw::models::WorkCell::Ptr _rwc;
-    rw::kinematics::State _state;
-    rw::models::Device::Ptr _robot;
-    std::string _gripper_name;
+    QMutex 				_mutexState;
+    QMutex 				_mutexRWS;
+    QMutex 				_mutexRobot;
+    
+    rw::models::WorkCell::Ptr 		_rwc;
+    rw::kinematics::State 		_state;
+    rw::models::Device::Ptr 		_robot;
+    std::string 			_gripper_name;
     dti::grasp_planning::Grasp_sampler* _sampler;
-    grasp_planning::Workcell* _grasp_wc;
+    grasp_planning::Workcell* 		_grasp_wc;
     
     one_shot_learning::RosCommunication *rosComm;
-    one_shot_learning::ObjectModeller *modeller;
-    one_shot_learning::SharedData *sharedData;
+    one_shot_learning::ObjectModeller 	*modeller;
+    one_shot_learning::SharedData 	*sharedData;
     one_shot_learning::motion_planner::PlayBack* _pb; 
-    motion_planner::RobotController* _ctrl;
+    motion_planner::RobotController* 	_ctrl;
     
-    pcl::visualization::PCLVisualizer pviz;
-    QString m_name;
-    int modelling_cnt;
+    pcl::visualization::PCLVisualizer 	pviz;
+    QString 				m_name;
+    int 				modelling_cnt;
+    bool 				loaded;
     
-    QMap<int, ModelData> _models;
+    QMap<int, ModelData> 		_models;
 
-    
+private:    
     void init();
     void addModel(ModelData model);
     void addModelChild(QTreeWidgetItem *parent, QString name, QString size, QString extension, bool hasGraspTable);
@@ -126,6 +132,25 @@ private:
     void RefreshTreeWidget();
     bool removeDir(const QString & dirName);
     void stateChangedListener(const rw::kinematics::State& state);
+    void setState(const rw::kinematics::State& state){
+       QMutexLocker locker(&_mutexState);
+       _state = state;};
+    rw::kinematics::State getState(void){
+       QMutexLocker locker(&_mutexState);
+       return _state;};
+       
+    void setRobot(const rw::models::Device::Ptr robot){
+       QMutexLocker locker(&_mutexRobot);
+       _robot = robot;};
+    rw::models::Device::Ptr getRobot(void){
+       QMutexLocker locker(&_mutexState);
+       return _robot;};
+    
+    rws::RobWorkStudio* getRobWorkStudioSafe(void){
+       QMutexLocker locker(&_mutexRWS);
+       return getRobWorkStudio();};
+       
+    bool event(QEvent *event);
     
 
 private Q_SLOTS:
@@ -147,7 +172,8 @@ private Q_SLOTS:
 
     void consoleOut(QString msg);
     void closeEvent(QCloseEvent *event);
-    void updateRobotQ(rw::math::Q q);
+    void updateRobotQ(rw::math::Q q, QString robot_name);
+  //  void updateGripper(rw::math::Q q, QString gripper_name);
     void simulate(rw::trajectory::Path<rw::math::Q> path, QString device);
     
     void btnTestClicked();

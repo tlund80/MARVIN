@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include <iostream>
+#include <qt4/QtCore/qstring.h>
 #include <one_shot_learning/RosCommunication.hpp>
 
 //Motion planning includes
@@ -55,7 +56,7 @@ private:
 
 public Q_SLOTS:
     void motionDone();
-    void updateRobotQ(rw::math::Q q);
+    void updateRobotQ(rw::math::Q q, QString robot_name);
 
 Q_SIGNALS:
     void simulate(rw::trajectory::Path<rw::math::Q> path, QString device);

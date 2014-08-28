@@ -9,21 +9,9 @@
 #define RECONSTRUCTPOINTCLOUD_H_
 
 #include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/io/vtk_io.h>
-#include <pcl/io/obj_io.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/surface/mls.h>
-#include <pcl/surface/gp3.h>
-#include <pcl/surface/organized_fast_mesh.h>
-#include <pcl/surface/convex_hull.h>
-#include <pcl/surface/marching_cubes.h>
-#include <pcl/surface/marching_cubes_hoppe.h>
-#include <pcl/surface/grid_projection.h>
-#include <pcl/surface/bilateral_upsampling.h>
+#include <pcl/point_cloud.h>
+#include <pcl/PolygonMesh.h>
 
-#include <pcl/surface/poisson.h>
-#include <pcl/console/time.h>
 
 namespace dti{
 namespace one_shot_learning {

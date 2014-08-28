@@ -15,31 +15,16 @@
         <Property>
           <Name>DistanceUnit</Name>
           <Value>
-            <String>Centimeters</String>
+            <String>Meters</String>
           </Value>
         </Property>
         <Property>
           <Name>LastOpennedFiles</Name>
           <Value>
             <StringList>
-              <String>/home/thomas/dti_co_worker/trunk/common/Stacks/Marvin/MARVIN/apps/marvin/scene/Marvin.model.wc.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/Stacks/Marvin/MARVIN/sandbox/one_shot_learning/geometry/scene/empty_sdh_scene/empty_sdh_scene.wc.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/workcells/co-worker-mini-v2_carmine/co-worker_mini.wc.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/workcells/co-worker-demo-ur5-kvm/co-worker_ur5_kvm_v1.wc.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/workcells/IRFO_Workcell/IRFO_demo.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/Stacks/Marvin/MARVIN/apps/marvin/scene/Marvin_crafield.model.wc.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/Stacks/Marvin/MARVIN/apps/marvin/scene/Marvin_calibration_verify_ur1.model.wc.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/workcells/co-worker-mini-v1/co-worker_mini.wc.xml</String>
-              <String>/home/thomas/dti_co_worker/trunk/common/Stacks/Marvin/MARVIN/apps/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
-              <String>/home/thso/dti_co_worker/trunk/common/Stacks/Marvin/MARVIN/apps/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
-              <String>/home/thso/dti_co_worker/trunk/MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
+              <String>~MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
+              <String>/home/tsolund/MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
             </StringList>
-          </Value>
-        </Property>
-        <Property>
-          <Name>PluginArea_GTaskVisPlugin</Name>
-          <Value>
-            <Integer>1</Integer>
           </Value>
         </Property>
         <Property>
@@ -97,12 +82,6 @@
           </Value>
         </Property>
         <Property>
-          <Name>PluginFloating_GTaskVisPlugin</Name>
-          <Value>
-            <Boolean>false</Boolean>
-          </Value>
-        </Property>
-        <Property>
           <Name>PluginFloating_Jog</Name>
           <Value>
             <Boolean>false</Boolean>
@@ -152,12 +131,6 @@
         </Property>
         <Property>
           <Name>PluginFloating_plugin</Name>
-          <Value>
-            <Boolean>false</Boolean>
-          </Value>
-        </Property>
-        <Property>
-          <Name>PluginVisible_GTaskVisPlugin</Name>
           <Value>
             <Boolean>false</Boolean>
           </Value>
@@ -213,37 +186,31 @@
         <Property>
           <Name>PluginVisible_plugin</Name>
           <Value>
-            <Boolean>true</Boolean>
+            <Boolean>false</Boolean>
           </Value>
         </Property>
         <Property>
           <Name>PreviousOpenDirectory</Name>
           <Value>
-            <String>/home/thso/dti_co_worker/trunk/MARVIN/src/swcomponents/marvin/scene/</String>
+            <String>/home/tsolund/MARVIN/src/swcomponents/marvin/scene/</String>
           </Value>
         </Property>
         <Property>
           <Name>QtMainWindowState</Name>
           <Value>
-            <IntList>0 0 0 -1 0 0 0 0 -3 0 0 0 3 0 0 0 0 0 0 1 -79 0 0 2 3 -4 2 0 0 0 6 -5 0 0 0 6 0 74 0 111 0 103 1 0 0 0 40 0 0 2 3 0 0 0 103 0 -1 -1 -1 -5 0 0 0 16 0 84 0 114 0 101 0 101 0 86 0 105 0 101 0 119 0 0 0 0 -58 0 0 1 101 0 0 0 -101 0 -1 -1 -1 -5 0 0 0 24 0 80 0 114 0 111 0 112 0 101 0 114 0 116 0 121 0 86 0 105 0 101 0 119 0 0 0 1 75 0 0 1 123 0 0 0 -119 0 -1 -1 -1 -5 0 0 0 16 0 80 0 108 0 97 0 110 0 110 0 105 0 110 0 103 0 0 0 1 36 0 0 1 -94 0 0 1 -94 0 -1 -1 -1 -5 0 0 0 20 0 76 0 117 0 97 0 67 0 111 0 110 0 115 0 111 0 108 0 101 0 0 0 2 -47 0 0 0 -101 0 0 0 -101 0 -1 -1 -1 -5 0 0 0 28 0 71 0 84 0 97 0 115 0 107 0 86 0 105 0 115 0 80 0 108 0 117 0 103 0 105 0 110 0 0 0 0 40 0 0 3 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 -4 0 0 2 3 -4 2 0 0 0 3 -5 0 0 0 16 0 80 0 108 0 97 0 121 0 66 0 97 0 99 0 107 0 0 0 0 40 0 0 1 26 0 0 0 -115 0 -1 -1 -1 -5 0 0 0 6 0 76 0 111 0 103 1 0 0 0 40 0 0 2 3 0 0 0 103 0 -1 -1 -1 -5 0 0 0 14 0 83 0 101 0 110 0 115 0 111 0 114 0 115 0 0 0 1 26 0 0 0 -102 0 0 0 -102 0 -1 -1 -1 0 0 0 3 0 0 5 -1 0 0 1 59 -4 1 0 0 0 1 -5 0 0 0 12 0 112 0 108 0 117 0 103 0 105 0 110 1 0 0 0 0 0 0 5 -1 0 0 2 89 0 -1 -1 -1 0 0 2 70 0 0 2 3 0 0 0 4 0 0 0 4 0 0 0 8 0 0 0 8 -4 0 0 0 1 0 0 0 2 0 0 0 4 0 0 0 22 0 70 0 105 0 108 0 101 0 84 0 111 0 111 0 108 0 66 0 97 0 114 1 0 0 0 0 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 12 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 0 121 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 38 0 83 0 116 0 97 0 110 0 100 0 97 0 114 0 100 0 86 0 105 0 101 0 119 0 115 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 1 105 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 20 0 80 0 108 0 117 0 103 0 105 0 110 0 115 0 66 0 97 0 114 1 0 0 2 -120 -1 -1 -1 -1 0 0 0 0 0 0 0 0</IntList>
-          </Value>
-        </Property>
-        <Property>
-          <Name>RWSimLastnnedDIR</Name>
-          <Value>
-            <String></String>
+            <IntList>0 0 0 -1 0 0 0 0 -3 0 0 0 3 0 0 0 0 0 0 2 -108 0 0 2 -86 -4 2 0 0 0 5 -5 0 0 0 6 0 74 0 111 0 103 1 0 0 0 40 0 0 2 -86 0 0 0 103 0 -1 -1 -1 -5 0 0 0 16 0 84 0 114 0 101 0 101 0 86 0 105 0 101 0 119 0 0 0 0 0 -1 -1 -1 -1 0 0 0 -101 0 -1 -1 -1 -5 0 0 0 24 0 80 0 114 0 111 0 112 0 101 0 114 0 116 0 121 0 86 0 105 0 101 0 119 0 0 0 0 0 -1 -1 -1 -1 0 0 0 -119 0 -1 -1 -1 -5 0 0 0 16 0 80 0 108 0 97 0 110 0 110 0 105 0 110 0 103 0 0 0 0 0 -1 -1 -1 -1 0 0 1 -94 0 -1 -1 -1 -5 0 0 0 20 0 76 0 117 0 97 0 67 0 111 0 110 0 115 0 111 0 108 0 101 0 0 0 0 0 -1 -1 -1 -1 0 0 0 -101 0 -1 -1 -1 0 0 0 1 0 0 0 0 0 0 0 0 -4 2 0 0 0 1 -5 0 0 0 14 0 83 0 101 0 110 0 115 0 111 0 114 0 115 0 0 0 0 0 -1 -1 -1 -1 0 0 0 -102 0 -1 -1 -1 0 0 0 3 0 0 7 63 0 0 1 72 -4 1 0 0 0 3 -5 0 0 0 12 0 112 0 108 0 117 0 103 0 105 0 110 1 0 0 0 0 0 0 7 63 0 0 2 89 0 -1 -1 -1 -5 0 0 0 6 0 76 0 111 0 103 0 0 0 0 0 -1 -1 -1 -1 0 0 0 79 0 -1 -1 -1 -5 0 0 0 16 0 80 0 108 0 97 0 121 0 66 0 97 0 99 0 107 0 0 0 0 0 -1 -1 -1 -1 0 0 0 -100 0 -1 -1 -1 0 0 4 -91 0 0 2 -86 0 0 0 4 0 0 0 4 0 0 0 8 0 0 0 8 -4 0 0 0 1 0 0 0 2 0 0 0 4 0 0 0 22 0 70 0 105 0 108 0 101 0 84 0 111 0 111 0 108 0 66 0 97 0 114 1 0 0 0 0 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 12 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 0 121 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 38 0 83 0 116 0 97 0 110 0 100 0 97 0 114 0 100 0 86 0 105 0 101 0 119 0 115 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 1 105 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 20 0 80 0 108 0 117 0 103 0 105 0 110 0 115 0 66 0 97 0 114 1 0 0 2 -120 -1 -1 -1 -1 0 0 0 0 0 0 0 0</IntList>
           </Value>
         </Property>
         <Property>
           <Name>WindowHeight</Name>
           <Value>
-            <Integer>876</Integer>
+            <Integer>1056</Integer>
           </Value>
         </Property>
         <Property>
           <Name>WindowPosX</Name>
           <Value>
-            <Integer>58</Integer>
+            <Integer>65</Integer>
           </Value>
         </Property>
         <Property>
@@ -255,7 +222,7 @@
         <Property>
           <Name>WindowWidth</Name>
           <Value>
-            <Integer>1535</Integer>
+            <Integer>1855</Integer>
           </Value>
         </Property>
       </PropertyMap>

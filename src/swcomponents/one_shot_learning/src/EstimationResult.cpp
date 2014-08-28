@@ -1,5 +1,8 @@
-
 #include <one_shot_learning/EstimationResult.hpp>
+
+#include <QDir>
+#include <QTextStream>
+#include <QDateTime>
 
 namespace dti{
 namespace one_shot_learning {

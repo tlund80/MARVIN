@@ -1,7 +1,28 @@
-#include <QtGlobal>
-
 #include <one_shot_learning/RosCommunication.hpp>
+
 #include <ros/package.h>
+#include <std_srvs/Empty.h>
+
+#include <pcl/ros/conversions.h>
+#include <qt4/QtCore/QString>
+#include <pcl_conversions/pcl_conversions.h>
+
+//Marvin
+#include <caros_control_msgs/SerialDeviceMoveLin.h>
+#include <caros_control_msgs/SerialDeviceMovePTP.h>
+#include <caros_common_msgs/Stop.h>
+#include <caros_common_msgs/Pause.h>
+#include <caros/common.hpp>
+
+//SDH
+#include <caros_control_msgs/GripperMoveQ.h>
+#include <caros_control_msgs/GripperGripQ.h>
+//#include <marvin_common/SDHStop.h>
+//#include <marvin_common/SDHPause.h>
+
+// Services
+#include <pose_estimation_covis/estimate.h>
+#include <pose_estimation_covis/prepareEstimation.h>
 
 namespace dti{
 namespace one_shot_learning {
@@ -112,12 +133,33 @@ bool RosCommunication::StopRobot()
   return _res.success;
 }
 
+bool RosCommunication::InitializeSDH(void)
+{
+  ros::start(); // explicitly needed since our nodehandle is going out of scope.
+  ros::NodeHandle n;
+  ros::ServiceClient _srv_configure = n.serviceClient<std_srvs::Empty>("/caros_sdh/caros_node/configure");
+  ros::ServiceClient _srv_start = n.serviceClient<std_srvs::Empty>("/caros_sdh/caros_node/start");
+  std_srvs::EmptyRequest _req; std_srvs::EmptyResponse _res;
+  if(!_srv_configure.call(_req,_res)){
+    ROS_ERROR("Something went wrong when configuring the sdh gripper!");
+    return false;
+  }
+  
+  if(!_srv_start.call(_req,_res)){
+    ROS_ERROR("Something went wrong when starting the sdh gripper!");
+    return false;
+  }
+
+  return true;
+}
+
+
 bool RosCommunication::SDHStop()
 {
   ros::start(); // explicitly needed since our nodehandle is going out of scope.
   ros::NodeHandle n;
   
-  _SDH_stop_srv = n.serviceClient<caros_common_msgs::Stop>("sdh/Stop");
+  _SDH_stop_srv = n.serviceClient<caros_common_msgs::Stop>("/caros_sdh/caros_gripper_service_interface/stop_movement");
 	
   caros_common_msgs::StopRequest _req;
   caros_common_msgs::StopResponse _res; 
@@ -145,13 +187,13 @@ bool RosCommunication::SDHGrasp(rw::math::Q &q)
   ros::start(); // explicitly needed since our nodehandle is going out of scope.
   ros::NodeHandle n;
   
-  _SDH_grasp_srv = n.serviceClient<caros_control_msgs::GripperGripQ>("sdh/GripperGripQ");
+  _SDH_grasp_srv = n.serviceClient<caros_control_msgs::GripperGripQ>("/caros_sdh/caros_gripper_service_interface/grip_q");
   
   caros_control_msgs::GripperGripQRequest _req;
   caros_control_msgs::GripperGripQResponse _res;
  
-  for(int i = 0;i==int(q.size()); i++)
-    _req.q.data[i] = q[i];
+  for(unsigned int i = 0;i<q.size(); i++)
+    _req.q.data.push_back(q[i]);
   
   if(!_SDH_grasp_srv.call(_req,_res)) return false;
   
@@ -165,14 +207,14 @@ bool RosCommunication::SDHMoveQ(rw::math::Q &q)
   ros::start(); // explicitly needed since our nodehandle is going out of scope.
   ros::NodeHandle n;
   
-  _SDH_move_srv = n.serviceClient<caros_control_msgs::GripperMoveQ>("sdh/GripperMoveQ");
+  _SDH_move_srv = n.serviceClient<caros_control_msgs::GripperMoveQ>("/caros_sdh/caros_gripper_service_interface/move_q");
 	
   caros_control_msgs::GripperMoveQRequest _req;
   caros_control_msgs::GripperMoveQResponse _res;
   
-  for(int i = 0;i==int(q.size()); i++)
-    _req.q.data[i] = q[i];
-  
+  for(unsigned int i = 0;i< q.size(); i++)
+     _req.q.data.push_back(q[i]);
+     
   if(!_SDH_move_srv.call(_req,_res)) return false;
   
   Q_EMIT finish();
@@ -200,25 +242,48 @@ void RosCommunication::cloudCallBack(const sensor_msgs::PointCloud2ConstPtr& inp
 
 void RosCommunication::robotCallBack(const caros_control_msgs::RobotStateConstPtr& msg) 
 {
-  //  std::cout << "robotCallBack" << std::endl;
+   //std::cout << "robotCallBack" std::cout <<
+   //std::cout << msg->q.data[0] << " " << msg->q.data[1] << " " << msg->q.data[2] << " " << msg->q.data[3] << " " << msg->q.data[4] << " " << msg->q.data[5]<< std::endl;
+  QString  _robot_name =  QString::fromStdString(msg->header.frame_id);
   
   if(msg->isColliding) std::cout << "============ Robot is Colliding!! =============" << std::endl;
   if(msg->estopped) std::cout << "============ Robot is in emergency stop!! =============" << std::endl;
   //if(msg->securityStopped) std::cout << "============ Robot is in security stop!! =============" << std::endl; 
   
-  rw::math::Q _q;
-  for(int i = 0; i= msg->q.data.size(); i++)
+  rw::math::Q _q(int(msg->q.data.size()),0.0);
+  for(unsigned int i = 0; i < msg->q.data.size(); i++)
      _q[i] = msg->q.data[i];
   
-  rw::math::Q _vel;
-  for(int i = 0; i= msg->dq.data.size(); i++)
+
+  rw::math::Q _vel(int(msg->dq.data.size()),0.0);
+  for(unsigned int i = 0; i< msg->dq.data.size(); i++)
      _vel[i] = msg->dq.data[i];
   
   _sharedData->setRobotMoving(msg->isMoving);
   _sharedData->setRobotQ(_q);
   _sharedData->setRobotJointVelocity(_vel);
   
-  Q_EMIT robotPose(_q);
+   Q_EMIT robotPose(_q, _robot_name);
+  
+}
+
+void RosCommunication::sdhCallBack(const caros_control_msgs::GripperStateConstPtr& msg) 
+{
+   QString  _gripper_name = "SDH";
+
+  if(msg->isBlocked) std::cout << "============ Gripper is Blocked!! =============" << std::endl;
+  if(msg->estopped) std::cout << "============ Gripper is in emergency stop!! =============" << std::endl;
+  
+  rw::math::Q _q(int(msg->q.data.size()),0.0);
+  for(unsigned int i = 0; i < msg->q.data.size(); i++)
+     _q[i] = msg->q.data[i];
+  
+
+  rw::math::Q _vel(int(msg->dq.data.size()),0.0);
+  for(unsigned int i = 0; i< msg->dq.data.size(); i++)
+     _vel[i] = msg->dq.data[i];
+ 
+  //Q_EMIT gipperconfiguration(_q, _gripper_name);
 }
 
 void RosCommunication::run() {
@@ -230,7 +295,7 @@ void RosCommunication::StartRobotSubscriber()
 {
   ros::start(); // explicitly needed since our nodehandle is going out of scope.
   ros::NodeHandle n;
-  _sub_robotState = n.subscribe("/universalrobots/RobotState",1,&RosCommunication::robotCallBack,this);
+  if(!_sub_robotState) _sub_robotState = n.subscribe("/UR1/RobotState",1,&RosCommunication::robotCallBack,this);
 }
 
 void RosCommunication::StartPPSubscriber() 
@@ -238,7 +303,16 @@ void RosCommunication::StartPPSubscriber()
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
 	ros::NodeHandle n;
 	
-	sub_pointCloud = n.subscribe("/global/cloud_pcd",1,&RosCommunication::cloudCallBack,this);
+	if(!sub_pointCloud) sub_pointCloud = n.subscribe("/global/cloud_pcd",1,&RosCommunication::cloudCallBack,this);
+  
+}
+
+void RosCommunication::StartSDHSubscriber() 
+{
+	ros::start(); // explicitly needed since our nodehandle is going out of scope.
+	ros::NodeHandle n;
+	
+	if(!_sub_sdhState) _sub_sdhState = n.subscribe("/caros_sdh/caros_gripper_service_interface/GripperState",1,&RosCommunication::sdhCallBack,this);
   
 }
   

@@ -12,6 +12,7 @@
 #include <one_shot_learning/plugin.hpp>
 #include <rws/RobWorkStudio.hpp>
 #include <rw/common/Log.hpp>
+#include <qt4/QtGui/QMessageBox>
 #include <QStringList>
 
 using namespace rw::math;
@@ -37,23 +38,16 @@ One_shot_learning::One_shot_learning(): rws::RobWorkStudioPlugin("plugin", QIcon
      
       //Registre Qt meta types
      qRegisterMetaType<pcl::PointCloud<pcl::PointXYZRGBA> >("pcl::PointCloud<pcl::PointXYZRGBA>");
-     qRegisterMetaType<pcl::PolygonMesh>("pcl::PolygonMesh");
-    
-    
+     qRegisterMetaType<pcl::PolygonMesh>("pcl::PolygonMesh"); 
+     QCoreApplication::processEvents();
+         
     sharedData = new SharedData();
     rosComm = new RosCommunication(sharedData);
-    rosComm->StartPPSubscriber();
-    rosComm->StartRobotSubscriber();
     modeller = new ObjectModeller(sharedData);
     _ctrl = new  motion_planner::RobotController(rosComm);
     _grasp_wc = new dti::grasp_planning::Workcell();
-    
-   
   
      modelling_cnt = 0; // number of refinement steps
-       
-     init();
-    
 }
 
 One_shot_learning::~One_shot_learning()
@@ -72,12 +66,61 @@ One_shot_learning::~One_shot_learning()
 void One_shot_learning::initialize()
 {
    Q_EMIT consoleOutSig("Initializing workcell!");
-  
+      loaded =false;
   //  rw::models::WorkCell::Ptr rwc =  getRobWorkStudio()->getWorkcell();
-    getRobWorkStudio()->stateChangedEvent().add(boost::bind(&One_shot_learning::stateChangedListener,this,_1), this);
+    getRobWorkStudioSafe()->stateChangedEvent().add(boost::bind(&One_shot_learning::stateChangedListener,this,_1), this);
+    
+   
+ 
+}
+
+void One_shot_learning::open(WorkCell* workcell)
+{
+   //Get or update workcell pointer
+   _rwc =  workcell;
+   _pb = new motion_planner::PlayBack(_rwc,0.15);
+   _pb->setRobworkStudio(getRobWorkStudioSafe());
+    
+}
+
+bool One_shot_learning::event(QEvent *event)
+{
+ if((event->type() == QEvent::WindowActivate))
+ {
+   //Window is loaded for the first time
+   if(!loaded)
+   {
+    loaded = true;
+    init();
+  
+ //   QMessageBox msgBox(this); msgBox.setText("Loading avaliable models. Please wait!"); msgBox.setWindowTitle("Loading models");
+ //   msgBox.setWindowModality(Qt::NonModal);
+ //   msgBox.show();
+    RefreshTreeWidget();
+    rosComm->StartPPSubscriber();
+    rosComm->StartRobotSubscriber();
+    if(!rosComm->InitializeSDH()) RW_THROW("Could not initialize the SDH node. Are you sure the node is running!");
+    rosComm->StartSDHSubscriber();  
+   }
+ }
+  
+}
+void One_shot_learning::close()
+{
+
+}
+
+void One_shot_learning::stateChangedListener(const rw::kinematics::State& state) {
+  setState(state);
+    //_state = state;
+   // std::cout << "new state" << std::endl;
+}
+
+
+void One_shot_learning::init()
+{
     
     const int w = Ui_plugin::treeWidget->width();
-    std::cout << "width: " << w << std::endl;
     Ui_plugin::treeWidget->setColumnCount(4);
     Ui_plugin::treeWidget->setColumnWidth(0,w/4);
     Ui_plugin::treeWidget->setColumnWidth(1,w/4);
@@ -109,18 +152,8 @@ void One_shot_learning::initialize()
   //  Ui_plugin::treeWidget->addAction(myLoadAction);
   //  Ui_plugin::treeWidget->addAction(loadSolidGTAction);
     Ui_plugin::treeWidget->addAction(myAction);
-    
-    RefreshTreeWidget();
-}
 
-void One_shot_learning::open(WorkCell* workcell)
-{
-   //Get or update workcell pointer
-   _rwc =  workcell;
-  //  _ctrl->initialize(_rwc, "UR1");
-    _pb = new motion_planner::PlayBack(_rwc,0.15);
-    _pb->setRobworkStudio(getRobWorkStudio());
-    
+  
     comboBoxRobot->clear();
     comboBoxGripper->clear();
     comboBoxGripperGraspGeneration->clear();
@@ -147,32 +180,20 @@ void One_shot_learning::open(WorkCell* workcell)
     comboBoPEMethod->addItem("CoViS");
     
     //Add robots
-    std::vector<Device::Ptr> devices = _rwc->getDevices();  
-    //if(devices.size() < 1)
-//	RW_THROW("Can't find any device!!. Please load a workcell!!");
+    std::vector<Device::Ptr> devices = _rwc->getDevices();
+    setRobot(devices[1]);
+    if(devices.size() < 1)
+	RW_THROW("Can't find any device!!. Please load a workcell!!");
     
     for (std::vector<Device::Ptr>::iterator it = devices.begin(); it != devices.end(); ++it) {
       QString _name = QString::fromStdString((*it)->getName());
         if(_name.compare("SDH") == 0 || _name.compare("PG70") == 0) comboBoxGripper->addItem(_name);
 	else comboBoxRobot->addItem(_name);
     }
-}
-
-void One_shot_learning::close()
-{
-
-}
-
-void One_shot_learning::stateChangedListener(const rw::kinematics::State& state) {
-    _state = state;
-}
-
-
-void One_shot_learning::init()
-{
+  
     QObject::connect(rosComm, SIGNAL(rosShutdown()), this, SLOT(close()));
     connect(rosComm, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection);
-    connect(rosComm, SIGNAL(robotPose(rw::math::Q)), this, SLOT(updateRobotQ(rw::math::Q)), Qt::DirectConnection);
+    connect(rosComm, SIGNAL(robotPose(rw::math::Q,QString)), this, SLOT(updateRobotQ(rw::math::Q, QString)), Qt::DirectConnection);
     connect(modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection);
     connect(modeller, SIGNAL(modelCreated(pcl::PointCloud<pcl::PointXYZRGBA>)), this, SLOT(modelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA>)), Qt::UniqueConnection);
     connect(modeller, SIGNAL(solidModelCreated(pcl::PointCloud<pcl::PointXYZRGBA>,pcl::PolygonMesh)), this, SLOT(solidModelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA>,pcl::PolygonMesh)), Qt::UniqueConnection);
@@ -198,7 +219,7 @@ void One_shot_learning::init()
 void One_shot_learning::simulate(rw::trajectory::Path<rw::math::Q> _path,QString device)
 {
   //Visulize the path
-  rw::models::Device::Ptr _device = getRobWorkStudio()->getWorkcell()->findDevice(device.toStdString());
+  rw::models::Device::Ptr _device = getRobWorkStudioSafe()->getWorkcell()->findDevice(device.toStdString());
   
   if(!_device) RW_THROW("No " << " device for simulation!");
    _pb->setDevice(_device);
@@ -208,12 +229,52 @@ void One_shot_learning::simulate(rw::trajectory::Path<rw::math::Q> _path,QString
 
 void One_shot_learning::btnTestClicked()
 {
-  _ctrl->motionDone();
+  //_ctrl->motionDone();
+  
+ 
+  Q openQ1(6,-2.001, -1.998, -1.373 ,-1.572, 0.0, 0.0);
+  State s = getState();
+  getRobot()->setQ(openQ1, s);
+  
+  
+  /*  rw::math::Q openQ(7,-1.571,-1.571,1.571, -0.296, 0.240, -0.296, 0.240);
+    Q openQ1(7,-1.048, 0.174, 1.047 ,-1.048, 0.174, -1.048, 0.174);
+    if(rosComm->SDHMoveQ(openQ)){
+      for(int i = 0; i<2000000000; i++);
+      rosComm->SDHMoveQ(openQ1);
+    }
+  */
 }
 
-void One_shot_learning::updateRobotQ(rw::math::Q q)
+void One_shot_learning::updateRobotQ(rw::math::Q q, QString robot_name)
 {
-   _robot->setQ(q, _state); 
+   std::cout << "updateRobotQ" << std::endl;
+  QStringList l = robot_name.split("/");
+  Device::Ptr _rob;
+  rw::math::Q goal(6,-1.6007, -1.7271, -2.203, -0.808, 1.5951, -0.031);
+/*  if(_rwc){
+    try{
+    _rob = _rwc->findDevice(l[1].toStdString());
+    }catch(rw::common::Exception &e)
+    {
+      RW_THROW(e.what());
+    }
+    if(!_rob) RW_THROW("Could not find device!");
+  }
+  */
+  if(getRobot() && (goal.size() == getRobot()->getDOF())){;
+    rw::kinematics::State s= getState();
+     std::cout << "hej" << std::endl;
+     try{
+      //getRobot()->setQ(goal, s);
+     }catch(rw::common::Exception &e){
+      RW_THROW(e.what());
+    }
+     std::cout << "hej" << std::endl;
+   //getRobWorkStudio()->setState(s);
+  }
+
+  
 }
 
 void One_shot_learning::loadSolidGTModel()
@@ -783,8 +844,7 @@ void One_shot_learning::RefreshTreeWidget()
     
     if(loadModels())
     {
-      std::cout << "models: " << _models.size() << std::endl;
-      
+     // std::cout << "models: " << _models.size() << std::endl;
       for(int i = 0; i<=_models.size()-1; i++)
       {
 	ModelData _data = _models.find(i).value();
@@ -1003,9 +1063,9 @@ void One_shot_learning::addModelChild(QTreeWidgetItem *parent, QString name, QSt
 void One_shot_learning::comboBoxRobot_changed(int item)
 {
   QString text = comboBoxRobot->itemText(item);
-  _robot = _rwc->findDevice(text.toStdString());
+  setRobot(_rwc->findDevice(text.toStdString()));
   
-  //RW_THROW("Robot changed!!");
+ // if(!_robot) //RW_THROW("No device! ");
 }
 
 void One_shot_learning::comboBoxGripper_changed(int item)

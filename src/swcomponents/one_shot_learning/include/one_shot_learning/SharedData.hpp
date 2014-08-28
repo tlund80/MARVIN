@@ -12,10 +12,12 @@
 
 #include <rw/math/Q.hpp>
 
-#include <QMutex>
-#include <QDir>
 #include <cmath>
 #include <vector>
+
+#include <QMutex>
+#include <QDir>
+
 
 namespace dti{
 namespace one_shot_learning {
@@ -111,7 +113,7 @@ public:
 	
 	bool getIsRobotMoving(void)
 	{
-	  QMutexLocker locker(&_mutexrobotVel);
+	  QMutexLocker locker(&_mutexisMoving);
 	  return _isMoving;
 	}
 };

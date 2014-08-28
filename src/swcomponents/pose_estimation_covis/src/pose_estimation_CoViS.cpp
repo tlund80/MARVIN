@@ -448,7 +448,7 @@ bool local(const boost::uuids::uuid& uid, const KMatrix<>& pose_guess, const std
    }
 
    // Get result
-   Detection detection = align.getStrongHypotheses().front();
+   Detection detection = align.getHypotheses().front();// getStrongHypotheses().front();
    detection.idx = model->getIDX();
    detection.label = model->getModelName();
 

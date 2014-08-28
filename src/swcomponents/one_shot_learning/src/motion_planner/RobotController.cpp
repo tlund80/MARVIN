@@ -16,7 +16,7 @@ RobotController::RobotController(one_shot_learning::RosCommunication *rosComm)
   _speed = 0.5;
   
    connect(_rosComm, SIGNAL(finish()), this, SLOT(motionDone()), Qt::UniqueConnection);
-   connect(_rosComm, SIGNAL(robotPose(rw::math::Q)), this, SLOT(updateRobotQ(rw::math::Q)), Qt::DirectConnection);
+  // connect(_rosComm, SIGNAL(robotPose(rw::math::Q, QString)), this, SLOT(updateRobotQ(rw::math::Q, QString)), Qt::DirectConnection);
 
   
 }
@@ -235,7 +235,7 @@ void RobotController::graspObject(rw::math::Transform3D<double> pose)
     _motionState = MOVE_TO_GRASP; 
 }
 
-void RobotController::updateRobotQ(rw::math::Q q)
+void RobotController::updateRobotQ(rw::math::Q q, QString robot_name)
 {
     _currentQ = q;
 }

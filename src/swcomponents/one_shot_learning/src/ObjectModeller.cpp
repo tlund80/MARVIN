@@ -1,5 +1,23 @@
-
 #include <one_shot_learning/ObjectModeller.hpp>
+
+//--------------PCL Includes-------------------
+//#include <pcl_ros/transforms.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/crop_box.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/common/pca.h>
+#include <pcl/exceptions.h>
+#include <pcl/features/fpfh.h>
+#include <pcl/registration/ia_ransac.h>
+
+#include <pcl/registration/icp.h>
+#include <pcl/registration/icp_nl.h>
 
 namespace dti{
 namespace one_shot_learning {

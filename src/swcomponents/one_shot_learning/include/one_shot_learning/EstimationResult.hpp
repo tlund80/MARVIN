@@ -1,7 +1,4 @@
 #include <QString>
-#include <QDir>
-#include <QTextStream>
-#include <QDateTime>
 #include <geometry_msgs/Transform.h>
 
 namespace dti{
