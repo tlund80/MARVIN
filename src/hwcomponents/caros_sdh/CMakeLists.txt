@@ -12,6 +12,13 @@ set(library_name ${PROJECT_NAME})
 #find_package(catkin REQUIRED COMPONENTS message_generation std_msgs geometry_msgs caros_common)
 find_package(catkin REQUIRED COMPONENTS roscpp rosconsole caros_common caros_control)
 
+find_package(
+  CoViS
+  REQUIRED
+  #HINTS $ENV{DTI_COMMON_ROOT}/CoViS
+)
+LINK_DIRECTORIES(${COVIS_LIBRARY_DIRS})
+
 ########################################################################
 #### RobWork
 #### TODO:
@@ -184,6 +191,7 @@ target_link_libraries(sdh_node
   ${ROBWORK_LIBRARIES}
   ${ROBWORKHARDWARE_LIBRARIES}
   ${PEAKCAN_LIBRARIES}
+ ${COVIS_LIBRARIES}
   ${caros_common_LIBRARIES}
   ${caros_control_LIBRARIES}
   ${catkin_LIBRARIES}
