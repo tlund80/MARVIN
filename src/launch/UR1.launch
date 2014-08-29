@@ -1,11 +1,20 @@
 <?xml version="1.0"?>
 <launch>
 	<!--UR1 -->
-	 <param name="/workcell" value="$(find marvin)/scene/Marvin.model.wc.xml"/>			
-	 <param name="properties" value="$(find universalrobot)/ur1.prop.xml"/>
+	 
+<group ns="/">
+	<!--<node name="UR1" pkg="universalrobot" type="ur" respawn="false"/> --><!--machine="tek-marvin-4"-->
 
-	<node name="UR1" pkg="universalrobot" type="ur" respawn="false"/> <!--machine="tek-marvin-4"-->
+		<param name="workcell" value="$(find marvin)/scene/Marvin.model.wc.xml"/>			
+		<param name="properties" value="$(find universalrobot)/ur1.prop.xml"/>
 	
         <node name="caros_sdh" pkg="caros_sdh" type="sdh_node" respawn="true"/> <!-- machine="marvin-4"/>-->
+</group>
+
+<!--<group ns="ur2">-->
+	<!--<node name="UR2" pkg="universalrobot" type="ur" respawn="false"/>--> <!--machine="tek-marvin-4"-->
+		<!--<param name="workcell" value="$(find marvin)/scene/Marvin.model.wc.xml"/>			
+		<param name="properties" value="$(find universalrobot)/ur2.prop.xml"/>
+</group>-->
 	<!--<node name="kinect_vibrator" pkg="kinect_vibrator" type="kinectVibratorTest" respawn="false" machine="marvin-4"/>-->
 </launch>
