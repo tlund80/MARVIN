@@ -102,6 +102,9 @@ private:
     QMutex 				_mutexState;
     QMutex 				_mutexRWS;
     QMutex 				_mutexRobot;
+    QMutex				_mutexRWSUp;
+    
+    QTimer				*_updateTimer;
     
     rw::models::WorkCell::Ptr 		_rwc;
     rw::kinematics::State 		_state;
@@ -173,7 +176,8 @@ private Q_SLOTS:
     void consoleOut(QString msg);
     void closeEvent(QCloseEvent *event);
     void updateRobotQ(rw::math::Q q, QString robot_name);
-  //  void updateGripper(rw::math::Q q, QString gripper_name);
+    void updateRobWorkStudio(void);
+    void updateGripperQ(rw::math::Q q, QString gripper_name);
     void simulate(rw::trajectory::Path<rw::math::Q> path, QString device);
     
     void btnTestClicked();

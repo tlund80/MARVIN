@@ -16,7 +16,7 @@ RobotController::RobotController(one_shot_learning::RosCommunication *rosComm)
   _speed = 0.5;
   
    connect(_rosComm, SIGNAL(finish()), this, SLOT(motionDone()), Qt::UniqueConnection);
-  // connect(_rosComm, SIGNAL(robotPose(rw::math::Q, QString)), this, SLOT(updateRobotQ(rw::math::Q, QString)), Qt::DirectConnection);
+   connect(_rosComm, SIGNAL(robotPose(rw::math::Q, QString)), this, SLOT(updateRobotQ(rw::math::Q, QString)), Qt::DirectConnection);
 
   
 }
@@ -49,7 +49,7 @@ void RobotController::initialize(rw::models::WorkCell::Ptr workcell, std::string
     _path_optimizer.reset(new Path_optimization(_planning_workcell, _path_length_config));
     
    
-    _currentQ = rw::math::Q(6, -2.001,-1.571,-1.951,-1.572,0,0);
+   // _currentQ = rw::math::Q(6, -2.001,-1.571,-1.951,-1.572,0,0);
   
   
 }
@@ -78,21 +78,21 @@ void RobotController::run()
 	 std::vector<rw::math::Q> solution;
 	 std::vector<float> _blend_radius;
 	 _path.clear();
-	 rw::math::Q _goal(6, -0.644, -1.680, -1.394, -1.572,0.000,0.000);
+	// rw::math::Q _goal(6, 0.891, -1.662, 1.458, -1.537,-1.603,1.410);
 	 
 	  rw::math::Q initQ(6, 0.0); 
-	  std::cout << "Q_start: " << _currentQ << std::endl;
-	  std::cout << "Q_goal: " << _object_pose << std::endl;
+	  //std::cout << "Q_start: " << _currentQ << std::endl;
+	  //std::cout << "Q_goal: " << _goal << std::endl;
 	  if(_planning_workcell->solve_invkin(_object_pose,false,initQ,solution, true, false))
 	  {
 	    std::cout << "RobotController: Planning.....!" << std::endl;
-	    if(planner->plan(_currentQ,_goal,_path)){
+	    if(planner->plan(_currentQ,solution[0],_path)){
 	      
 	      std::cout << "\n=================== Computed Path ===================" << std::endl;
 	      for(int i = 0; i<=int(_path.size())-1; i++)
 		  std::cout << "\t" << _path[i] << std::endl;
 	      
-	     // _path_optimizer->optimize(_path);
+	      _path_optimizer->optimize(_path);
 	       std::cout << "\n=================== Optimized Path ===================" << std::endl;
 	       for(int i = 0; i<= int(_path.size()-1); i++){
 		 std::cout << "\t" << _path[i] << std::endl;
@@ -115,10 +115,9 @@ void RobotController::run()
 	       }
 	    }else std::cout << "RobotController: Could not plan a valid motion!" << std::endl;
 	 
-	     }else
-	  {
+	     }else {
 	    std::cout << "RobotController: No inverse kinematic solution!!!" << std::endl;
-	    _state_done = true;
+	   _state_done = true;
 	    _motionState = IDLE;
 	    break;
 	  }

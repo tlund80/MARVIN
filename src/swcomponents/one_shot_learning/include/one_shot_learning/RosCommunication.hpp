@@ -79,23 +79,25 @@ Q_SIGNALS:
 	//void updateImageRight(const QImage&);
 	void consoleSignal(QString msg);
 	void robotPose(rw::math::Q q, QString robot_name);
-	//void gipperconfiguration(rw::math::Q q, QString gripper_name);
+	void gipperconfiguration(rw::math::Q q, QString gripper_name);
 	void rosShutdown();
 	void finish();
 
 private:
-	SharedData *_sharedData;
-	ros::Subscriber sub_pointCloud;
-	ros::Subscriber _sub_robotState;
-	ros::Subscriber _sub_sdhState;
+	SharedData 				*_sharedData;
+	ros::Subscriber 			sub_pointCloud;
+	ros::Subscriber 			_sub_robotState;
+	ros::Subscriber 			_sub_sdhState;
 	
-	ros::ServiceClient _moveL_srv;
-	ros::ServiceClient _moveJ_srv;
-	ros::ServiceClient _stop_srv;
-	ros::ServiceClient _SDH_stop_srv;
-	ros::ServiceClient _SDH_pause_srv;
-	ros::ServiceClient _SDH_grasp_srv;
-	ros::ServiceClient _SDH_move_srv;
+	ros::ServiceClient 			_moveL_srv;
+	ros::ServiceClient 			_moveJ_srv;
+	ros::ServiceClient 			_stop_srv;
+	ros::ServiceClient 			_SDH_stop_srv;
+	ros::ServiceClient 			_SDH_pause_srv;
+	ros::ServiceClient 			_SDH_grasp_srv;
+	ros::ServiceClient 			_SDH_move_srv;
+	//std::string				_ur1_ns;
+	//std::string				_ur2_ns;
 	
 	void cloudCallBack(const sensor_msgs::PointCloud2ConstPtr& input); 
 	void robotCallBack(const caros_control_msgs::RobotStateConstPtr& msg); 

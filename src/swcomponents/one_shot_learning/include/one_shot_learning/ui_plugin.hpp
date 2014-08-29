@@ -1,8 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'plugin.ui'
 **
-** Created: Thu Aug 21 10:14:12 2014
-**      by: Qt User Interface Compiler version 4.8.1
+** Created by: Qt User Interface Compiler version 4.8.6
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -121,6 +120,7 @@ public:
     QHBoxLayout *horizontalLayout_3;
     QPushButton *btnTest;
     QCheckBox *checkBoxLogGrasp;
+    QCheckBox *checkBoxLiveUpdate;
     QSpacerItem *verticalSpacer_3;
 
     void setupUi(QDockWidget *plugin)
@@ -561,6 +561,12 @@ public:
 
         verticalLayout_3->addLayout(horizontalLayout_3);
 
+        checkBoxLiveUpdate = new QCheckBox(tab_2);
+        checkBoxLiveUpdate->setObjectName(QString::fromUtf8("checkBoxLiveUpdate"));
+        checkBoxLiveUpdate->setChecked(true);
+
+        verticalLayout_3->addWidget(checkBoxLiveUpdate);
+
         verticalSpacer_3 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         verticalLayout_3->addItem(verticalSpacer_3);
@@ -612,6 +618,7 @@ public:
         btnGrasp->setText(QApplication::translate("plugin", "Grasp Object", 0, QApplication::UnicodeUTF8));
         btnTest->setText(QApplication::translate("plugin", "Test", 0, QApplication::UnicodeUTF8));
         checkBoxLogGrasp->setText(QApplication::translate("plugin", "Log Grasp Result ", 0, QApplication::UnicodeUTF8));
+        checkBoxLiveUpdate->setText(QApplication::translate("plugin", "Live update of Robot pose", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("plugin", "Grasp Model", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 

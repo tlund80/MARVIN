@@ -35,6 +35,9 @@ One_shot_learning::One_shot_learning(): rws::RobWorkStudioPlugin("plugin", QIcon
       Ui_plugin::horizontalLayout->addWidget(qv);
       Ui_plugin::horizontalLayout->update();
       pviz.setWindowBorders(false);
+
+      
+      
      
       //Registre Qt meta types
      qRegisterMetaType<pcl::PointCloud<pcl::PointXYZRGBA> >("pcl::PointCloud<pcl::PointXYZRGBA>");
@@ -78,6 +81,7 @@ void One_shot_learning::open(WorkCell* workcell)
 {
    //Get or update workcell pointer
    _rwc =  workcell;
+   setState(_rwc->getDefaultState());
    _pb = new motion_planner::PlayBack(_rwc,0.15);
    _pb->setRobworkStudio(getRobWorkStudioSafe());
     
@@ -99,11 +103,13 @@ bool One_shot_learning::event(QEvent *event)
     RefreshTreeWidget();
     rosComm->StartPPSubscriber();
     rosComm->StartRobotSubscriber();
-    if(!rosComm->InitializeSDH()) RW_THROW("Could not initialize the SDH node. Are you sure the node is running!");
+    //TODO: recover SDH node if initializaion returns false
+    rosComm->InitializeSDH();
     rosComm->StartSDHSubscriber();  
    }
  }
   
+  return true;
 }
 void One_shot_learning::close()
 {
@@ -113,7 +119,6 @@ void One_shot_learning::close()
 void One_shot_learning::stateChangedListener(const rw::kinematics::State& state) {
   setState(state);
     //_state = state;
-   // std::cout << "new state" << std::endl;
 }
 
 
@@ -190,10 +195,13 @@ void One_shot_learning::init()
         if(_name.compare("SDH") == 0 || _name.compare("PG70") == 0) comboBoxGripper->addItem(_name);
 	else comboBoxRobot->addItem(_name);
     }
+    _updateTimer = new QTimer();
+    _updateTimer->setInterval(100);
   
     QObject::connect(rosComm, SIGNAL(rosShutdown()), this, SLOT(close()));
     connect(rosComm, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection);
     connect(rosComm, SIGNAL(robotPose(rw::math::Q,QString)), this, SLOT(updateRobotQ(rw::math::Q, QString)), Qt::DirectConnection);
+    connect(rosComm, SIGNAL(gipperconfiguration(rw::math::Q,QString)), this, SLOT(updateGripperQ(rw::math::Q,QString)), Qt::DirectConnection);
     connect(modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection);
     connect(modeller, SIGNAL(modelCreated(pcl::PointCloud<pcl::PointXYZRGBA>)), this, SLOT(modelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA>)), Qt::UniqueConnection);
     connect(modeller, SIGNAL(solidModelCreated(pcl::PointCloud<pcl::PointXYZRGBA>,pcl::PolygonMesh)), this, SLOT(solidModelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA>,pcl::PolygonMesh)), Qt::UniqueConnection);
@@ -213,7 +221,9 @@ void One_shot_learning::init()
     
     connect(Ui_plugin::btnTest,SIGNAL(pressed()), this, SLOT(btnTestClicked()));
     connect(_ctrl, SIGNAL(simulate(rw::trajectory::Path<rw::math::Q>,QString)),this, SLOT(simulate(rw::trajectory::Path<rw::math::Q>,QString)));
+    connect(_updateTimer, SIGNAL(timeout()),this, SLOT(updateRobWorkStudio(void)));
     
+    _updateTimer->start();
 }
 
 void One_shot_learning::simulate(rw::trajectory::Path<rw::math::Q> _path,QString device)
@@ -227,16 +237,13 @@ void One_shot_learning::simulate(rw::trajectory::Path<rw::math::Q> _path,QString
    _pb->forward();
 }
 
-void One_shot_learning::btnTestClicked()
+void One_shot_learning::updateRobWorkStudio(void)
 {
-  //_ctrl->motionDone();
-  
- 
-  Q openQ1(6,-2.001, -1.998, -1.373 ,-1.572, 0.0, 0.0);
-  State s = getState();
-  getRobot()->setQ(openQ1, s);
-  
-  
+  getRobWorkStudioSafe()->setState(getState());
+}
+
+void One_shot_learning::btnTestClicked()
+{ 
   /*  rw::math::Q openQ(7,-1.571,-1.571,1.571, -0.296, 0.240, -0.296, 0.240);
     Q openQ1(7,-1.048, 0.174, 1.047 ,-1.048, 0.174, -1.048, 0.174);
     if(rosComm->SDHMoveQ(openQ)){
@@ -246,37 +253,71 @@ void One_shot_learning::btnTestClicked()
   */
 }
 
+void One_shot_learning::updateGripperQ(rw::math::Q q, QString gripper_name)
+{
+  if(Ui_plugin::checkBoxLiveUpdate->isChecked()){
+  std::string name;
+  if(gripper_name.contains("/")){
+  QStringList l = gripper_name.split("/");
+  name = l[1].toStdString();
+  }else name = gripper_name.toStdString();
+  
+  Device::Ptr _gripper;
+  if(_rwc){
+    try{
+     //find the device to be sure to update the correct device
+    _gripper = _rwc->findDevice(name);
+    }catch(rw::common::Exception &e)
+    {
+      RW_THROW(e.what());
+    }
+    if(!_gripper) RW_THROW("Could not find device!");
+  }
+  
+  if(_gripper && (q.size() == _gripper->getDOF())){;
+    rw::kinematics::State s= getState();
+    // std::cout << "hej" << std::endl;
+     try{
+      _gripper->setQ(q, s);
+      setState(s);
+     }catch(rw::common::Exception &e){
+      RW_THROW(e.what());
+    }
+  }
+  }
+}
 void One_shot_learning::updateRobotQ(rw::math::Q q, QString robot_name)
 {
-   std::cout << "updateRobotQ" << std::endl;
+  if(Ui_plugin::checkBoxLiveUpdate->isChecked()){
+  std::string name;
+  if(robot_name.contains("/")){
   QStringList l = robot_name.split("/");
+  name = l[1].toStdString();
+  }else name = robot_name.toStdString();
+ 
   Device::Ptr _rob;
-  rw::math::Q goal(6,-1.6007, -1.7271, -2.203, -0.808, 1.5951, -0.031);
-/*  if(_rwc){
+  if(_rwc){
     try{
-    _rob = _rwc->findDevice(l[1].toStdString());
+     //find the device to be sure to update the correct device
+    _rob = _rwc->findDevice(name);
     }catch(rw::common::Exception &e)
     {
       RW_THROW(e.what());
     }
     if(!_rob) RW_THROW("Could not find device!");
   }
-  */
-  if(getRobot() && (goal.size() == getRobot()->getDOF())){;
+  
+  if(_rob && (q.size() == _rob->getDOF())){;
     rw::kinematics::State s= getState();
-     std::cout << "hej" << std::endl;
      try{
-      //getRobot()->setQ(goal, s);
+      _rob->setQ(q, s);
+      setState(s);
      }catch(rw::common::Exception &e){
       RW_THROW(e.what());
     }
-     std::cout << "hej" << std::endl;
-   //getRobWorkStudio()->setState(s);
   }
-
-  
+  }
 }
-
 void One_shot_learning::loadSolidGTModel()
 {
   Q_EMIT consoleOutSig("Load Solid Ground Truth model!!\n");
@@ -633,15 +674,16 @@ void One_shot_learning::btnGraspClicked()
    _ctrl->initialize(_rwc, _choosen_robot);
    _ctrl->start(QThread::HighestPriority);
    
-   rw::math::Vector3D<double> _p(21.813, -40.782, 60.782);
-   rw::math::RPY<double> _rpy(0.0, -3.1459, 0.0);
-   rw::math::Transform3D<double> _pose(_p,_rpy.toRotation3D()); 
+   Transform3D< double > pos = rw::kinematics::Kinematics::frameTframe(_robot->getBase(), _robot->getEnd(), _state);
+  // rw::math::Vector3D<double> _p(0.381, -0.456, 0.526);
+  // rw::math::RPY<double> _rpy(1.679, 0.165, -3.081);
+  // rw::math::Transform3D<double> _pose(_p,_rpy.toRotation3D()); 
 
    if(Ui_plugin::checkBoxSimulate->isChecked()) _ctrl->setSimulation(true);
    else _ctrl->setSimulation(false);
    
    _ctrl->setSpeed(0.5);
-   _ctrl->graspObject(_pose);
+   _ctrl->graspObject(pos);
        
 }
 
@@ -824,11 +866,13 @@ void One_shot_learning::treeWidgetClicked(QTreeWidgetItem* item, int col)
       }
       
       pviz.addCoordinateSystem(0.1,0);
-      pviz.resetCameraViewpoint();
       
        //Update cloud view
        qv->update();
+      pviz.resetCamera();  //Focus the object in the center of the viewer
       
+      //pviz.resetCameraViewpoint();
+       
    }else
    {
       item->setExpanded(true);

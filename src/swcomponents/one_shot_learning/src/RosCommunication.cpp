@@ -65,19 +65,19 @@ bool RosCommunication::MoveRobotLinear(std::vector<rw::math::Transform3D<double>
   ros::start(); // explicitly needed since our nodehandle is going out of scope.
   ros::NodeHandle n;
  
-  _moveL_srv = n.serviceClient<caros_control_msgs::SerialDeviceMoveLin>("universalrobots/URMoveL");
+  _moveL_srv = n.serviceClient<caros_control_msgs::SerialDeviceMoveLin>("/UR1/moveLin");
 	
   caros_control_msgs::SerialDeviceMoveLinRequest _req; 
   caros_control_msgs::SerialDeviceMoveLinResponse _res;
-/*  Q_FOREACH(rw::math::Transform3D<double>& target, path) {
+  BOOST_FOREACH(rw::math::Transform3D<double>& target, path) {
     _req.targets.push_back(caros::toRos(target)); 
   }
-*/
- /* BOOST_FOREACH(float& blend, blends) {
+
+  BOOST_FOREACH(float& blend, blends) {
     _req.blends.push_back(blend);
     _req.speeds.push_back(speed);
   }
-*/
+
   if(!_moveL_srv.call(_req,_res)) return false;
   
    Q_EMIT finish();
@@ -90,20 +90,13 @@ bool RosCommunication::MoveRobotJoint(std::vector<rw::math::Q>& q, std::vector<f
   ros::start(); // explicitly needed since our nodehandle is going out of scope.
   ros::NodeHandle n;
   
-  _moveJ_srv = n.serviceClient<caros_control_msgs::SerialDeviceMovePTP>("universalrobots/URMoveQ");
+  _moveJ_srv = n.serviceClient<caros_control_msgs::SerialDeviceMovePTP>("/UR1/movePTP");
   
   caros_control_msgs::SerialDeviceMovePTPRequest _req;
   caros_control_msgs::SerialDeviceMovePTPResponse _res;
  
- /* BOOST_FOREACH(rw::math::Q& target, q) {
-     caros_common_msgs::Q _q;
-     _q.data[0] = target[0];
-     _q.data[1] = target[1];
-     _q.data[2] = target[2];
-     _q.data[3] = target[3];
-     _q.data[4] = target[4];
-     _q.data[5] = target[5];
-    _req.q_targets.push_back(_q); 
+  BOOST_FOREACH(rw::math::Q& target, q) {
+    _req.q_targets.push_back(caros::toRos(target)); 
   }
 
   BOOST_FOREACH(float& blend, blends) {
@@ -111,7 +104,7 @@ bool RosCommunication::MoveRobotJoint(std::vector<rw::math::Q>& q, std::vector<f
     _req.speeds.push_back(speed);
   }
 
-*/
+
   if(!_moveJ_srv.call(_req,_res)) return false;
   
     Q_EMIT finish();
@@ -124,7 +117,7 @@ bool RosCommunication::StopRobot()
   ros::start(); // explicitly needed since our nodehandle is going out of scope.
   ros::NodeHandle n;
   
-  _stop_srv = n.serviceClient<caros_common_msgs::Stop>("universalrobots/Stop");
+  _stop_srv = n.serviceClient<caros_common_msgs::Stop>("/UR1/stop");
   
   caros_common_msgs::StopRequest _req;
   caros_common_msgs::StopResponse _res; 
@@ -246,8 +239,8 @@ void RosCommunication::robotCallBack(const caros_control_msgs::RobotStateConstPt
    //std::cout << msg->q.data[0] << " " << msg->q.data[1] << " " << msg->q.data[2] << " " << msg->q.data[3] << " " << msg->q.data[4] << " " << msg->q.data[5]<< std::endl;
   QString  _robot_name =  QString::fromStdString(msg->header.frame_id);
   
-  if(msg->isColliding) std::cout << "============ Robot is Colliding!! =============" << std::endl;
-  if(msg->estopped) std::cout << "============ Robot is in emergency stop!! =============" << std::endl;
+ // if(msg->isColliding) std::cout << "============ Robot is Colliding!! =============" << std::endl;
+ // if(msg->estopped) std::cout << "============ Robot is in emergency stop!! =============" << std::endl;
   //if(msg->securityStopped) std::cout << "============ Robot is in security stop!! =============" << std::endl; 
   
   rw::math::Q _q(int(msg->q.data.size()),0.0);
@@ -271,8 +264,8 @@ void RosCommunication::sdhCallBack(const caros_control_msgs::GripperStateConstPt
 {
    QString  _gripper_name = "SDH";
 
-  if(msg->isBlocked) std::cout << "============ Gripper is Blocked!! =============" << std::endl;
-  if(msg->estopped) std::cout << "============ Gripper is in emergency stop!! =============" << std::endl;
+  //if(msg->isBlocked) std::cout << "============ Gripper is Blocked!! =============" << std::endl;
+  //if(msg->estopped) std::cout << "============ Gripper is in emergency stop!! =============" << std::endl;
   
   rw::math::Q _q(int(msg->q.data.size()),0.0);
   for(unsigned int i = 0; i < msg->q.data.size(); i++)
@@ -283,7 +276,7 @@ void RosCommunication::sdhCallBack(const caros_control_msgs::GripperStateConstPt
   for(unsigned int i = 0; i< msg->dq.data.size(); i++)
      _vel[i] = msg->dq.data[i];
  
-  //Q_EMIT gipperconfiguration(_q, _gripper_name);
+  Q_EMIT gipperconfiguration(_q, _gripper_name);
 }
 
 void RosCommunication::run() {
