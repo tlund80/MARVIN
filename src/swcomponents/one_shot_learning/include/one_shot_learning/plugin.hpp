@@ -18,19 +18,11 @@
 #ifndef ONE_SHOT_LEARNING_HPP
 #define ONE_SHOT_LEARNING_HPP
 
-#include <boost/signals2.hpp>
-#include <boost/make_shared.hpp>
-
 #include "one_shot_learning/ui_plugin.hpp"
 #include <rws/RobWorkStudioPlugin.hpp>
-#include <rwlibs/task/Motion.hpp>
-#include <ros/ros.h>
 
 #include <QVTKWidget.h>
 #include <QWidget>
-#include <QTreeWidgetItem>
-#include <QMessageBox>
-#include <QFileDialog>
 #include <QDir>
 #include <QMap>
 #include <QMutex>
@@ -55,10 +47,6 @@
 
 //PCL includes
 #include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/io/vtk_lib_io.h>
-#include <pcl/io/obj_io.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 
 namespace dti{
 namespace one_shot_learning
@@ -159,7 +147,7 @@ private:
 private Q_SLOTS:
     void btnCreateModelClicked();
     bool btnEstimatePoseClicked();
-    void btnGraspClicked();
+    bool btnGraspClicked();
     void btnGraspGenerationClicked();
     void checkBoxLogPoseChecked(bool checked);
     void deleteModel();

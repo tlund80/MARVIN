@@ -1,6 +1,10 @@
 
 #include <one_shot_learning/motion_planner/RobotController.hpp>
 
+#include <rwlibs/task.hpp>
+#include <rwlibs/task/GraspTask.hpp>
+#include <rw/math.hpp>
+
 namespace dti{
 namespace one_shot_learning {
 namespace motion_planner {
@@ -78,11 +82,8 @@ void RobotController::run()
 	 std::vector<rw::math::Q> solution;
 	 std::vector<float> _blend_radius;
 	 _path.clear();
-	// rw::math::Q _goal(6, 0.891, -1.662, 1.458, -1.537,-1.603,1.410);
 	 
 	  rw::math::Q initQ(6, 0.0); 
-	  //std::cout << "Q_start: " << _currentQ << std::endl;
-	  //std::cout << "Q_goal: " << _goal << std::endl;
 	  if(_planning_workcell->solve_invkin(_object_pose,false,initQ,solution, true, false))
 	  {
 	    std::cout << "RobotController: Planning.....!" << std::endl;
@@ -102,7 +103,7 @@ void RobotController::run()
 	       
 	       if(!_sim){
 	       if(!_rosComm->MoveRobotJoint(_path, _blend_radius, _speed)){
-		 _motionState = IDLE;
+		 //_motionState = APPROACH;
 		 _state_done = true;
 		 std::cout << "RobotController: Could NOT move the robot!" << std::endl;
 		 break;
@@ -233,6 +234,40 @@ void RobotController::graspObject(rw::math::Transform3D<double> pose)
     _object_pose = pose;
     _motionState = MOVE_TO_GRASP; 
 }
+
+bool RobotController::graspObject(ModelData& data)
+{
+  using namespace rwlibs::task;
+  using namespace rw::math;
+
+  _object_pose = data.getBestPose();
+  
+  if(!data.has_gtask()) return false;
+  
+  GraspTask gtask = data.getGraspTask();
+  std::vector<std::pair<GraspSubTask*,GraspTarget*> > tasks = gtask.getAllTargets();
+  for(size_t i = 0; i<tasks.size();i++){
+    
+    GraspResult::Ptr tres = tasks[i].second->getResult();
+    
+     if(tres->testStatus == GraspTask::Success)
+     {
+      //   std::cout << "\nQuality before lifting: " << tres->qualityBeforeLifting() << std::endl;
+      //   std::cout << "Quality after lifting: " << tres->qualityAfterLifting << std::endl;
+	// _Q_grasp = tres->gripperConfigurationGrasp();
+	// Get the different transformations
+	//Transform3D<double> objTtcp_app = tres->objectTtcpApproach();
+	//Transform3D<double> objTtcp_grasp =tres->objectTtcpGrasp();
+	//Transform3D<double> objTtcp_lift =tres->objectTtcpLift();
+	//Transform3D<double> objTtar =tres->objectTtcpTarget;
+     } 
+  }
+  
+  _motionState = MOVE_TO_GRASP; 
+  
+  return true;
+}
+
 
 void RobotController::updateRobotQ(rw::math::Q q, QString robot_name)
 {

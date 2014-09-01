@@ -10,10 +10,30 @@
 *****************************************************************************/
 
 #include <one_shot_learning/plugin.hpp>
+
+// RobWorkStudio includes
 #include <rws/RobWorkStudio.hpp>
 #include <rw/common/Log.hpp>
-#include <qt4/QtGui/QMessageBox>
+
+// QT includes
 #include <QStringList>
+#include <QTreeWidgetItem>
+#include <QMessageBox>
+#include <QFileDialog>
+
+// ROS includes
+#include <ros/ros.h>
+
+//PCL includes
+#include <pcl/io/vtk_lib_io.h>
+#include <pcl/io/obj_io.h>
+
+//VTK includes
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+
+#include <boost/signals2.hpp>
+#include <boost/make_shared.hpp>
 
 using namespace rw::math;
 using namespace rw::common;
@@ -662,19 +682,26 @@ bool One_shot_learning::btnEstimatePoseClicked()
    return true;
 }
 
-void One_shot_learning::btnGraspClicked()
+bool One_shot_learning::btnGraspClicked()
 {
    using namespace dti::one_shot_learning::motion_planner;
    using namespace rw::math;
     
    Q_EMIT consoleOutSig("Grasping the object!!\n");
    
+   int model_index =  Ui_plugin::treeWidget->currentIndex().parent().row();
+   ModelData _data = _models.find(model_index).value();
+   
+   if(!_data.has_gtask()){
+     RW_THROW("There exists no grasp table for the choosen objects!");  
+     return false;
+   }
    std::string _choosen_robot = comboBoxRobot->currentText().toStdString();
    
    _ctrl->initialize(_rwc, _choosen_robot);
    _ctrl->start(QThread::HighestPriority);
    
-   Transform3D< double > pos = rw::kinematics::Kinematics::frameTframe(_robot->getBase(), _robot->getEnd(), _state);
+  // Transform3D< double > pos = rw::kinematics::Kinematics::frameTframe(_robot->getBase(), _robot->getEnd(), _state);
   // rw::math::Vector3D<double> _p(0.381, -0.456, 0.526);
   // rw::math::RPY<double> _rpy(1.679, 0.165, -3.081);
   // rw::math::Transform3D<double> _pose(_p,_rpy.toRotation3D()); 
@@ -683,8 +710,13 @@ void One_shot_learning::btnGraspClicked()
    else _ctrl->setSimulation(false);
    
    _ctrl->setSpeed(0.5);
-   _ctrl->graspObject(pos);
-       
+   //_ctrl->graspObject(pos);
+/*    if(!_ctrl->graspObject(_data)){
+      RW_THROW("Something went wrong in parsing the grasp table for the object!!");  
+      return false;
+    }
+  */  
+     return true;
 }
 
 void One_shot_learning::btnGraspGenerationClicked()
@@ -743,10 +775,8 @@ void One_shot_learning::btnGraspGenerationClicked()
    Rotation3D<double> _R; _R.identity();
    rw::math::Transform3D<double> _transform(_P,_R);
 
-   MovableFrame::Ptr _frame = MovableFrame::Ptr(new MovableFrame("object_frame"));
- //  std::vector<rw::kinematics::Frame*> frames = _grasp_wc->getWorkcell()->getStateStructure()->getFrames();
-  // rw::kinematics::State st = _grasp_wc->getState();
-   //_frame->setTransform(_transform, st);
+   //FixedFrame::Ptr _frame = FixedFrame::Ptr(new FixedFrame("object_frame", rw::math::Transform3D<double>::identity()));
+  
 //   _grasp_wc->getWorkcell()->addFrame(_frame.get());
 //   MovableFrame::Ptr moveFrame = _grasp_wc->getWorkcell()->findFrame("object_frame");
 //   if(!moveFrame) RW_THROW("Could not find moveable frame");
@@ -754,11 +784,10 @@ void One_shot_learning::btnGraspGenerationClicked()
 
    //FixedFrame::Ptr _frame = FixedFrame::Ptr(new FixedFrame("object", rw::math::Transform3D<>().identity()));
    
-/*   
-   _grasp_wc->addModelFromFile(object_path, _frame);
+   _grasp_wc->addModelFromFile(object_path, obj_name, _transform);
 
    //Update RobWorkStudio
-   getRobWorkStudio()->setWorkcell(_grasp_wc->getWorkcell());
+   getRobWorkStudio()->setWorkCell(_grasp_wc->getWorkcell());
    getRobWorkStudio()->setState(_grasp_wc->getState());
   
    //Create sampler object
@@ -769,14 +798,14 @@ void One_shot_learning::btnGraspGenerationClicked()
  
    Grasp_simulator* _sim = new Grasp_simulator(_grasp_wc, _sampler);
    _sim->RecordStatePath(true, geometry_path);
-   _sim->SimulateGraspHypothesis("object");
+   _sim->SimulateGraspHypothesis(obj_name);
  
    _sim->FilterGrasps();  
    _sim->SimulateGraspPertubations(sigma_a, sigma_p,pertubations);
    _sim->calcPerturbedQuality(pertubations);
    _sim->FilterGrasps(); 
    _sim->SaveGraspTask(gtask_path, dti::grasp_planning::RWTASK);
- */ 
+  
 }
 
 void One_shot_learning::modelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA> model)

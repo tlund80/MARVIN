@@ -1,3 +1,5 @@
+#ifndef MODELDATA_HPP
+#define MODELDATA_HPP
 
 #include <QList>
 #include <QMap>
@@ -79,7 +81,8 @@ public:
    QString getName(void){return _name; };
    
    void addPoseHypothesis(rw::math::Transform3D<double> pose){_poses.push_back(pose); };
-  // rw::math::Transform3D<double> getPose(void){return _pose;};
+   rw::math::Transform3D<double> getBestPose(void){return _poses[0];};
+   void getPoseHypothesis( std::vector<rw::math::Transform3D<double> > &hypothesis){hypothesis = _poses; };
   
    bool has_gtask(void) {return _has_grasp_table; };
    bool has_ground_truth_gtask(void) {return _has_grasp_table_GT; };
@@ -96,7 +99,7 @@ public:
 
 }
 }
-
+#endif /* MODELDATA_HPP */
 
 
 

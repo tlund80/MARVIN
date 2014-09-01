@@ -14,12 +14,89 @@ Grasp_simulator::Grasp_simulator(Workcell *workcell, Grasp_sampler *sampler) : _
   
   _recordStatePath = false;
    _numberOfThreads = 1;
+   _isRunning  = false;
 }
 
 Grasp_simulator::~Grasp_simulator()
 {
+   stop();
+}
+
+void Grasp_simulator::run()
+{
+//QThread::run();
+  
+  _isRunning = true;
+ 
+ while(_isRunning)
+ {
+  /*  switch(_motionState)
+    {
+      case IDLE:
+      {
+	//NOP
+	
+	break;
+      }
+      case MOVE_TO_GRASP:
+      {
+	
+	 break;
+	
+      }
+      case APPROACH:
+      {
+	 
+
+	break;
+      }
+      case GRASP:
+      {
+	 
+	
+	break;
+      }
+      case RETRACT:
+      {
+
+	break;
+      }
+      case MOVE_TO_RELEASE:
+      {
+	
+	break;
+      }
+      case RELEASE:
+      {
+
+	break;
+      }
+      case HOME:
+      {
+
+	break;
+      }
+      
+      default:
+      {
+	break;
+      }
+    }
+  */
+     //Sleep 500msek
+    QThread::msleep(100);
+ }
+
   
 }
+
+void Grasp_simulator::stop()
+{
+   std::cout << "Quit Grasp_simulator thread!" << std::endl;
+   _isRunning = false;
+   wait();
+}
+
 
 bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::string taskXMLFile)
 {
