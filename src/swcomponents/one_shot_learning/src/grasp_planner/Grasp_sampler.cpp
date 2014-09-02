@@ -445,6 +445,13 @@ void Grasp_sampler::Sample(int samples)
 	  
 	}
     }
+    
+//   std::cout << "=================== Samples ===================" << std::endl;
+//   std::cout << "\tNumber of subtasks: " << int(_gtasks->getSubTasks().size()) << std::endl;
+//   std::cout << "\tNumber of targets: " << int(_gtasks->getAllTargets().size()) << std::endl;
+//   std::cout << "\tController ID: " << _gtasks->getGraspControllerID() << std::endl;
+//   std::cout << "\tGripper ID: " << _gtasks->getGripperID() << std::endl;
+//   std::cout << "\tTCP ID: " << _gtasks->getTCPID() << std::endl;
 }
 
 void Grasp_sampler::SaveGraspTask(std::string fileName)

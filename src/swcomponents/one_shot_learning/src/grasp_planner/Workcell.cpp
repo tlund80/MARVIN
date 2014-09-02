@@ -105,6 +105,57 @@ bool Workcell::createEmptyWorkcell()
   _workcell = WorkCell::Ptr(new WorkCell("empty_scene"));  
 }
 
+void Workcell::addModel(std::string& model_name, std::string frame_name, rw::math::Transform3D<double> transformation)//rw::kinematics::Frame::Ptr object_frame)
+{
+  using namespace rw::models;
+  using namespace rw::loaders;
+  using namespace rw::graphics;
+  using namespace rwsim::dynamics;
+  using namespace rw::common;
+  using namespace rw::geometry;
+  using namespace rw::kinematics;
+ 
+  MovableFrame::Ptr _frame = MovableFrame::Ptr(new MovableFrame(frame_name));
+  _workcell->addFrame(_frame.get());
+  _state = _workcell->getDefaultState();
+  _frame->setTransform(transformation,_state);
+  //Model3D::Object3D::Ptr m = Model3D::Object3D::Ptr(new Model3D::Object3D(model_name));
+  //m->addTriangle();
+  //Model3D::Ptr model =  Model3D::Ptr(new Model3D(model_name));  // Model3DFactory::loadModel(filepath, "object");
+  
+  //if(!model) RW_THROW("Could not load model from: " << filepath);
+  //Geometry::Ptr geom = GeometryFactory::load(filepath);
+  //geom->setName("object");
+  //if(!geom) RW_THROW("Could not load geometry from: " << filepath);
+  
+ /* Object::Ptr obj = Object::Ptr(new Object(_frame.get()));
+  obj->addModel(model);
+  obj->addGeometry(geom);
+  std::cout << "Name of the object: " << obj->getName()<< std::endl;
+
+  _workcell->add(obj);
+  
+  //Add model to the dynamic workcell as a Body
+  std::vector<Geometry::Ptr> geo; geo.push_back(geom);
+  rw::math::InertiaMatrix<double> _mat = GeometryUtil::estimateInertia(0.6,geo);
+   std::cout << "=============== Estimated Body Inertia ===============\n " << _mat << std::endl;
+  Vector3D<double> _COG =  GeometryUtil::estimateCOG(geo);
+    std::cout << "=============== Estimated Center of gravity ===============\n " << _COG << std::endl;
+  BodyInfo _info; _info.mass = 0.6; _info.integratorType = "Euler"; _info.material = "Plastic"; _info.objectType = "hardObj"; _info.inertia = _mat; _info.masscenter = _COG; 
+  _info.objects.push_back(obj);
+  _info.print(std::cout);
+  
+   RigidBody::Ptr _body =  ownedPtr(new RigidBody(_info,obj));
+  
+ // FixedBody::Ptr _body = ownedPtr(new FixedBody(_info, obj));
+  _body->setObject(obj);
+  _dwc->addBody(_body);
+ 
+  
+  std::cout << "Number of bodies in the dynamic workcell => "<< int(_dwc->getBodies().size()) << std::endl;
+  */
+}
+
 
 void Workcell::addModelFromFile(std::string& filepath, std::string frame_name, rw::math::Transform3D<double> transformation)//rw::kinematics::Frame::Ptr object_frame)
 {

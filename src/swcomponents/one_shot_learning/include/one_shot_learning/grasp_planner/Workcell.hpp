@@ -54,6 +54,7 @@ class Workcell
 	bool createEmptyWorkcell();
 
 	void addModelFromFile(std::string& filepath, std::string frame_name, rw::math::Transform3D<double> transformation); // rw::kinematics::Frame::Ptr object_frame);
+	void addModel(std::string& model_name, std::string frame_name, rw::math::Transform3D<double> transformation);
 	void addBox(rw::kinematics::Frame::Ptr frame, float dx, float dy, float dz);
 	void addCylinder(rw::kinematics::Frame::Ptr frame, float radius, float height);
 	void addSphere(rw::kinematics::Frame::Ptr frame, float radius);

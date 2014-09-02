@@ -5,17 +5,17 @@
 </Frame>
  <Include file="../../grippers/SDH/SchunkHandV2/SchunkHand.wc.xml" />
  
-<!-- <Frame name="object" refframe="WORLD" type="Movable">
+ <Frame name="object" refframe="WORLD" type="Movable">
 	<Transform>
 	1.0 0.0 0.0 0.0
 	0.0 1.0 0.0 0.0
 	0.0 0.0 1.0 0.037063 <!-- 0.0176 --> 
-<!--	</Transform> -->
+	</Transform>
 
-<!--    <Drawable name="ObjectGeo">
+    <Drawable name="ObjectGeo">
 	 <Polytope file="../../objects/uibkmodel.stl"/>
     </Drawable>
- </Frame> -->
+ </Frame>
 
   <!--<Frame name="ProjPlane" refframe="WORLD" type="Movable">
     <RPY>0 0 0</RPY><Pos>0 0 0</Pos>

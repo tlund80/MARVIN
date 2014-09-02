@@ -4,14 +4,16 @@
 #include <QList>
 #include <QMap>
 #include <QString>
+
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/PolygonMesh.h>
-#include <qt4/QtCore/QList>
-#include <qt4/QtCore/qmap.h>
 
 #include <rwlibs/task.hpp>
 #include <rwlibs/task/GraspTask.hpp>
+
+#include <rw/graphics/Model3D.hpp>
+#include <rw/geometry.hpp>
 
 namespace dti{
 namespace one_shot_learning {
@@ -19,33 +21,40 @@ class ModelData
 {
   
 public:
-     ModelData(int index);
+     ModelData();
      virtual ~ModelData();
 
 private:
-  
+   // Name of the object
+   QString _name;
+   
+   // Estimated and ground truth models for pose estimation
    pcl::PolygonMesh _meshData;
    pcl::PointCloud<pcl::PointXYZRGBA> _pcdData;
    pcl::PointCloud<pcl::PointXYZRGBA>  _gtCloudModel;
    pcl::PolygonMesh  _gtMeshModel;
-   bool  _has_grasp_table;
-   bool  _has_grasp_table_GT;
    bool _has_GTMeshModel;
    bool _has_GTCloudModel;
-   QString _name;
+   
+   //Pose estimates of the object
+   std::vector<rw::math::Transform3D<double> > _poses;
+
+   // Grasp tables of the estimated and ground truth model
    rwlibs::task::GraspTask _gtask;
    rwlibs::task::GraspTask _gtask_GT;
-   int _index;
-   std::vector<rw::math::Transform3D<double> > _poses;
+   bool  _has_grasp_table;
+   bool  _has_grasp_table_GT;
    
-   // QList<pcl::PolygonMesh> meshData;
-   // QList<pcl::PointCloud<pcl::PointXYZRGBA> > pcdData;
-   // QMap<int, pcl::PointCloud<pcl::PointXYZRGBA> >  gtModel;
-   // QMap<int, pcl::PolygonMesh >  gtMeshModel;
-   // QMap<int, bool >  _has_grasp_table;
-   // QList<QString> name;
+ //  rw::graphics::Model3D _rwmodel;
+ //  rw::geometry::Geometry _geometry;
 
 public:
+  
+//   void setRwModel3D(rw::graphics::Model3D &rwmodel){_rwmodel = rwmodel; };
+//   rw::graphics::Model3D getRwModel3D(void){return _rwmodel; };
+   
+//   void setRwGeometry(rw::geometry::Geometry &geometry){_geometry = geometry; };
+//   rw::geometry::Geometry getRwGeometry(void){return _geometry; };
   
    void setPointCloud(pcl::PointCloud<pcl::PointXYZRGBA> cloud){_pcdData = cloud; };
    pcl::PointCloud<pcl::PointXYZRGBA> getPointCloud(void){return _pcdData; };
@@ -93,7 +102,6 @@ public:
    void delete_PointCloud_GT(void){ _gtCloudModel = NULL;};
    void delete_Mesh_GT(void){ _gtMeshModel = NULL;};
    */
-   int getIndex(void){return _index; };
   
 };
 

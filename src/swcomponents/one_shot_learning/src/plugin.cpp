@@ -719,7 +719,7 @@ bool One_shot_learning::btnGraspClicked()
      return true;
 }
 
-void One_shot_learning::btnGraspGenerationClicked()
+bool One_shot_learning::btnGraspGenerationClicked()
 {
   
   using namespace rw::kinematics;
@@ -728,6 +728,23 @@ void One_shot_learning::btnGraspGenerationClicked()
   using namespace rw::math;
   
    Q_EMIT consoleOutSig("Generating grasp tables!!\n");
+   
+   int model_index =  Ui_plugin::treeWidget->currentIndex().parent().row();
+   int index = Ui_plugin::treeWidget->currentIndex().row();
+   if(index < 0 && model_index < 0){
+    RW_THROW("Please select a model in the list");
+    return false;
+   }
+   ModelData _data = _models.find(model_index).value();
+   //rw::geometry::Geometry _geometry;
+   //rw::graphics::Model3D _model3d;
+  
+   if(index == 0 || index == 1){
+     //Use estimated model
+     
+   }else{
+     //Use ground truth model 
+   }
  
    int samples = Ui_plugin::spinBoxSamples->value();
    int pertubations = Ui_plugin::spinBoxPertubations->value();
@@ -771,20 +788,11 @@ void One_shot_learning::btnGraspGenerationClicked()
  
    _grasp_wc->addGripper(type, geometry_path);
   
-   Vector3D<double> _P(0.0, 0.0, 0.037063);
-   Rotation3D<double> _R; _R.identity();
-   rw::math::Transform3D<double> _transform(_P,_R);
-
-   //FixedFrame::Ptr _frame = FixedFrame::Ptr(new FixedFrame("object_frame", rw::math::Transform3D<double>::identity()));
-  
-//   _grasp_wc->getWorkcell()->addFrame(_frame.get());
-//   MovableFrame::Ptr moveFrame = _grasp_wc->getWorkcell()->findFrame("object_frame");
-//   if(!moveFrame) RW_THROW("Could not find moveable frame");
+//   Vector3D<double> _P(0.0, 0.0, 0.037063);
+//   Rotation3D<double> _R; _R.identity();
+ //  rw::math::Transform3D<double> _transform(_P,_R);
    
-
-   //FixedFrame::Ptr _frame = FixedFrame::Ptr(new FixedFrame("object", rw::math::Transform3D<>().identity()));
-   
-   _grasp_wc->addModelFromFile(object_path, obj_name, _transform);
+  // _grasp_wc->addModelFromFile(object_path, obj_name, _transform);
 
    //Update RobWorkStudio
    getRobWorkStudio()->setWorkCell(_grasp_wc->getWorkcell());
@@ -800,12 +808,12 @@ void One_shot_learning::btnGraspGenerationClicked()
    _sim->RecordStatePath(true, geometry_path);
    _sim->SimulateGraspHypothesis(obj_name);
  
-   _sim->FilterGrasps();  
-   _sim->SimulateGraspPertubations(sigma_a, sigma_p,pertubations);
-   _sim->calcPerturbedQuality(pertubations);
-   _sim->FilterGrasps(); 
-   _sim->SaveGraspTask(gtask_path, dti::grasp_planning::RWTASK);
-  
+ //  _sim->FilterGrasps();  
+ //  _sim->SimulateGraspPertubations(sigma_a, sigma_p,pertubations);
+ //  _sim->calcPerturbedQuality(pertubations);
+ //  _sim->FilterGrasps(); 
+ //  _sim->SaveGraspTask(gtask_path, dti::grasp_planning::RWTASK);
+  return true;
 }
 
 void One_shot_learning::modelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA> model)
@@ -947,7 +955,7 @@ bool One_shot_learning::loadModels()
    { 
       QString directory = *it;
       QDir subDir = QDir(path + "/models/" + directory +"/");
-      ModelData* _data = new ModelData(index);
+      ModelData* _data = new ModelData();
       _data->setName(directory);
 
       std::cout << "Loading model from: " << subDir.absolutePath().toStdString() << std::endl;
@@ -983,14 +991,15 @@ bool One_shot_learning::loadModels()
 	      pcl::io::loadPolygonFileVTK(file_path.toStdString(), *mesh); 
 	      _data->setMesh(*mesh);
 	    }else if(na[1].compare("obj", Qt::CaseInsensitive)== 0){
-		//TODO: Load rw models 
-		//    rw::graphics::Model3D::Ptr model = rw::loaders::Model3DFactory::loadModel(file_path.toStdString(), na[0].toStdString());
-		//    rw::geometry::Geometry::Ptr geom = rw::loaders::GeometryFactory::load(file_path.toStdString());
-
-		//    Object::Ptr obj = Object::Ptr(new Object(object_frame.get(), geom));
-		// pcl::io::loadPolygonFileOBJ(file_path.toStdString(),*mesh);
-	      // model_data->addMesh(*mesh);
-	      //NOP: Already loaded a polygone mesh
+		//Load rw models 
+	//	rw::graphics::Model3D::Ptr model = rw::loaders::Model3DFactory::loadModel(file_path.toStdString(), na[0].toStdString());
+	//	if(!model) RW_THROW("Could not load model from: " << file_path.toStdString());
+	//	rw::geometry::Geometry::Ptr geom = rw::loaders::GeometryFactory::load(file_path.toStdString());
+	//	geom->setName(na[0].toStdString());
+	//	if(!geom) RW_THROW("Could not load geometry from: " << file_path.toStdString());
+		
+		//_data->setRwModel3D(model);
+		//_data->setRwGeometry(geom);
 	    }
 	  }
 	}else if (su.compare("ground_truth", Qt::CaseInsensitive) == 0)

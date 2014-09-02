@@ -148,7 +148,7 @@ private Q_SLOTS:
     void btnCreateModelClicked();
     bool btnEstimatePoseClicked();
     bool btnGraspClicked();
-    void btnGraspGenerationClicked();
+    bool btnGraspGenerationClicked();
     void checkBoxLogPoseChecked(bool checked);
     void deleteModel();
     void loadGTModel();

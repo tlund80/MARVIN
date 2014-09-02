@@ -1,6 +1,6 @@
 #include <one_shot_learning/grasp_planner/Grasp_simulator.hpp>
 
-
+#include <rw/RobWork.hpp>
 USE_ROBWORK_NAMESPACE
 using namespace robwork;
 
@@ -126,7 +126,6 @@ bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::strin
      return false;
    }
 
-
    std::cout << "=================== Grasp task to simulate ===================" << std::endl;
    std::cout << "\tNumber of subtasks: " << int(_grasptask->getSubTasks().size()) << std::endl;
    std::cout << "\tNumber of targets: " << int(_grasptask->getAllTargets().size()) << std::endl;
@@ -147,15 +146,23 @@ bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::strin
   
   std::cout << "Starting simulation:" << std::endl;
     
+ // RobWork::getInstance()->initialize();
+  const std::vector<std::string> engines = PhysicsEngine::Factory::getEngineIDs();
+  std::cout << "Engines available: " << engines.size() << std::endl;
+
+  BOOST_FOREACH(const std::string& str, engines) {
+		std::cout << str << std::endl;
+}
   // create GraspTaskSimulator
   GraspTaskSimulator::Ptr graspSim = ownedPtr( new GraspTaskSimulator(dwc, _numberOfThreads) );
-  
+  //graspSim->init(dwc, initState);
   graspSim->load(_grasptask);
-  graspSim->startSimulation(initState); 
+  graspSim->startSimulation(initState);
+ /*
   if(_recordStatePath){
      statep.push_back(TimedState(0,initState));
   }
-  
+ 
   TimerUtil::sleepMs(2000);
   std::cout << graspSim->getStatDescription() << std::endl;
   for(std::size_t j=0;j<graspSim->getStat().size(); j++){ std::cout << j << "\t"; }
@@ -183,7 +190,7 @@ bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::strin
        PathLoader::storeTimedStatePath(*dwc->getWorkcell(),statep, ss.str());
     }
   std::cout << "\nDone!!" << std::endl;
-	
+	*/
    return true;
   
 }
@@ -377,7 +384,7 @@ int Grasp_simulator::calcPerturbedQuality(unsigned int pertubations)
     
     std::cout << "Computing pertubated Quality measure!!" << std::endl;
     
-    int count = 0, succCnt=0, failCnt=0;
+    unsigned int count = 0, succCnt=0, failCnt=0;
     std::vector<std::pair<GraspSubTask*,GraspTarget*> > tasks = _gtask->getAllTargets();
     GraspTask::Ptr ngtask = _gtask->clone();
     for(size_t i = 0; i<tasks.size();i++){

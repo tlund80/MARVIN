@@ -4,7 +4,7 @@
 namespace dti{
 namespace one_shot_learning {
 
-ModelData::ModelData(int index) : _index(index)
+ModelData::ModelData()
 {
   _has_grasp_table = false;
   _has_grasp_table_GT = false;
