@@ -9,8 +9,8 @@
 ** Ifdefs
 *****************************************************************************/
 
-//#ifndef OBJECTMODELLERGUI_ROSINTERFACE_HPP_
-//#define OBJECTMODELLERGUI_ROSINTERFACE_HPP_
+#ifndef OBJECTMODELLER_HPP
+#define OBJECTMODELLER_HPP
 
 /*****************************************************************************
 ** Includes
@@ -91,4 +91,4 @@ private:
 }
 }  // namespace object_modeller_gui
 
-//#endif /* OBJECTMODELLERGUI_ROSINTERFACE_HPP_ */
+#endif /* OBJECTMODELLER_HPP */

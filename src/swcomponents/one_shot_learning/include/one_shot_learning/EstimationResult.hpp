@@ -1,3 +1,6 @@
+#ifndef ESTIMATIONRESULT_HPP
+#define ESTIMATIONRESULT_HPP
+
 #include <QString>
 #include <geometry_msgs/Transform.h>
 
@@ -45,3 +48,4 @@ public:
 
 }
 }
+#endif /* ESTIMATIONRESULT_HPP */

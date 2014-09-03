@@ -103,6 +103,7 @@ bool Workcell::createEmptyWorkcell()
   using namespace rw::models;
   using namespace rw::geometry;
   _workcell = WorkCell::Ptr(new WorkCell("empty_scene"));  
+  return true;
 }
 
 void Workcell::addModel(std::string& model_name, std::string frame_name, rw::math::Transform3D<double> transformation)//rw::kinematics::Frame::Ptr object_frame)

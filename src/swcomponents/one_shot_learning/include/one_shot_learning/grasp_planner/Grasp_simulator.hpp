@@ -39,6 +39,7 @@ public:
     _recordStatePath = record;
     _record_file_path = file_path;
   }; 
+  void TimedState(int arg1, rw::kinematics::State initState);
   //void setGraspTask(rwlibs::task::GraspTask::Ptr grasptask){_grasptask = grasptask; };
   
 private:

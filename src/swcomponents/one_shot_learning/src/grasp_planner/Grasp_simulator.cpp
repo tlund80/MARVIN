@@ -114,6 +114,7 @@ bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::strin
 
    // load dynamic workcell
    DynamicWorkCell::Ptr dwc = _workcell->getDynamicWorkcell();
+   if(!dwc) return false;
    rw::kinematics::State initState = dwc->getWorkcell()->getDefaultState();
    
    //Load graspTask if needed
@@ -155,12 +156,13 @@ bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::strin
 }
   // create GraspTaskSimulator
   GraspTaskSimulator::Ptr graspSim = ownedPtr( new GraspTaskSimulator(dwc, _numberOfThreads) );
-  //graspSim->init(dwc, initState);
+//  graspSim->init(dwc, initState);
   graspSim->load(_grasptask);
+  
   graspSim->startSimulation(initState);
- /*
+ 
   if(_recordStatePath){
-     statep.push_back(TimedState(0,initState));
+     statep.push_back(rw::trajectory::TimedState(0,initState));
   }
  
   TimerUtil::sleepMs(2000);
@@ -169,7 +171,7 @@ bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::strin
   std::cout<< std::endl;
 
   do{
-    if(_recordStatePath)statep.push_back(TimedState(statep.size()*0.01,graspSim->getSimulator()->getState()));
+    if(_recordStatePath)statep.push_back(rw::trajectory::TimedState(statep.size()*0.01,graspSim->getSimulator()->getState()));
      
      TimerUtil::sleepMs(100);
      std::vector<int> stat = graspSim->getStat();
@@ -190,7 +192,6 @@ bool Grasp_simulator::SimulateGraspHypothesis(std::string objectName, std::strin
        PathLoader::storeTimedStatePath(*dwc->getWorkcell(),statep, ss.str());
     }
   std::cout << "\nDone!!" << std::endl;
-	*/
    return true;
   
 }
@@ -205,7 +206,7 @@ void Grasp_simulator::FilterGrasps()
   std::cout << "\n================= Filtering grasps ====================" << std::endl;
   std::cout << "Number of subtasks: " << int(_grasptask->getSubTasks().size()) << std::endl;
 	
-  int targets = 0, totaltargets = 0, localNrTargets=0,nrBatches=0;
+  int targets = 0, totaltargets = 0, localNrTargets=0;//,nrBatches=0;
   std::vector<int> testStat(GraspTask::SizeOfStatusArray,0);
   
   if(_gtask==NULL){
@@ -318,14 +319,14 @@ bool Grasp_simulator::SimulateGraspPertubations(double sigma_a, double sigma_p, 
 	graspSim->load(tasks[i]);
 	graspSim->startSimulation(initState);
             if(_recordStatePath){
-                statep.push_back(TimedState(0,initState));
+                statep.push_back(rw::trajectory::TimedState(0,initState));
             }
             for(std::size_t j=0;j<graspSim->getStat().size(); j++){ std::cout << j << "\t"; }
             std::cout<< std::endl;
             TimerUtil::sleepMs(2000);
             do{
                 if(_recordStatePath){
-                    statep.push_back(TimedState(statep.size()*0.01,graspSim->getSimulator()->getState()));
+                    statep.push_back(rw::trajectory::TimedState(statep.size()*0.01,graspSim->getSimulator()->getState()));
                 }
                 TimerUtil::sleepMs(100);
                 std::vector<int> stat = graspSim->getStat();

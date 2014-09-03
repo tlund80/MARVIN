@@ -803,11 +803,15 @@ bool One_shot_learning::btnGraspGenerationClicked()
    _sampler->LoadGripperInverseKin(sdhInverseKin_path);
    _sampler->generateTask(type, obj_name, targets);
    _sampler->Sample(samples);
+  // _sampler->SaveGraspTask(gtask_path);
  
    Grasp_simulator* _sim = new Grasp_simulator(_grasp_wc, _sampler);
    _sim->RecordStatePath(true, geometry_path);
+ //  try{
    _sim->SimulateGraspHypothesis(obj_name);
- 
+ //  }catch(boost::exception &e){
+    //std::cout <<  << std::endl; 
+ //  }
  //  _sim->FilterGrasps();  
  //  _sim->SimulateGraspPertubations(sigma_a, sigma_p,pertubations);
  //  _sim->calcPerturbedQuality(pertubations);

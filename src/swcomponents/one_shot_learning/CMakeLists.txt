@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(one_shot_learning)
-
+SET(CMAKE_BUILD_TYPE debug)
 ########################################################################
 #### Catkin Packages
 ########################################################################
