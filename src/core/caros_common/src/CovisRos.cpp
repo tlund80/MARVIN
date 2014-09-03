@@ -1150,10 +1150,10 @@ std::vector<std::vector<double> > CovisRos::toCovis(const caros_common_msgs::ECV
 {
 
   std::vector < std::vector<double> > texletsNormalDistanceRelation;
-  for (int i = 0; i < relationMatrix.relationsMatrix.size(); i++)
+  for (unsigned int i = 0; i < relationMatrix.relationsMatrix.size(); i++)
   {
     std::vector<double> RelationsVecotr;
-    for (int j = 0; j < relationMatrix.relationsMatrix.at(i).relationsVector.size(); j++)
+    for (unsigned int j = 0; j < relationMatrix.relationsMatrix.at(i).relationsVector.size(); j++)
     {
       RelationsVecotr.push_back(relationMatrix.relationsMatrix.at(i).relationsVector.at(j));
     }
