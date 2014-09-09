@@ -1,7 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'plugin.ui'
 **
-** Created by: Qt User Interface Compiler version 4.8.6
+** Created: Thu Sep 4 10:02:22 2014
+**      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -104,6 +105,8 @@ public:
     QLabel *labelSigmaR;
     QLineEdit *lineEditsigmaRot;
     QSpacerItem *verticalSpacer_5;
+    QHBoxLayout *horizontalLayout_19;
+    QPushButton *btnLoadGraspScene;
     QPushButton *btnGenerateGraspTable;
     QWidget *tab_2;
     QVBoxLayout *verticalLayout_3;
@@ -481,10 +484,20 @@ public:
 
         verticalLayout_6->addItem(verticalSpacer_5);
 
+        horizontalLayout_19 = new QHBoxLayout();
+        horizontalLayout_19->setObjectName(QString::fromUtf8("horizontalLayout_19"));
+        btnLoadGraspScene = new QPushButton(tab_4);
+        btnLoadGraspScene->setObjectName(QString::fromUtf8("btnLoadGraspScene"));
+
+        horizontalLayout_19->addWidget(btnLoadGraspScene);
+
         btnGenerateGraspTable = new QPushButton(tab_4);
         btnGenerateGraspTable->setObjectName(QString::fromUtf8("btnGenerateGraspTable"));
 
-        verticalLayout_6->addWidget(btnGenerateGraspTable);
+        horizontalLayout_19->addWidget(btnGenerateGraspTable);
+
+
+        verticalLayout_6->addLayout(horizontalLayout_19);
 
         tabWidget->addTab(tab_4, QString());
         tab_2 = new QWidget();
@@ -579,7 +592,7 @@ public:
 
         retranslateUi(plugin);
 
-        tabWidget->setCurrentIndex(3);
+        tabWidget->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(plugin);
@@ -609,7 +622,8 @@ public:
         lineEditSigmaPos->setText(QApplication::translate("plugin", "0.0003", 0, QApplication::UnicodeUTF8));
         labelSigmaR->setText(QApplication::translate("plugin", "Sigma_Rot:", 0, QApplication::UnicodeUTF8));
         lineEditsigmaRot->setText(QApplication::translate("plugin", "8", 0, QApplication::UnicodeUTF8));
-        btnGenerateGraspTable->setText(QApplication::translate("plugin", "Create Grasp table", 0, QApplication::UnicodeUTF8));
+        btnLoadGraspScene->setText(QApplication::translate("plugin", "1) Load Scene", 0, QApplication::UnicodeUTF8));
+        btnGenerateGraspTable->setText(QApplication::translate("plugin", "2) Create Grasp table", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("plugin", "Grasp tabel generation", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("plugin", "Device", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("plugin", "Robot", 0, QApplication::UnicodeUTF8));

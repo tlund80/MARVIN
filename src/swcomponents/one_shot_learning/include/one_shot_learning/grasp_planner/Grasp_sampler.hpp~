@@ -51,7 +51,7 @@ private:
    bool Sample();
    
 Q_SIGNALS:
-  void finish_sampling(bool finish);
+  void finish_sampling();
   void status(double percent);
   
 private:

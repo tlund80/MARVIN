@@ -41,6 +41,7 @@ public:
 	ObjectModeller(SharedData *data);
 	virtual ~ObjectModeller();
 	
+	void run();
 	void shutdown();
 	void createmodel(pcl::PointCloud<pcl::PointXYZRGBA> in);
 	void createSolidmodel(pcl::PointCloud<pcl::PointXYZRGBA> in);
@@ -53,8 +54,6 @@ Q_SIGNALS:
 	void solidModelCreated(pcl::PointCloud<pcl::PointXYZRGBA> model, pcl::PolygonMesh solid_model);
 	void turnModel();
 
-protected:
-	void run();	
 private:
   
   void initial_alignment(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud,

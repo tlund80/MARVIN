@@ -130,7 +130,6 @@ private:
     void addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA> model, pcl::PolygonMesh solid_model);
     bool loadModels();
     void RefreshTreeWidget();
-    void updateGrasptableWidget(QTreeWidgetItem *item, bool hasGraspTable);
     bool removeDir(const QString & dirName);
     void stateChangedListener(const rw::kinematics::State& state);
     void setState(const rw::kinematics::State& state){

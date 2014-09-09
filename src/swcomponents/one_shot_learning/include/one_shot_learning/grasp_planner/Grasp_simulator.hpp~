@@ -26,7 +26,7 @@ namespace dti{
 class Grasp_simulator  : public QThread {
     Q_OBJECT
 public:
-  Grasp_simulator(Grasp_sampler *sampler);
+  Grasp_simulator(Workcell *workcell, Grasp_sampler *sampler);
   virtual ~Grasp_simulator();
   
 

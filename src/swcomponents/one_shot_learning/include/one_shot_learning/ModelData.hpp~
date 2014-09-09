@@ -95,7 +95,7 @@ public:
      _gtask_GT_list.push_back(gtask);
      _has_grasp_table_GT = true;
   };
-   rwlibs::task::GraspTask::Ptr getGTGraspTask(void){return _gtask_GT_list.front(); };
+   rwlibs::task::GraspTask getGTGraspTask(void){return _gtask_GT_list.front(); };
    
    void setName(QString name){_name = name; };
    QString getName(void){return _name; };

@@ -70,7 +70,7 @@ class Workcell
 	void setQ(const rw::math::Q &q){_robot->setQ(q, _state);}
 	
 	rw::models::WorkCell::Ptr getWorkcell() const { return _workcell; }
-	void setWorkcell(rw::models::WorkCell::Ptr workcell) { _workcell = workcell; }
+	void setWorkcell(rw::models::WorkCell::Ptr workcell) const { _workcell = workcell; }
 	rwsim::dynamics::DynamicWorkCell::Ptr getDynamicWorkcell() const { return _dwc; }
 	rw::kinematics::State getState() const { return _state; }
 	rw::kinematics::State getDynamicWcState() const { return _dynamic_wc_state; }
