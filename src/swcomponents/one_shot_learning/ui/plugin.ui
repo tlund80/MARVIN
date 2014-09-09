@@ -83,7 +83,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -614,11 +614,22 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="btnGenerateGraspTable">
-          <property name="text">
-           <string>Create Grasp table</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_19">
+          <item>
+           <widget class="QPushButton" name="btnLoadGraspScene">
+            <property name="text">
+             <string>1) Load Scene</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnGenerateGraspTable">
+            <property name="text">
+             <string>2) Create Grasp table</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
