@@ -244,8 +244,8 @@ bool RobotController::graspObject(ModelData& data)
   
   if(!data.has_gtask()) return false;
   
-  GraspTask::Ptr gtask = data.getFirstGraspTask();// getGraspTask();
-  std::vector<std::pair<GraspSubTask*,GraspTarget*> > tasks = gtask->getAllTargets();
+  GraspTask gtask = data.getFirstGraspTask();// getGraspTask();
+  std::vector<std::pair<GraspSubTask*,GraspTarget*> > tasks = gtask.getAllTargets();
   for(size_t i = 0; i<tasks.size();i++){
     
     GraspResult::Ptr tres = tasks[i].second->getResult();

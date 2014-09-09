@@ -348,6 +348,7 @@ bool Workcell::addModel(std::string model_name,rw::math::Transform3D<double> tra
   return true;
 }
 
+
 void Workcell::addModelFromFile(std::string& filepath, std::string frame_name, rw::math::Transform3D<double> transformation)//rw::kinematics::Frame::Ptr object_frame)
 {
   using namespace rw::models;

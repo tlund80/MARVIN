@@ -1245,8 +1245,7 @@ void One_shot_learning::sampleFinish(bool status){
     int pertubations = Ui_plugin::spinBoxPertubations->value();
    
     delete _sim;
-   _sim = new dti::grasp_planning::Grasp_simulator(_sampler);
-   _sim->setWorkcell(_grasp_wc);
+   _sim = new dti::grasp_planning::Grasp_simulator(_grasp_wc, _sampler);
     connect(_sim,SIGNAL(status(double)),this,SLOT(sampleStatus(double)),Qt::DirectConnection);
    // connect(_sim,SIGNAL(finish_sampling(bool)),this,SLOT(sampleFinish(bool)),Qt::DirectConnection);
    _sim->RecordStatePath(true, _replay_path);

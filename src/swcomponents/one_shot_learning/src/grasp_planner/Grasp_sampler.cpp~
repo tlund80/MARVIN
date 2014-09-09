@@ -27,8 +27,6 @@ void Grasp_sampler::run(){
 	Q_EMIT finish_sampling(false);
    }else
      Q_EMIT finish_sampling(false);
-   
-    std::cout<< std::endl;
 }
 
 void Grasp_sampler::LoadGripperInverseKin(void)

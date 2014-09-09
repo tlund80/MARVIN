@@ -83,7 +83,7 @@ void ObjectModeller::run()
  
   while(isRunning)
   {
-     //std::cout << "object modeller current Thread Id: " << int(QThread::currentThreadId()) << std::endl;
+       std::cout << "object modeller current Thread Id: " << int(QThread::currentThreadId()) << std::endl;
     //std::cout << "Object modeller is calling!!" << std::endl;
     if(doModel)
     {

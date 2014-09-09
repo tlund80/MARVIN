@@ -8,7 +8,7 @@ using namespace robwork;
 namespace dti{
   namespace grasp_planning{
 
-Grasp_simulator::Grasp_simulator(Grasp_sampler *sampler) :  _sampler(sampler)
+Grasp_simulator::Grasp_simulator(Workcell *workcell, Grasp_sampler *sampler) : _workcell(workcell), _sampler(sampler)
 {
   _grasptask = _sampler->getGraspTask();
   if(!_grasptask) RW_THROW("No grasp task for simulation!!"); 
