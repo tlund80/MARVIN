@@ -9,12 +9,12 @@
 	<Transform>
 	1.0 0.0 0.0 0.0
 	0.0 1.0 0.0 0.0
-	0.0 0.0 1.0 0.037063 <!-- 0.0176 --> 
-	</Transform>
+	0.0 0.0 1.0 0.037063  <!-- 0.0176 --> 
+	</Transform> 
 
-    <Drawable name="ObjectGeo">
+ <!--   <Drawable name="ObjectGeo">
 	 <Polytope file="../../objects/uibkmodel.stl"/>
-    </Drawable>
+    </Drawable>-->
  </Frame>
 
   <!--<Frame name="ProjPlane" refframe="WORLD" type="Movable">

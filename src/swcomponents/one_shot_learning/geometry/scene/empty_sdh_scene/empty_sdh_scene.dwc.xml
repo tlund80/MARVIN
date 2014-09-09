@@ -17,7 +17,7 @@
   <Mass>0.6</Mass>
   <EstimateInertia />
   <Integrator>Euler</Integrator>
-  <MaterialID>Plastic</MaterialID>
+  <MaterialID>Plastic</MaterialID> 
   <!--Property name="LinearDamping" type="float">0.5</Property>
   <Property name="AngularDamping" type="float">0.5</Property-->  
 </RigidBody>
