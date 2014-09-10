@@ -7,15 +7,15 @@
 <Include file="robots/UR1.model.wc.xml" />
 
 
-<!--
+
 <Frame name="Marker" refframe="UR1.TCP"> 
 <RPY>270 0 0</RPY><Pos>0 0 0.06</Pos>
 </Frame> 
 
 
-<Frame name="Marker" refframe="UR2.TCP"> 
+<!--<Frame name="Marker" refframe="UR2.TCP"> 
 <RPY>270 0 0</RPY><Pos>0 0 0.025</Pos>
-</Frame> 
+</Frame> -->
 
 
 <Drawable name="MarkerGeo" refframe="Marker">
@@ -23,7 +23,7 @@
   <Polytope file="robots/marker/marker3" />
 </Drawable>
 
--->
+
 <Frame name="UR2Mount" refframe="UR1Mount" type="Movable">
 <RPY>178.209 1.406 -0.775</RPY><Pos>-0.00234 -1.04563 0.01599</Pos>
 </Frame>
@@ -76,6 +76,6 @@
 <!-- Collision setup -->
 <ProximitySetup file="ProximitySetup.xml" />
  
-<Calibration file="20140321/MyCalibrationUR1BB2_21_03_2014-Estimated-Covariance.xml" />
+<Calibration file="20140910/Calibration_01062014.xml" />
 	
 </WorkCell>
