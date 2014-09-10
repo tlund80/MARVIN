@@ -66,8 +66,11 @@ FIND_PACKAGE(
   HINTS
     "${RWSTUDIO_ROOT}")
 #For robworkhardware
-SET(CMAKE_MODULE_PATH ${RWHW_ROOT}/build ${CMAKE_MODULE_PATH})
-FIND_PACKAGE(RobWorkHardware REQUIRED QUIET netft)
+#SET(CMAKE_MODULE_PATH ${RWHW_ROOT}/build ${CMAKE_MODULE_PATH})
+#FIND_PACKAGE(
+#	RobWorkHardware 
+#	REQUIRED 	
+#	QUIET)
 
 ########################################################################
 #### Declare ROS Messages, Services and Actions
@@ -102,17 +105,18 @@ include_directories(
   ${COVIS_INCLUDE_DIR}
   ${ROBWORK_INCLUDE_DIRS}
   ${ROBWORKSTUDIO_INCLUDE_DIRS}
-  ${ROBWORKHARDWARE_INCLUDE_DIRS}
+ # ${ROBWORKHARDWARE_INCLUDE_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${catkin_INCLUDE_DIRS}
 )
 
 LINK_DIRECTORIES( ${ROBWORK_LIBRARY_DIRS}
                   ${ROBWORKSTUDIO_LIBRARY_DIRS}
-                  ${ROBWORKHARDWARE_LIBRARY_DIRS})
+                  #${ROBWORKHARDWARE_LIBRARY_DIRS}
+                  )
 
 #From here we add the plugins
-file(GLOB QT_FORMS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *src/.ui)
+file(GLOB QT_FORMS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.ui)
 file(GLOB QT_RESOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.qrc)
 file(GLOB_RECURSE QT_MOC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/calibration_verify.hpp)
 
@@ -126,11 +130,12 @@ add_library(${PROJECT_NAME} ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${
 target_link_libraries(${PROJECT_NAME} 
 		      ${ROBWORK_LIBRARIES}
 		      ${ROBWORKSTUDIO_LIBRARIES}
-                      ${ROBWORKHARDWARE_LIBRARIES}
+                   #   ${ROBWORKHARDWARE_LIBRARIES}
                       ${catkin_LIBRARIES} 
 		      ${OpenCV_LIBRARIES}
                       ${COVIS_LIBRARIES}
                       rw_sandbox)
+                      
 add_executable(stereo_chessboard_detector src/stereo_chessboard_detector.cpp)
 add_dependencies(stereo_chessboard_detector stereo_chessboard_detector_generate_messages_cpp)
 target_link_libraries(stereo_chessboard_detector ${OpenCV_LIBS} ${COVIS_LIBRARIES} ${catkin_LIBRARIES})

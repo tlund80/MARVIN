@@ -242,24 +242,81 @@ void moverobot::clickEvent()
     cout<< "_useIntrinsicCalib is :"<<_useIntrinsicCalib<< endl;
     if ( _useIntrinsicCalib == true && _workcellCalibration != NULL) {
         _workcellCalibration->apply();
-        rw::kinematics::Frame* camera = _WorkCell->findFrame("BB-1-Stereo");
-        Transform3D<double> wTcamera = camera->getTransform(_state);
-        std::cout<< std::endl << "wTcamera: "<< wTcamera << std::endl;
-        std::cout<< std::endl << "bTcamera: "<< inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera << std::endl;
-        T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera;
+	
+  //      rw::kinematics::Frame* camera = _WorkCell->findFrame("BB-1-Stereo");
+  //      Transform3D<double> wTcamera = camera->getTransform(_state);
+  //      std::cout<< std::endl << "wTcamera: "<< wTcamera << std::endl;
+  //      std::cout<< std::endl << "bTcamera: "<< inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera << std::endl;
+  //      T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera;
         //T1 = Transform3D<double>( Vector3D<double>( 0.529026,-1.36902, 0.73178 ), Rotation3D<double>( 0.885487, 0.267705, -0.379799,  0.464489, -0.487471, 0.739339, 0.0127838, -0.831087, -0.555995 ) );
-        std::cout << "T1: "<< T1 << std::endl;
-        T2 = Transform3D<double>(Vector3D<double>(0, 0, 0), Rotation3D<>().identity());
-        camera = _WorkCell->findFrame("kinect-1"); //kinect_right
+ //       std::cout << "T1: "<< T1 << std::endl;
+ //       T2 = Transform3D<double>(Vector3D<double>(0, 0, 0), Rotation3D<>().identity());
+	
+	std::cout << "=======================Kinect 1 with new calib applied ===============================" << std::endl;
+        rw::kinematics::Frame* camera = _WorkCell->findFrame("kinect-1"); //kinect_right
         Transform3D<double> wTcamera_right = camera->getTransform(_state);
-        rw::kinematics::Frame* camera_left = _WorkCell->findFrame("kinect-2");//kinect_left
-        Transform3D<double> wTcamera_left = camera_left->getTransform(_state);
-        Transform3D<double> leftTright=Kinematics::frameTframe(camera_left,camera,_state);
-         std::cout << "rightTleft: "<< leftTright << std::endl;
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_right;
+	std::cout << "Kinect right to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_right: "<< wTcamera_right << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl;
+	
+	std::cout << "=======================Kinect 2 with new calib applied ===============================" << std::endl;
+	
+        rw::kinematics::Frame* kinect_left = _WorkCell->findFrame("kinect-2");//kinect_left
+        Transform3D<double> wTcamera_left = kinect_left->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_left;
+	std::cout << "Kinect left to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_left: "<< wTcamera_left << std::endl;
+        //Transform3D<double> leftTright=Kinematics::frameTframe(camera_left,camera,_state);
+         //std::cout << "rightTleft: "<< leftTright << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl; 
+	
+	std::cout << "=======================Kinect 3 with new calib applied ===============================" << std::endl;
+	
+        rw::kinematics::Frame* kinect_center = _WorkCell->findFrame("kinect-3");//kinect_left
+        Transform3D<double> wTcamera_center = kinect_center->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_center;
+	std::cout << "Kinect center to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_center: "<< wTcamera_center << std::endl;
+        //Transform3D<double> leftTright=Kinematics::frameTframe(camera_left,camera,_state);
+         //std::cout << "rightTleft: "<< leftTright << std::endl;
+	std::cout << "=======================End============================================================="  << std::endl; 
     }
     else if(_useIntrinsicCalib == false &&_workcellCalibration != NULL){
         _workcellCalibration->revert();
-        rw::kinematics::Frame* camera = _WorkCell->findFrame("BB-1-Stereo");
+	
+	std::cout << "=======================Kinect 1 ===============================" << std::endl;
+        rw::kinematics::Frame* camera = _WorkCell->findFrame("kinect-1"); //kinect_right
+        Transform3D<double> wTcamera_right = camera->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_right;
+	std::cout << "Kinect right to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_right: "<< wTcamera_right << std::endl;
+	std::cout << "=======================End==============================="  << std::endl;
+	
+	std::cout << "=======================Kinect 2 ===============================" << std::endl;
+	
+        rw::kinematics::Frame* kinect_left = _WorkCell->findFrame("kinect-2");//kinect_left
+        Transform3D<double> wTcamera_left = kinect_left->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_left;
+	std::cout << "Kinect left to world: "<< T1 << std::endl;
+        //Transform3D<double> leftTright=Kinematics::frameTframe(camera_left,camera,_state);
+         //std::cout << "rightTleft: "<< leftTright << std::endl;
+	std::cout << "=======================End==============================="  << std::endl; 
+	
+	std::cout << "=======================Kinect 3 ===============================" << std::endl;
+	
+        rw::kinematics::Frame* kinect_center = _WorkCell->findFrame("kinect-3");//kinect_left
+        Transform3D<double> wTcamera_center = kinect_center->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_center;
+	std::cout << "Kinect center to world: "<< T1 << std::endl;
+        //Transform3D<double> leftTright=Kinematics::frameTframe(camera_left,camera,_state);
+         //std::cout << "rightTleft: "<< leftTright << std::endl;
+	std::cout << "=======================End==============================="  << std::endl; 
+	
+	
+	
+	
+     /*   rw::kinematics::Frame* camera = _WorkCell->findFrame("BB-1-Stereo");
         Transform3D<double> wTcamera = camera->getTransform(_state);
         std::cout<< std::endl << "wTcamera: "<< wTcamera << std::endl;
         std::cout<< std::endl << "bTcamera: "<< inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera << std::endl;
@@ -267,13 +324,13 @@ void moverobot::clickEvent()
         //T1 = Transform3D<double>( Vector3D<double>( 0.529026,-1.36902, 0.73178 ), Rotation3D<double>( 0.885487, 0.267705, -0.379799,  0.464489, -0.487471, 0.739339, 0.0127838, -0.831087, -0.555995 ) );
         std::cout << "T1: "<< T1 << std::endl;
         T2 = Transform3D<double>(Vector3D<double>(0, 0, 0), Rotation3D<>().identity());
+        */
     }
 
   }
 }
 
-void moverobot::bottonCB(int flag)
-{
+void moverobot::bottonCB(int flag){
 
     if(0 == location) {
 	cout<<"Move Home\n";
@@ -354,9 +411,7 @@ void moverobot::bottonCB(int flag)
     }
 }
 
-
-void moverobot::Grab_scene()
-{
+void moverobot::Grab_scene(){
     calibration_verify::stereo_chessboard_detector srv;
     //calibration_verify::kinect_chessboard_detector srv;
     srv.request.width = 9;
@@ -442,19 +497,14 @@ void moverobot::Grab_scene()
    cout<<"Grab Scene done!"<<"\n";
 }
 
-Transform3D< double > moverobot::ToWorld(Transform3D< double >& T)
-{
+Transform3D< double > moverobot::ToWorld(Transform3D< double >& T){
   State tempState = _state;
   Transform3D<double> world2robotbase = Kinematics::worldTframe(_deviceUR1->getBase(),tempState);
   //Transfer Transformation in camera csys to world csys
   Transform3D<double> worldT = world2robotbase*T1*T2*T;
   return worldT;
 }
-
-
-
-vector< Q > moverobot::_IKSolver(const Transform3D< double > pose, State actualState)
-{
+vector< Q > moverobot::_IKSolver(const Transform3D< double > pose, State actualState){
   cout<<"_IKSolver()\n";
   rw::models::Device::Ptr _robot;
   std::vector<Q> solutions;
@@ -537,9 +587,7 @@ vector< Q > moverobot::_IKSolver(const Transform3D< double > pose, State actualS
   return finalsolutions;
 }
 
-
-rw::trajectory::QPath moverobot::_moveRobotT(const Transform3D< double >& T, State actualState)
-{
+rw::trajectory::QPath moverobot::_moveRobotT(const Transform3D< double >& T, State actualState){
     cout<< "Try to find a path with given T.\n";
     //Planning and moving (approach)
     std::vector<Q> solutionsApproach = _IKSolver(T, _state);
@@ -563,9 +611,7 @@ rw::trajectory::QPath moverobot::_moveRobotT(const Transform3D< double >& T, Sta
     return res;
 }
 
-
-rw::trajectory::QPath moverobot::_moveRobotQ(const Q robot, State actualState)
-{
+rw::trajectory::QPath moverobot::_moveRobotQ(const Q robot, State actualState){
   cout<< "Try to find a path with given Q.\n";
   //rw::models::Device::Ptr _robot;
   rw::trajectory::QPath res;
@@ -607,8 +653,7 @@ rw::trajectory::QPath moverobot::_moveRobotQ(const Q robot, State actualState)
   return res;
 }
 
-void moverobot::_moveRobot(const rw::trajectory::QPath res)
-{
+void moverobot::_moveRobot(const rw::trajectory::QPath res){
   for(unsigned int i = 0;i<res.size();i++) {
     //cout<<"Q = "<<res.at(i)<<"\n";
     caros_control_msgs::SerialDeviceMovePTP srv;
@@ -626,14 +671,10 @@ void moverobot::_moveRobot(const rw::trajectory::QPath res)
   }
 }
 
-
-void moverobot::print_T(Transform3D< double >& T)
-{
+void moverobot::print_T(Transform3D< double >& T){
   Transform3D<double> tempT = T;
   std::cout<<tempT.R()(0,0)<<" "<<tempT.R()(0,1)<<" "<<tempT.R()(0,2)<<" "<<tempT.P()[0]<<"\n"<<tempT.R()(1,0)<<" "<<tempT.R()(1,1)<<" "<<tempT.R()(1,2)<<" "<<tempT.P()[1]<<"\n"<<tempT.R()(2,0)<<" "<<tempT.R()(2,1)<<" "<<tempT.R()(2,2)<<" "<<tempT.P()[2]<<"\n";
 }
-
-
 Q_EXPORT_PLUGIN2(moverobot, moverobot);
 //Q_EXPORT_PLUGIN2(moverobot,moverobot);
 
