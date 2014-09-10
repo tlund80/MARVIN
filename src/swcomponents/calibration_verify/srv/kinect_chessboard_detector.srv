@@ -1,0 +1,11 @@
+# REQUEST
+# chess board inner size
+int64 width
+int64 height
+---
+# RESPONSE
+# Position of four corners
+float64[3] left_top
+float64[3] right_top
+float64[3] left_bottom
+float64[3] right_bottom

@@ -1,0 +1,26 @@
+<launch>
+<env name="ROS_MASTER_URI" value="http://tek-marvin-1.sandbox.tek.sdu.dk:11311"/> 
+<include file="$(find marvin)/launch/marvin.machine" />
+
+<param name="/workcell" value="$(find marvin)/scene/Marvin_calibration_verify_ur2.model.wc.xml"/>	
+<node name="UR2" pkg="universalrobots" type="ur" respawn="false" machine="marvin-4">
+<param name="properties" value="$(find universalrobots)/ur2.prop.xml"/>
+</node> 
+<!-- run chessboard detector node -->
+<node name="stereo_chessboard_detector" pkg="calibration_verify" type="stereo_chessboard_detector" output="screen">
+	<param name="image_left" value="/bumblebeeRight/left/image_rect_color"/>
+	<param name="image_right" value="/bumblebeeRight/right/image_rect_color"/>
+	<param name="calib_rect" value="/bumblebeeRight/stereo_calib_rect"/>
+</node>
+
+<!--
+<include file="$(find marvin)/launch/kinect_right.launch" />
+
+<node name="kinect_chessboard_detector" pkg="calibration_verify" type="kinect_chessboard_detector" output="screen" machine="marvin-1">
+	<param name="image_rgb" value="/kinect_right/rgb/image_rect_color"/>
+	<param name="image_depth" value="/kinect_right/depth_registered/image_raw"/>
+	<param name="camera_info" value="/kinect_right/rgb/camera_info"/>
+</node>
+-->
+
+</launch>
