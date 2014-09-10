@@ -44,7 +44,7 @@ catkin_package(
 ########################################################################
 set(RW_ROOT "$ENV{RW_ROOT}")
 set(RWHW_ROOT "$ENV{RWHW_ROOT}")
-message("RW_ROOT: ${RWHW_ROOT}/build")
+#message("RW_ROOT: ${RWHW_ROOT}/build")
 
 SET(CMAKE_BUILD_TYPE Release)
 
@@ -63,7 +63,7 @@ include_directories(include ${ROBWORKHARDWARE_INCLUDE_DIR} ${COVIS_INCLUDE_DIR})
 
 #MESSAGE("ROBWORKHARDWARE_LIBRARY_DIRS ${ROBWORKHARDWARE_LIBRARY_DIRS}")
 #MESSAGE("ROBWORKHARDWARE_LIBRARIES ${ROBWORKHARDWARE_LIBRARIES}")
-MESSAGE(" caros_control_LIBRARIES : ${catkin_LIBRARIES}")
+#MESSAGE(" caros_control_LIBRARIES : ${catkin_LIBRARIES}")
 add_executable(robotiq3 src/mainR3.cpp src/Robotiq3Node.cpp)
 target_link_libraries(robotiq3 ${conv_library} 
   ${ROBWORK_LIBRARIES} 
