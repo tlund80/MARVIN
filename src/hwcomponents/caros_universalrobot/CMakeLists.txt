@@ -6,7 +6,7 @@ project(universalrobot)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS message_generation std_msgs caros_common caros_control caros_control_msgs)
 
-find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Boost REQUIRED QUIET COMPONENTS thread)
 
 ########################################################################
 #### CoViS
@@ -103,7 +103,7 @@ set(SRCFILES
 #common commands for building c++ executables and libraries
 #set(ROS_BUILD_STATIC_LIBS true)
 #set(ROS_BUILD_SHARED_LIBS false)
-MESSAGE(" UniversalRobots_LIBRAIES : ${catkin_LIBRARIES}")
+#MESSAGE(" UniversalRobots_LIBRAIES : ${catkin_LIBRARIES}")
 add_library(${PROJECT_NAME} ${SRCFILES})
 target_link_libraries(${PROJECT_NAME}  
 		      ${catkin_LIBRARIES}
