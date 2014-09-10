@@ -1,0 +1,30 @@
+<launch>
+ <!--   <env name="ROS_MASTER_URI" value="http://tek-marvin-1.sandbox.tek.sdu.dk:11315"/> -->
+    <rosparam file="$(find stereo_camera)/marvin_cameras.yaml" command="load" />
+  <node ns="bumblebeeCenter" pkg="nodelet" type="nodelet" name="stereo_center_manager"  args="manager" output="screen"/>
+
+    <node   pkg="nodelet" type="nodelet" name="bumblebeeCenter" args="load stereo_camera/StereoCamera bumblebeeCenter/stereo_center_manager" output="screen">
+  <!-- <remap from="/bumblebeeRight/out" to="remapped_output"/> -->
+  </node>
+
+   <node  pkg="nodelet" type="nodelet" name="bumblebeeCenterPreprocess" args="load stereo_camera/StereoPreprocess bumblebeeCenter/stereo_center_manager" output="screen">
+   <!-- <remap from="/bumblebeeRightPreprocess/out" to="remapped_output"/>-->
+  </node>
+
+  <node  pkg="nodelet" type="nodelet" name="bumblebeeCenterPointCloud" args="load stereo_camera/StereoPointCloud bumblebeeCenter/stereo_center_manager" output="screen">
+   <!-- <remap from="/bumblebeeRightPreprocess/out" to="remapped_output"/>-->
+  </node>
+
+<group >
+    <node name="imageViewCenterLeftRaw" pkg="image_view" type="image_view" respawn="false" >
+     <remap from="image" to="/bumblebeeCenter/left/image_raw/"/>
+     </node>
+
+    <node name="imageViewCenterLeftColorRect" pkg="image_view" type="image_view" respawn="false" >
+     <remap from="image" to="/bumblebeeCenter/left/image_rect_color/"/>
+     </node>
+  
+  
+  </group>
+
+</launch>
