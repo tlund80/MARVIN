@@ -1,0 +1,13 @@
+%YAML:1.0
+imageHeight: 480
+imageWidth: 640
+rightIntrinsics: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 525, 0., 319.5, 0., 525, 239.5, 0., 0., 1.  ]
+distortionRight: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [ 0, 0, 0, 0, 0  ]

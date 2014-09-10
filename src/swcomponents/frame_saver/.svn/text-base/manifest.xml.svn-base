@@ -1,0 +1,30 @@
+<package>
+  <description brief="frame_saver">
+
+     scene frame saver for data set creation
+
+  </description>
+  <author>Wail Mustafa</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>https://aero.mmmi.sdu.dk/projects/MARVIN/wiki/frame_saver</url>
+  <depend package="std_msgs"/>
+  <depend package="roscpp"/>
+  <depend package="image_transport"/>
+  <depend package="dynamic_reconfigure"/>
+  <depend package="opencv2"/>
+  <depend package="cv_bridge"/>
+  <depend package="sensor_msgs"/>
+  <depend package="marvin_common"/>
+  <depend package="marvin_common_covis"/>
+  <depend package="tf"/>
+  <depend package="pcl"/>
+  <depend package="pcl_ros"/>
+
+
+  <export>
+    <rosdoc config="rosdoc.yaml" />
+  </export>
+</package>
+
+

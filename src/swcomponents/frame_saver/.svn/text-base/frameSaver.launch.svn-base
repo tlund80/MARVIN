@@ -1,0 +1,35 @@
+<launch>
+  
+  <include file="$(find marvin_common)/marvin.machine" />
+  <rosparam file="$(find stereo_camera)/marvin_cameras.yaml" command="load" />
+  <rosparam file="$(find kinect_camera)/kinect_cameras.yaml" command="load" />
+
+  <group >
+    <node name="bumblebeeLeft" pkg="stereo_camera" type="stereo_camera" respawn="false" machine="marvin-1"/>
+  </group>
+  <group >
+    <node name="bumblebeeRight" pkg="stereo_camera" type="stereo_camera" respawn="false" machine="marvin-1"/>
+  </group>
+
+  <group >
+    <node name="kinectLeft" pkg="kinect_camera" type="kinect_camera" respawn="false" machine="marvin-1"/>
+  </group>
+  <group >
+    <node name="kinectCenter" pkg="kinect_camera" type="kinect_camera" respawn="false" machine="marvin-1"/>
+  </group>
+
+  <group >
+    <node name="imageViewRight" pkg="image_view" type="image_view" respawn="false" machine="marvin-1">
+    <remap from="image" to="/bumblebeeRight/right/image_rect_color/"/>
+    </node> 
+    <node name="imageViewLeft" pkg="image_view" type="image_view" respawn="false" machine="marvin-1">
+    <remap from="image" to="/bumblebeeLeft/right/image_rect_color/"/>
+    </node>
+       <node name="imageViewRightKinect" pkg="image_view" type="image_view" respawn="false" machine="marvin-1">
+    <remap from="image" to="/kinectRight/kinect_RGB/"/>
+    </node> 
+    <node name="imageViewCenterKinect" pkg="image_view" type="image_view" respawn="false" machine="marvin-1">
+    <remap from="image" to="/kinectCenter/kinect_RGB/"/>
+    </node>  
+  </group>
+</launch>
