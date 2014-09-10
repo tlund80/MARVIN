@@ -18,7 +18,7 @@ LINK_DIRECTORIES(${COVIS_LIBRARY_DIRS})
 ########################################################################
 #### Find PCL
 ########################################################################
-find_package(PCL REQUIRED)
+find_package(PCL REQUIRED QUIET)
 add_definitions(${PCL_DEFINITIONS})
 
 ########################################################################
@@ -65,12 +65,12 @@ IF(NOT ROBWORKSIM_FOUND)
   INCLUDE(${RWSIM_ROOT}/build/FindRobWorkSim.cmake)
 ENDIF(NOT ROBWORKSIM_FOUND)
 
-message("rw link dir: " ${ROBWORK_LIBRARY_DIRS})
-message("rw libraries: " ${ROBWORK_LIBRARIES})
-message("rw libs: " ${ROBWORK_LIBS})
+#message("rw link dir: " ${ROBWORK_LIBRARY_DIRS})
+#message("rw libraries: " ${ROBWORK_LIBRARIES})
+#message("rw libs: " ${ROBWORK_LIBS})
 
-message("rw link dir: " ${ROBWORKSTUDIO_LIBRARY_DIRS})
-message("rws libraries: " ${ROBWORKSTUDIO_LIBRARIES})
+#message("rw link dir: " ${ROBWORKSTUDIO_LIBRARY_DIRS})
+#message("rws libraries: " ${ROBWORKSTUDIO_LIBRARIES})
 
 link_directories(${ROBWORK_LIBRARY_DIRS})
 link_directories(${ROBWORKSTUDIO_LIBRARY_DIRS})
@@ -79,7 +79,7 @@ link_directories(${ROBWORKSIM_LIBRARY_DIRS})
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
-find_package(Boost REQUIRED COMPONENTS thread signals system)
+find_package(Boost REQUIRED QUIET COMPONENTS thread signals system)
 #find_package(
 #  CoViS
 #  REQUIRED
