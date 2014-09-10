@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   roscpp
   caros_common_msgs
+  image_geometry
 )
 
 ########################################################################
@@ -52,7 +53,7 @@ find_package(RobWork REQUIRED PATHS "${RW_ROOT}")
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${library_name}
-  CATKIN_DEPENDS message_runtime std_msgs roscpp caros_common_msgs
+  CATKIN_DEPENDS message_runtime std_msgs roscpp caros_common_msgs image_geometry
   DEPENDS RobWork CoViS
 )
 
