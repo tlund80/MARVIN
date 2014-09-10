@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
 )
 
-find_package(PCL REQUIRED)
+find_package(PCL REQUIRED QUIET)
 add_definitions(${PCL_DEFINITIONS})
 
 #find_package(VTK REQUIRED)
