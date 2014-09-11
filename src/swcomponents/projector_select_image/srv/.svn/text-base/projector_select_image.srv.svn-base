@@ -1,0 +1,6 @@
+# REQUEST
+# String
+string image_path
+---
+# RESPONSE
+bool success
