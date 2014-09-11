@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV REQUIRED)
 
-find_package(PCL REQUIRED COMPONENTS common io)
+find_package(PCL REQUIRED QUIET COMPONENTS common io)
 add_definitions(${PCL_DEFINITIONS})
 
 find_package(

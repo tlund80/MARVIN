@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV REQUIRED)
 
-find_package(PCL REQUIRED)
+find_package(PCL REQUIRED QUIET)
 add_definitions(${PCL_DEFINITIONS})
 
 find_package(
