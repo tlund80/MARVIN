@@ -39,6 +39,7 @@ fi
 #ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$DTI_COMMON_ROOT/Stacks
 
 #ROS URI to find the Master server
+export MASTER_IP=tek-marvin-1.sandbox.tek.sdu.dk
 export ROS_MASTER_URI=http://$MASTER_IP:11311
 
 export RobWork_DIR=~/RobWork
