@@ -1,3 +1,0 @@
-<launch>
-        <node pkg="projector_select_image" name="projector_select_image_center" type="projector_select_image" output="screen"/>
-</launch>

@@ -13,7 +13,7 @@ moverobot::moverobot() :RobWorkStudioPlugin("Click_to_Move", QIcon(":/pa_icon.pn
   try 
   {	
     stringstream xmlPath;
-    xmlPath << ros::package::getPath("marvin") << "/scene/Marvin_calibration_verify_ur1.model.wc.xml";
+    xmlPath << ros::package::getPath("marvin") << "/scene/Marvin.model.calibration.wc.xml";
     cout<<"Scene Address = "<<xmlPath.str()<<"\n";
     WorkCell = rw::loaders::WorkCellFactory::load(xmlPath.str());
   } 
@@ -26,7 +26,7 @@ moverobot::moverobot() :RobWorkStudioPlugin("Click_to_Move", QIcon(":/pa_icon.pn
   _useIntrinsicCalib=false;
   _move_Robot=false;
   _workcellCalibration = NULL;
-  if (_WorkCell->getCalibrationFilename() != "") {
+ if (_WorkCell->getCalibrationFilename() != "") {
       _workcellCalibration = rwlibs::calibration::XmlCalibrationLoader::load(_WorkCell, _WorkCell->getFilePath() + _WorkCell->getCalibrationFilename());
 
   }
@@ -299,6 +299,7 @@ void moverobot::clickEvent()
         Transform3D<double> wTcamera_left = kinect_left->getTransform(_state);
 	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_left;
 	std::cout << "Kinect left to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_left: "<< wTcamera_left << std::endl;
         //Transform3D<double> leftTright=Kinematics::frameTframe(camera_left,camera,_state);
          //std::cout << "rightTleft: "<< leftTright << std::endl;
 	std::cout << "=======================End==============================="  << std::endl; 
@@ -309,6 +310,7 @@ void moverobot::clickEvent()
         Transform3D<double> wTcamera_center = kinect_center->getTransform(_state);
 	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_center;
 	std::cout << "Kinect center to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_center: "<< wTcamera_center << std::endl;
         //Transform3D<double> leftTright=Kinematics::frameTframe(camera_left,camera,_state);
          //std::cout << "rightTleft: "<< leftTright << std::endl;
 	std::cout << "=======================End==============================="  << std::endl; 

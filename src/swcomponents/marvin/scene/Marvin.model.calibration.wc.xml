@@ -46,6 +46,22 @@
 <RPY>0 0 0</RPY><Pos>0 0 0.0275</Pos>
 <Cylinder radius="0.075" z="0.055"/>
 </Drawable>
+<Frame name="Adjust_frame" refframe = "UR1_TCP">
+<RPY>-14 0 0</RPY>
+<Pos>0 0 0</Pos>
+</Frame>
+
+<Frame name="Calibration_tool" refframe = "Adjust_frame">
+<RPY>90 90 180</RPY>
+<Pos>0 0.034 0.065</Pos>
+<Drawable name="Calibration_tool_Geo" refframe="Calibration_tool">
+  <Polytope file="geometry/calibration-tool-pointer2.stl"/>
+</Drawable>
+</Frame>
+<Frame name="TIP" refframe = "Calibration_tool">
+<RPY>0 180 0</RPY>
+<Pos>0 0 -0.093</Pos>
+</Frame>
 
 <!--
 <Frame name="SDHMount" refframe = "UR1_TCP">
@@ -62,5 +78,6 @@
 <!-- Collision setup -->
 <ProximitySetup file="ProximitySetup.xml" />
  
-	
+<Calibration file="20140910/Calibration_01062014.xml" />
+
 </WorkCell>

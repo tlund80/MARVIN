@@ -1,7 +1,0 @@
-<launch>
-        <node pkg="projector_show_image" name="projector_show_image_right" type="projector_show_image" output="screen">
-                <param name="INPUT_IMAGE_TOPIC" value="/projector/calibration/Right" type="string" />
-		<param name="PROJECTOR_WIDTH" value="1280" type="double" />
-		<param name="PROJECTOR_HEIGHT" value="800" type="double" /> 
-        </node>
-</launch>
