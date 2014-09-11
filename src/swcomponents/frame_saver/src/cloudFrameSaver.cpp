@@ -220,23 +220,29 @@ void pointCloudCallback(sensor_msgs::PointCloud2 & PointCloudROS)
     std::stringstream pcdFilePath;
     pcdFilePath << packagePath << "/" << folder << "/" << counter << "/" << frame_id << "_cloud_local_" << objectName
         << "_" << counter << ".pcd";
-    pcdWriter.writeBinaryCompressed(pcdFilePath.str().c_str(), PointCloudPCL);
+    pcdWriter.write(pcdFilePath.str().c_str(), PointCloudPCL);
     cout << "Files saved: " << pcdFilePath.str() << endl;
 
   }
 //  sensor_msgs::PointCloud2 PointCloud = *PointCloudROS;
-  pcl_ros::transformPointCloud("/world", PointCloudROS, PointCloudROS, *tf_listener);
-  pcl::PointCloud < pcl::PointXYZRGBA > PointCloudPCL;
-  pcl::fromROSMsg < pcl::PointXYZRGBA > (PointCloudROS, PointCloudPCL);
+  tf::StampedTransform transform;
+  if(tf_listener->waitForTransform("/world", frame_id, ros::Time::now(),ros::Duration(30.0))){
+	//tf_listener->lookupTransform("/world", frame_id,ros::Time(0), transform);
+	
+	pcl_ros::transformPointCloud("/world", PointCloudROS, PointCloudROS, *tf_listener);
+	pcl::PointCloud < pcl::PointXYZRGBA > PointCloudPCL;
+	pcl::fromROSMsg < pcl::PointXYZRGBA > (PointCloudROS, PointCloudPCL);
 
-  std::stringstream pcdFilePath;
-  pcdFilePath << packagePath << "/" << folder << "/" << counter << "/" << frame_id << "_cloud_" << objectName << "_"
-      << counter << ".pcd";
+	std::stringstream pcdFilePath;
+	pcdFilePath << packagePath << "/" << folder << "/" << counter << "/" << frame_id << "_cloud_" << objectName << "_"
+        << counter << ".pcd";
 
-  pcdWriter.writeBinaryCompressed(pcdFilePath.str().c_str(), PointCloudPCL);
-  cout << "Files saved: " << pcdFilePath.str() << endl;
-
-  PointCloudPCLCombined += PointCloudPCL;
+	pcdWriter.write(pcdFilePath.str().c_str(), PointCloudPCL);
+	cout << "Files saved: " << pcdFilePath.str() << endl;
+	PointCloudPCLCombined += PointCloudPCL;
+	
+  }else
+    ROS_ERROR_STREAM("Could not lookup " << frame_id <<  " Transform. Time out");
 
 }
 
@@ -253,7 +259,7 @@ void kinectPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
   pcl::fromPCLPointCloud2(out, PointCloudPCL);
  // pcl::fromROSMsg < pcl::PointXYZRGBA > (PointCloud, PointCloudPCL);
   
-  KinectPointCloudPCLCombined += PointCloudPCL;
+ KinectPointCloudPCLCombined += PointCloudPCL;
 
 }
 
@@ -398,7 +404,7 @@ int main(int argc, char **argv)
 //          }
 
           ros::spinOnce();
-          saveCombined();// save combined point clouds
+         // saveCombined();// save combined point clouds
         }
 
         if (!USES_LIGHT)
