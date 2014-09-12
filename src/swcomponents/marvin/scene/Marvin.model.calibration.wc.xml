@@ -77,7 +77,7 @@
 
 <!-- Collision setup -->
 <ProximitySetup file="ProximitySetup.xml" />
- 
-<Calibration file="20140910/Calibration_01062014.xml" />
+
+<Calibration file="20140910/CalibrationUR1BB123K123.xml" /> 
 
 </WorkCell>
