@@ -159,11 +159,17 @@
 <!-- Kinects -->
 
 
-<Frame name="kinect-1" refframe="CorrectedBase" >
-<Transform>
+<Frame name="kinect-1" refframe="CorrectedBase" type="Movable">
+<!--<Transform>
 -0.877336 0.287081 -0.384534 0.643406
 0.479732 0.504976 -0.717535 0.256284
 -0.0118106 -0.813992 -0.580756 0.726622
+</Transform>-->
+
+<Transform>
+-0.838286 0.33705 -0.428572 0.465
+0.545222 0.522731 -0.655352 0.3
+0.00314159 -0.783039 -0.621965 0.724788
 </Transform>
 </Frame>
 
@@ -177,9 +183,14 @@
 </Frame>
 
 
-<Frame name="kinect-2" refframe="CorrectedBase" type="Movable">
-	<RPY> 27.98 -0.557 -124.44 </RPY>
-	<Pos> 0.533255 -1.36882 0.83815</Pos>
+<Frame name="kinect-2" refframe="CorrectedBase" >
+<!--	<RPY> 27.98 -0.557 -124.44 </RPY>
+	<Pos> 0.533255 -1.36882 0.83815</Pos>-->
+<Transform>
+0.87844 0.246306 -0.409483 0.581276
+0.477689 -0.475041 0.739019 -1.31748
+-0.0124966 -0.844789 -0.534953 0.724788
+</Transform>
 </Frame>
 <Frame name="kinect-2-Sim" refframe="kinect-2" type="Movable">
 	<RPY> 0 0 180</RPY>
@@ -192,10 +203,14 @@
 
 
 
-<Frame name="kinect-3" refframe="CorrectedBase" type="Movable">
-	<RPY> -90 0 -120 </RPY>
-	<Pos> -0.7 -0.53 0.810776</Pos>
-
+<Frame name="kinect-3" refframe="CorrectedBase">
+<!--	<RPY> -90 0 -120 </RPY>
+	<Pos> -0.7 -0.53 0.810776</Pos>-->
+<Transform>
+-0.0173545 -0.603727 0.797002 -0.640151
+-0.999799 0.00248683 -0.0198866 -0.527698
+0.0100241 -0.797187 -0.603649  0.726873
+</Transform>
 </Frame>
 <Frame name="kinect-3-Sim" refframe="kinect-3" type="Movable">
 	<RPY> 0 0 180 </RPY>
@@ -213,7 +228,7 @@
 <Pos> -0.606643 -0.048186 0.717263 </Pos>
 
 </Frame>
-<Frame name="carmine-1-Sim" refframe="carmine-1" type="Movable">
+<Frame name="carmine-1-Sim" refframe="carmine-1" >
 	<RPY> 0 0 180 </RPY>
 	<Pos> 0 0 0 </Pos>
 	<Property name="CameraType">RGB-D</Property>
