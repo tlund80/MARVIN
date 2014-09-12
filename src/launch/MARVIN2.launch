@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+ <include file="$(find projector_select_image)/launch/projector_left.launch"/>
+ <!--<include file="$(find projector_select_image)/launch/projector_center.launch"/>-->
+ <include file="$(find projector_select_image)/launch/projector_right.launch"/>
+
+</launch>

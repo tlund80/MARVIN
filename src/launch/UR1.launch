@@ -17,4 +17,6 @@
 		<param name="properties" value="$(find universalrobot)/ur2.prop.xml"/>
 </group>-->
 	<!--<node name="kinect_vibrator" pkg="kinect_vibrator" type="kinectVibratorTest" respawn="false" machine="marvin-4"/>-->
+
+		<include file="$(find projector_select_image)/launch/projector_center.launch"/>
 </launch>

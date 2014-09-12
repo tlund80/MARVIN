@@ -1,3 +1,4 @@
 <launch>
+	<env name="DISPLAY" value=":0.2"/>
         <node pkg="projector_select_image" name="projector_select_image_right" type="projector_select_image" output="screen"/>
 </launch>
