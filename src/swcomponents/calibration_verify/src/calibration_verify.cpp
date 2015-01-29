@@ -13,7 +13,7 @@ moverobot::moverobot() :RobWorkStudioPlugin("Click_to_Move", QIcon(":/pa_icon.pn
   try 
   {	
     stringstream xmlPath;
-    xmlPath << ros::package::getPath("marvin") << "/scene/Marvin.model.calibration.wc.xml";
+    xmlPath << ros::package::getPath("marvin") << "/scene/Marvin.model.calibration.wc.xml";	
     cout<<"Scene Address = "<<xmlPath.str()<<"\n";
     WorkCell = rw::loaders::WorkCellFactory::load(xmlPath.str());
   } 
@@ -26,6 +26,19 @@ moverobot::moverobot() :RobWorkStudioPlugin("Click_to_Move", QIcon(":/pa_icon.pn
   _useIntrinsicCalib=false;
   _move_Robot=false;
   _workcellCalibration = NULL;
+  
+   rw::kinematics::Frame* BB1_frame = _WorkCell->findFrame("BB-1-Stereo");
+   if(!BB1_frame) RW_THROW("NO BB-1-Stereo frame in workcell! ");
+   rw::kinematics::Frame* BB2_frame = _WorkCell->findFrame("BB-2-Stereo");
+   if(!BB2_frame) RW_THROW("NO BB-2-Stereo frame in workcell! ");
+   rw::kinematics::Frame* BB3_frame = _WorkCell->findFrame("BB-3-Stereo");
+   if(!BB3_frame) RW_THROW("NO BB-3-Stereo frame in workcell! ");
+   rw::kinematics::Frame* kin1_frame = _WorkCell->findFrame("kinect-1");
+   if(!kin1_frame) RW_THROW("NO kinect-1 frame in workcell! ");
+   rw::kinematics::Frame* kin2_frame = _WorkCell->findFrame("kinect-2");
+   if(!kin2_frame) RW_THROW("NO kinect-2 frame in workcell! ");
+   rw::kinematics::Frame* kin3_frame = _WorkCell->findFrame("kinect-3");
+   if(!kin3_frame) RW_THROW("NO kinect-3 frame in workcell! ");
  if (_WorkCell->getCalibrationFilename() != "") {
       _workcellCalibration = rwlibs::calibration::XmlCalibrationLoader::load(_WorkCell, _WorkCell->getFilePath() + _WorkCell->getCalibrationFilename());
 
@@ -118,7 +131,7 @@ void moverobot::initialize()
   //kinect_right
   //T1 = Transform3D<double>(Vector3D<double>(0.546333, 0.264644, 0.649363), Rotation3D<double>(-0.881181, 0.303028, -0.362896, 0.471519, 0.507276, -0.721347, -0.0344996, -0.806749, -0.589886));
   //T2 = Transform3D<double>(Vector3D<double>(0, 0, 0), Rotation3D<double>().identity());
-  rw::kinematics::Frame* camera = _WorkCell->findFrame("BB-1-Stereo");
+/*  rw::kinematics::Frame* camera = _WorkCell->findFrame("BB-1-Stereo");
   Transform3D<double> wTcamera = camera->getTransform(_state);
   std::cout<< std::endl << "wTcamera: "<< wTcamera << std::endl;
   std::cout<< std::endl << "bTcamera: "<< inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera << std::endl;
@@ -126,13 +139,16 @@ void moverobot::initialize()
   //T1 = Transform3D<double>( Vector3D<double>( 0.529026,-1.36902, 0.73178 ), Rotation3D<double>( 0.885487, 0.267705, -0.379799,  0.464489, -0.487471, 0.739339, 0.0127838, -0.831087, -0.555995 ) );
   std::cout << "T1: "<< T1 << std::endl;
   T2 = Transform3D<double>(Vector3D<double>(0, 0, 0), Rotation3D<>().identity());
+  */
   /*********************************************************************new config only for peg******************/
-  Q_home = Q(6, -92.465*Deg2Rad, -100.062*Deg2Rad, -48.701*Deg2Rad, -165.203*Deg2Rad, -15.560*Deg2Rad, -163.5*Deg2Rad); //TODO change a new home Q
-  //Q_home = Q(6, -92.465*Deg2Rad, -100.062*Deg2Rad, -48.701*Deg2Rad, -119.681*Deg2Rad, 0.0*Deg2Rad, 57.185*Deg2Rad);
+ // Q_home = Q(6, -92.465*Deg2Rad, -100.062*Deg2Rad, -48.701*Deg2Rad, -165.203*Deg2Rad, -15.560*Deg2Rad, -163.5*Deg2Rad); //TODO change a new home Q
+			    //Q_home = Q(6, -92.465*Deg2Rad, -100.062*Deg2Rad, -48.701*Deg2Rad, -119.681*Deg2Rad, 0.0*Deg2Rad, 57.185*Deg2Rad);
+			    
+   			    
   
   _timer1 = new QTimer(this);
   connect(_timer1, SIGNAL(timeout()), this, SLOT(_updateScene()));
-  _timer1-> start(10);
+  _timer1-> start(300);
   
   //Threads
   _drawThread = new boost::thread(boost::bind(&moverobot::drawLoop, this));
@@ -143,7 +159,9 @@ void moverobot::drawLoop()
   while(!_end) {
     ros::spinOnce();
     _upUR();
+    //sleep(0.5);
   }
+  
 }
 
 void moverobot::_upUR()
@@ -154,6 +172,7 @@ void moverobot::_upUR()
       //cout << "_upUR loop!!!\n";
     }
   }
+  
 }
 
 void moverobot::stateChangedListener(const rw::kinematics::State& state)
@@ -243,14 +262,31 @@ void moverobot::clickEvent()
     if ( _useIntrinsicCalib == true && _workcellCalibration != NULL) {
         _workcellCalibration->apply();
 	
-  //      rw::kinematics::Frame* camera = _WorkCell->findFrame("BB-1-Stereo");
-  //      Transform3D<double> wTcamera = camera->getTransform(_state);
-  //      std::cout<< std::endl << "wTcamera: "<< wTcamera << std::endl;
-  //      std::cout<< std::endl << "bTcamera: "<< inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera << std::endl;
-  //      T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera;
-        //T1 = Transform3D<double>( Vector3D<double>( 0.529026,-1.36902, 0.73178 ), Rotation3D<double>( 0.885487, 0.267705, -0.379799,  0.464489, -0.487471, 0.739339, 0.0127838, -0.831087, -0.555995 ) );
- //       std::cout << "T1: "<< T1 << std::endl;
- //       T2 = Transform3D<double>(Vector3D<double>(0, 0, 0), Rotation3D<>().identity());
+	std::cout << "=======================BB-1-Stereo with new calib applied ===============================" << std::endl;
+	rw::kinematics::Frame* bb_right = _WorkCell->findFrame("BB-1-Stereo");
+        Transform3D<double> wTcamera_right_bb = bb_right->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_right_bb;
+	std::cout << "BumbleBee right to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_right_bb : "<< wTcamera_right_bb << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl;
+	
+	std::cout << "=======================BB-2-Stereo with new calib applied ===============================" << std::endl;
+	rw::kinematics::Frame* bb_left = _WorkCell->findFrame("BB-2-Stereo");
+        Transform3D<double> wTcamera_left_bb = bb_left->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_left_bb;
+	std::cout << "BumbleBee left to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_left_bb: "<< wTcamera_left_bb << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl;
+	
+	std::cout << "=======================BB-3-Stereo with new calib applied ===============================" << std::endl;
+	rw::kinematics::Frame* bb_center = _WorkCell->findFrame("BB-3-Stereo");
+        Transform3D<double> wTcamera_center_bb = bb_center->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_center_bb;
+	std::cout << "BumbleBee center to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_center_bb: "<< wTcamera_center_bb << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl;
+	
+	std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"  << std::endl << std::endl;
 	
 	std::cout << "=======================Kinect 1 with new calib applied ===============================" << std::endl;
         rw::kinematics::Frame* camera = _WorkCell->findFrame("kinect-1"); //kinect_right
@@ -284,6 +320,33 @@ void moverobot::clickEvent()
     }
     else if(_useIntrinsicCalib == false &&_workcellCalibration != NULL){
         _workcellCalibration->revert();
+	
+	std::cout << "=======================BB-1-Stereo with new calib applied ===============================" << std::endl;
+	rw::kinematics::Frame* bb_right = _WorkCell->findFrame("BB-1-Stereo");
+        Transform3D<double> wTcamera_right_bb = bb_right->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_right_bb;
+	std::cout << "BumbleBee right to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_right_bb : "<< wTcamera_right_bb << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl;
+	
+	std::cout << "=======================BB-2-Stereo with new calib applied ===============================" << std::endl;
+	rw::kinematics::Frame* bb_left = _WorkCell->findFrame("BB-2-Stereo");
+        Transform3D<double> wTcamera_left_bb = bb_left->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_left_bb;
+	std::cout << "BumbleBee left to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_left_bb: "<< wTcamera_left_bb << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl;
+	
+	std::cout << "=======================BB-3-Stereo with new calib applied ===============================" << std::endl;
+	rw::kinematics::Frame* bb_center = _WorkCell->findFrame("BB-3-Stereo");
+        Transform3D<double> wTcamera_center_bb = bb_center->getTransform(_state);
+	T1 = inverse( Kinematics::worldTframe(_deviceUR1->getBase(),_state)) * wTcamera_center_bb;
+	std::cout << "BumbleBee center to world: "<< T1 << std::endl;
+	std::cout << "wTcamera_center_bb: "<< wTcamera_center_bb << std::endl;
+	std::cout << "=======================End============================================================"  << std::endl;
+	
+	std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"  << std::endl << std::endl;
+	
 	
 	std::cout << "=======================Kinect 1 ===============================" << std::endl;
         rw::kinematics::Frame* camera = _WorkCell->findFrame("kinect-1"); //kinect_right
