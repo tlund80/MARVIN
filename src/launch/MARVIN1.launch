@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
  <include file="$(find stereo_camera)/launch/BumblebeeRight.launch"/>
+ <include file="$(find stereo_camera)/launch/BumblebeeCenter.launch"/>
  <include file="$(find openni_launch_marvin)/launch/kinect_left.launch"/>
- <include file="$(find openni_launch_marvin)/launch/kinect_right.launch"/>
 
 </launch>
