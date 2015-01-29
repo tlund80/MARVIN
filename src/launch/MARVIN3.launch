@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
- <!--<env name="ROS_MASTER_URI" value="http://tek-marvin-1.sandbox.tek.sdu.dk:11311"/> -->
+
 <launch>
-<!-- <include file="$(find stereo_camera)/launch/BumblebeeLeft.launch"/>
- <include file="$(find stereo_camera)/launch/BumblebeeCenter.launch"/>-->
- <include file="$(find openni_launch_marvin)/launch/kinect_center.launch"/>
+<include file="$(find stereo_camera)/launch/BumblebeeLeft.launch"/>
+<include file="$(find stereo_camera)/launch/BumblebeeCenter.launch"/>
+<!-- <include file="$(find openni_launch_marvin)/launch/kinect_right.launch"/> -->
 
 </launch>
