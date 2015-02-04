@@ -1,0 +1,9 @@
+# REQUEST
+# stereo param
+int32 sensor # 0=both 1= kinect 2= stereo
+float32 plane_remove_threadshold
+---
+# RESPONSE
+# Input scene
+sensor_msgs/PointCloud2 model
+bool success
