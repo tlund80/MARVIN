@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="kinect" default="true" />
+  <arg name="stereo" default="false" />
+  <!--<node pkg="tf" type="static_transform_publisher" name="world" args="0 0 0.0892 0 0 0 1 /world /robot_base 3"/>-->
+  
+   <group if="$(arg kinect)">
+     
+      <!-- Load extrinsics -->
+      <rosparam command="load" file="$(find cloud_publisher)/position/kinect/position_kinect_center.yaml" ns="kinect_center" />
+      <rosparam command="load" file="$(find cloud_publisher)/position/kinect/position_kinect_right.yaml" ns="kinect_right" />
+      <rosparam command="load" file="$(find cloud_publisher)/position/kinect/position_kinect_left.yaml" ns="kinect_left" />
+   
+      <group ns="/">
+      <!-- Publish global extrinsic calibration -->
+      <!--<param name="/kinect_center/source" value="/world" />-->
+	<param name="kinect_center/rate" value="3" />
+	<param name="kinect_center/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_center_cloud_local_salt_3.pcd" />
+	<node pkg="cloud_publisher" type="cloud_publisher" name="kinect_center" output="screen" />
+      </group>
+  
+     
+      <group ns="/">
+      <!-- Publish global extrinsic calibration -->
+      <!-- <param name="/kinect_center/source" value="/world" />-->
+	<param name="kinect_left/rate" value="3" />
+	<param name="kinect_left/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_left_cloud_local_salt_3.pcd" />
+	<node pkg="cloud_publisher" type="cloud_publisher" name="kinect_left" output="screen"/>
+      </group>
+  
+      <group ns="/">
+      <!-- Publish global extrinsic calibration -->
+      <!-- <param name="/kinect_center/source" value="/world" />-->
+	<param name="kinect_right/rate" value="3" />
+	<param name="kinect_right/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_right_cloud_local_salt_3.pcd" />
+	<node pkg="cloud_publisher" type="cloud_publisher" name="kinect_right" output="screen"/>
+      </group>
+  </group>
+  
+   <group if="$(arg stereo)">
+     
+     <!-- Load extrinsics -->
+     <rosparam command="load" file="$(find cloud_publisher)/position/bumblebee/position_8511446.txt" ns="bumblebeeLeft" />
+     <rosparam command="load" file="$(find cloud_publisher)/position/bumblebee/position_11072220.txt" ns="bumblebeeRight" />
+     <rosparam command="load" file="$(find cloud_publisher)/position/bumblebee/position_11072182.txt" ns="bumblebeeCenter" />
+   
+      <group ns="/">
+      <!-- Publish global extrinsic calibration -->
+      <!--<param name="/kinect_center/source" value="/world" />-->
+	<param name="bumblebeeLeft/rate" value="3" />
+	<param name="bumblebeeLeft/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_center_cloud_local_salt_3.pcd" />
+	<node pkg="cloud_publisher" type="cloud_publisher" name="bumblebeeLeft" output="screen" />
+      </group>
+  
+     
+      <group ns="/">
+      <!-- Publish global extrinsic calibration -->
+      <!-- <param name="/kinect_center/source" value="/world" />-->
+	<param name="bumblebeeRight/rate" value="3" />
+	<param name="bumblebeeRight/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_left_cloud_local_salt_3.pcd" />
+	<node pkg="cloud_publisher" type="cloud_publisher" name="bumblebeeRight" output="screen"/>
+      </group>
+  
+      <group ns="/">
+      <!-- Publish global extrinsic calibration -->
+      <!-- <param name="/kinect_center/source" value="/world" />-->
+	<param name="bumblebeeCenter/rate" value="3" />
+	<param name="bumblebeeCenter/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_right_cloud_local_salt_3.pcd" />
+	<node pkg="cloud_publisher" type="cloud_publisher" name="bumblebeeCenter" output="screen"/>
+      </group>
+  </group>
+  
+</launch>
