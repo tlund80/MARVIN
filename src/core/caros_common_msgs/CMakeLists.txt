@@ -56,6 +56,7 @@ add_service_files(
   ConfigBool.srv
   ConfigInt.srv
   CapturePoints2.srv
+  CreateObjectModel.srv
 )
 
 generate_messages(
