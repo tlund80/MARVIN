@@ -127,5 +127,9 @@ include_directories(
 
 add_executable(${PROJECT_NAME} src/cloud_merge.cpp src/CloudMerge.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${caros_common_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME}
+  caros_common_msgs_generate_messages_cpp
+)
 #rosbuild_link_boost(frame_saver signals)
 
