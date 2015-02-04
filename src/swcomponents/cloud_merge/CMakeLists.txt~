@@ -23,11 +23,11 @@ find_package(catkin REQUIRED COMPONENTS
 ########################################################################
 #### Find PCL
 ########################################################################
-set(PCL18_DIR "/home/thso/libs/PCL/trunk/build")
-message("Serching for pcl1.8/PCLConfig.cmake at:" "${PCL18_DIR}")
+#set(PCL18_DIR "/home/thso/libs/PCL/trunk/build")
+#message("Serching for pcl1.8/PCLConfig.cmake at:" "${PCL18_DIR}")
 find_package(PCL 1.8 
 	     REQUIRED 
-	     PATHS "${PCL18_DIR}"
+	    # PATHS "${PCL18_DIR}"
 	     # QUIET)
 	     )
 add_definitions(${PCL_DEFINITIONS})
