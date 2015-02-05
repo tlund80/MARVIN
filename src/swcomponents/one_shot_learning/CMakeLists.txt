@@ -6,12 +6,12 @@ SET(CMAKE_BUILD_TYPE debug)
 ########################################################################
 find_package(catkin REQUIRED COMPONENTS roscpp caros_common_msgs caros_common pcl_ros pose_estimation_covis sensor_msgs projector_select_image)
 
-#find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED)
 
 find_package(
   CoViS
   REQUIRED
-  #HINTS $ENV{DTI_COMMON_ROOT}/CoViS
+  HINTS $ENV{CoViS_DIR}
 )
 LINK_DIRECTORIES(${COVIS_LIBRARY_DIRS})
 
@@ -146,5 +146,5 @@ QT4_WRAP_UI(QT_FORMS_HPP ${QT_FORMS})
 file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.cpp)
 
 add_library(${PROJECT_NAME} ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP})
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES} ${ROBWORKSTUDIO_LIBRARIES} ${BOOST_LIBRARIES} ${ROBWORK_LIBRARIES} ${ROBWORKSIM_LIBRARIES} ${PCL_LIBRARIES} ${VTK_LIBRARIES} QVTK)
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${COVIS_LIBRARIES} ${ROBWORKSTUDIO_LIBRARIES} ${BOOST_LIBRARIES} ${ROBWORK_LIBRARIES} ${ROBWORKSIM_LIBRARIES} ${PCL_LIBRARIES} ${VTK_LIBRARIES} QVTK)
         
