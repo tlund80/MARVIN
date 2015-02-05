@@ -2,10 +2,10 @@
 <launch>
 
 	<!-- Visualizer connects to pose estimation -->
-   	<node pkg="point_cloud_visualization" name="point_cloud_visualization" type="point_cloud_visualization" output="screen">
+   	<!--<node pkg="point_cloud_visualization" name="point_cloud_visualization" type="point_cloud_visualization" output="screen">
        	<param name="source" value="cloud_merge"/>
        	<param name="topic" value="kinect_aligned"/>
-      </node>
+      </node>-->
 
 <group ns="/">
 	<node pkg="cloud_merge" type="cloud_merge" name="cloud_merge" respawn="false" output="screen">

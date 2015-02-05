@@ -66,7 +66,8 @@
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/publisher.h>
 
-#include <Eigen/Geometry>
+//#include <Eigen/Geometry>
+//#include <Eigen/Dense>
 #include "cloud_merge/CloudMerge.h"
 
 #include <caros_common_msgs/CreateObjectModel.h>
@@ -861,7 +862,7 @@ void CropBox(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud,
   
 }
 
-void publish_marker(std::string frame_id, Eigen::Affine3f transform){  
+void publish_marker(double rx, double ry, double minz, double maxz,  Eigen::Matrix4f mat){  
   _crop_box_marker.header.frame_id = "/world";
   _crop_box_marker.header.stamp = ros::Time::now();
   
@@ -870,27 +871,40 @@ void publish_marker(std::string frame_id, Eigen::Affine3f transform){
   _crop_box_marker.action = visualization_msgs::Marker::ADD;
    // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
 
+   Eigen::Matrix3f rot_center = Eigen::Matrix3f::Identity();
+   Eigen::Vector3f tra_center; tra_center << 1,1,1;
+   Eigen::Affine3f transform(Eigen::Translation3f(0.0,-0.55,0)); //move the base frame to the middle of the table 
+   Eigen::Matrix4f m = transform.matrix();
+   Eigen::Matrix4f mat_inv = mat.inverse() * m;
+   Eigen::Affine3f matrix;
+    
+   matrix(0,0) = mat_inv(0,0); matrix(0,1) = mat_inv(0,1); matrix(0,2) = mat_inv(0,2); matrix(0,3) =  mat_inv(0,3);
+   matrix(1,0) = mat_inv(1,0); matrix(1,1) = mat_inv(1,1); matrix(1,2) = mat_inv(1,2); matrix(1,3) = mat_inv(1,3); 
+   matrix(2,0) = mat_inv(2,0); matrix(2,1) = mat_inv(2,1); matrix(2,2) = mat_inv(2,2); matrix(2,3) = mat_inv(2,3);
+     
+  // float x, y, z,roll, pitch, yaw;
+  // pcl::getTranslationAndEulerAngles(matrix,x,y,z,roll,pitch, yaw);
    // Matrix3f mat;
-    Eigen::Quaternionf q(transform.rotation());
+    Eigen::Quaternionf q(matrix.rotation());
 
-   _crop_box_marker.pose.position.x = double(transform(0,3));
-   _crop_box_marker.pose.position.y = double(transform(1,3));
-   _crop_box_marker.pose.position.z = double(transform(2,3));
+   _crop_box_marker.pose.position.x = double(matrix(0,3));
+   _crop_box_marker.pose.position.y = double(matrix(1,3));
+   _crop_box_marker.pose.position.z = double(matrix(2,3));
    _crop_box_marker.pose.orientation.x = double(q.x());
    _crop_box_marker.pose.orientation.y = double(q.y());
    _crop_box_marker.pose.orientation.z = double(q.z());
    _crop_box_marker.pose.orientation.w = double(q.w());
    
    // Set the scale of the marker -- 1x1x1 here means 1m on a side
-   _crop_box_marker.scale.x = 2*0.65;
-   _crop_box_marker.scale.y = 2*0.3;
-   _crop_box_marker.scale.z = 2.0;
+   _crop_box_marker.scale.x = 2*rx;
+   _crop_box_marker.scale.y = 2*ry;
+   _crop_box_marker.scale.z = std::abs(maxz - minz);
    
    // Set the color -- be sure to set alpha to something non-zero!
    _crop_box_marker.color.r = 0.0f;
    _crop_box_marker.color.g = 1.0f;
    _crop_box_marker.color.b = 0.0f;
-   _crop_box_marker.color.a = 1.0f;
+   _crop_box_marker.color.a = 0.7f;
    
    _crop_box_marker.lifetime = ros::Duration(120);
    
@@ -922,30 +936,34 @@ bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_com
   CloudT::Ptr final_cloud (new CloudT);
   
   std::vector<CloudT,  Eigen::aligned_allocator_indirection<CloudT> > clusters;
-
- /// All Kinect clouds are received.
- if(kinectCloudStruct.kinect_received[0] == true && kinectCloudStruct.kinect_received[1] == true && kinectCloudStruct.kinect_received[2] == true)
- {
-  // std::cout << "All Kinect frames received " << std::endl;
-   kinectCloudStruct.kinect_received[0] = false;
-   kinectCloudStruct.kinect_received[1] = false;
-   kinectCloudStruct.kinect_received[2] = false;
 	
    ///Now do pre-processing for each cloud
    for(int i = 0; i< 3; i++){
-     //i=0;
-     filtered = kinectCloudStruct.Clouds.find(i)->second;
-    // PassThroughFilter(filtered,filtered,0.0,2.0,"z");
-     Eigen::Matrix4f mat = kinectCloudStruct.transform.at(i);  
+     i=0;
+     Eigen::Matrix4f mat;
+     if(req.sensor == 0){
+	filtered = kinectCloudStruct.Clouds.find(i)->second;
+	mat = kinectCloudStruct.transform.at(i);  
+	CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
+	// PassThroughFilter(filtered,filtered,0.0,2.0,"z");
+     }else if(req.sensor == 1){
+        filtered = stereoCloudStruct.Clouds.find(i)->second;
+	mat = stereoCloudStruct.transform.at(i); 
+	double rx, ry, minz, maxz;
+	rx = 0.65; ry = 0.3; minz = -0.2; maxz = 0.8;
+	CropBox(filtered,filtered,rx,ry, minz, maxz,mat);
+	publish_marker( rx,ry,minz,maxz, mat);
+	// PassThroughFilter(filtered,filtered,0.0,2.0,"z");
+     }else{
+      return false; 
+     }
     
-    // publish_marker(received_frame, matrix);
-     CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
      
      std::stringstream ss;
      ss << "/home/thso/view_" << i; ss << ".pcd";
      pcl::io::savePCDFile(ss.str(), *filtered  );
 	 
-     pcl::PointCloud<pcl::Normal>::Ptr dummy_ptr;
+/*     pcl::PointCloud<pcl::Normal>::Ptr dummy_ptr;
      LCCPSegmentation(filtered, dummy_ptr, clusters,true,false);
      
 //     removePlane(filtered,filtered,0.005); //0.015 gredy 
@@ -979,7 +997,7 @@ bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_com
      if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(i, filtered)).second){
 	ROS_ERROR("Could not add cloud to map");
      }
-
+*/
   /*   if(i > 0){
      pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _src =  kinectCloudStruct.Clouds.find(i-1)->second; 
      pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _tar =  kinectCloudStruct.Clouds.find(i)->second; 
@@ -1027,18 +1045,18 @@ bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_com
 	//*clusters[0]+= *proj_cloud;
   
    
-   try{
+ /*  try{
 	pcl::io::savePCDFile("/home/thso/final_model.pcd", KinectPointCloudPCLCombined);
    }catch(pcl::IOException &e){
 	std::cerr << e.what() << std::endl; 
    }
- 
+ */
    
 //   result->header.frame_id = "/world";
   //  _pubAlignKinect.publish(clusters[0]);
   
      KinectPointCloudPCLCombined.clear();
- }
+
   ROS_INFO("Saving model to hard drive!!");
 /*  pcl::io::savePCDFile("/home/thso/saved_model.pcd",*clusters[0]);
   sensor_msgs::PointCloud2 cloud_model;
@@ -1067,7 +1085,6 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /kinect_left/depth_registered/points point cloud failed!");
 	  return false;
 	}
-	kinectCloudStruct.kinect_received[0] = true;
 	if(kinectCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /kinect_left cloud from map!");
 	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
 	    ROS_ERROR("Could not insert /kinect_left cloud into map!");
@@ -1079,7 +1096,6 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /kinect_right/depth_registered/points point cloud failed!");
 	  return false;
 	}
-	kinectCloudStruct.kinect_received[1] = true;
 	if(kinectCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /kinect_right cloud from map!");
 	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
 	    ROS_ERROR("Could not insert /kinect_right cloud into map!");  
@@ -1091,21 +1107,64 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /kinect_center/depth_registered/points point cloud failed!");
 	  return false;
 	}
-	kinectCloudStruct.kinect_received[2] = true;
 	if(kinectCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /kinect_center cloud from map!");
 	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
           ROS_ERROR("Could not insert /kinect_center cloud into map!"); 
       }
     
+     /// All Kinect clouds are received. Lets process the clouds
       process_cloud(req,res);
-      std::cout << "Model size:" << res.model.data.size() << std::endl;
+      
+      std::cout << "Extracted model has " << res.model.data.size() << " points"<< std::endl;
       
       break;
    }  
       
     case 1: //Stereo sensor
-	  ROS_WARN("cloud_merge not implemented yet for stereo!");
+   {
+	  cloud_left = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeLeft/depth_registered/points", ros::Duration(5.0));
+	  std::cout << "points received: " << cloud_left->width * cloud_left->height << std::endl;
+	pcl::fromROSMsg < PointT > (*cloud_left, PointCloudPCL);
+	if(!cloud_left) {
+	  ROS_WARN("Retrieval of /bumblebeeLeft/points point cloud failed!");
+	  return false;
+	}
+	if(stereoCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /bumblebeeLeft cloud from map!");
+	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
+	    ROS_ERROR("Could not insert /bumblebeeLeft cloud into map!");
+	}
+	
+	cloud_right = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeRight/depth_registered/points", ros::Duration(5.0));
+	 std::cout << "points received: " << cloud_right->width * cloud_right->height << std::endl;
+	pcl::fromROSMsg < PointT > (*cloud_right, PointCloudPCL);
+	if(!cloud_right) {
+	  ROS_WARN("Retrieval of /bumblebeeRight/points point cloud failed!");
+	  return false;
+	}
+
+	if(stereoCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /bumblebeeRight cloud from map!");
+	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
+	    ROS_ERROR("Could not insert /bumblebeeRight cloud into map!");  
+	}
+	
+	cloud_center = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeCenter/depth_registered/points", ros::Duration(5.0));
+		 std::cout << "points received: " << cloud_center->width * cloud_center->height << std::endl;
+	pcl::fromROSMsg <PointT > (*cloud_center, PointCloudPCL);
+	if(!cloud_center) {
+	  ROS_WARN("Retrieval of /bumblebeeCenter/points point cloud failed!");
+	  return false;
+	}
+
+	if(stereoCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /bumblebeeCenter cloud from map!");
+	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
+          ROS_ERROR("Could not insert /bumblebeeCenter cloud into map!"); 
+      }
+        /// All stereo clouds are received. Lets process the clouds
+	process_cloud(req,res);
+	std::cout << "Extracted model has " << res.model.data.size() << " points"<< std::endl;
+      
       break;
+   }
       
     case 2: //Both sensors
 	  ROS_WARN("cloud_merge not implemented yet for stereo+kinect!");
@@ -1315,58 +1374,79 @@ int main(int argc, char **argv)
 	 
 	 Eigen::Affine3d mat; Eigen::Matrix4d eig_mat;  Eigen::Matrix4f transformation;
 	 kinectCloudStruct.transform.clear();
+	 stereoCloudStruct.transform.clear();
 	   
 	 try
 	 {
 	    tf::StampedTransform transform_kinect_left;
-	    tf_listener.waitForTransform("/world", "/kinect_left",ros::Time(0),ros::Duration(3.0));
-	    tf_listener.lookupTransform("/world", "/kinect_left",ros::Time(0),transform_kinect_left);
-	    tf::transformTFToEigen(transform_kinect_left,mat);
-	    eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
-	    kinectCloudStruct.transform.push_back(transformation);
-	    std::cout << "kinect_left to world: " << std::endl;
-	    std::cout << transformation << std::endl;
-	 
+	    if(tf_listener.waitForTransform("/world", "/kinect_left",ros::Time(0),ros::Duration(3.0))){
+	      tf_listener.lookupTransform("/world", "/kinect_left",ros::Time(0),transform_kinect_left);
+	      tf::transformTFToEigen(transform_kinect_left,mat);
+	      eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
+	      kinectCloudStruct.transform.push_back(transformation);
+	      std::cout << "kinect_left to world: " << std::endl;
+	      std::cout << transformation << std::endl;
+	  }else
+	    ROS_ERROR("Failed to get /kinect_left transform!");
+	  
 	    tf::StampedTransform transform_kinect_right;
-	    tf_listener.waitForTransform("/world", "/kinect_right",ros::Time(0),ros::Duration(3.0));
-	    tf_listener.lookupTransform("/world", "/kinect_right",ros::Time(0),transform_kinect_right);
-	    tf::transformTFToEigen(transform_kinect_right,mat);
-	    eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
-	    kinectCloudStruct.transform.push_back(transformation);
-	    std::cout << "kinect_right to world: " << std::endl;
-	    std::cout << transformation << std::endl;
+	    if(tf_listener.waitForTransform("/world", "/kinect_right",ros::Time(0),ros::Duration(3.0))){
+	      tf_listener.lookupTransform("/world", "/kinect_right",ros::Time(0),transform_kinect_right);
+	      tf::transformTFToEigen(transform_kinect_right,mat);
+	      eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
+	      kinectCloudStruct.transform.push_back(transformation);
+	      std::cout << "kinect_right to world: " << std::endl;
+	      std::cout << transformation << std::endl;
+	    }else
+	      ROS_ERROR("Failed to get /kinect_right transform!");
 	 
 	    tf::StampedTransform transform_kinect_center;
-	    tf_listener.waitForTransform("/world", "/kinect_center",ros::Time(0),ros::Duration(3.0));
-	    tf_listener.lookupTransform("/world", "/kinect_center",ros::Time(0),transform_kinect_center);
-	    tf::transformTFToEigen(transform_kinect_center,mat);
-	    eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
-	    kinectCloudStruct.transform.push_back(transformation);
-	    std::cout << "kinect_center to world: " << std::endl;
-	    std::cout << transformation << std::endl;
+	    if(tf_listener.waitForTransform("/world", "/kinect_center",ros::Time(0),ros::Duration(3.0))){
+	      tf_listener.lookupTransform("/world", "/kinect_center",ros::Time(0),transform_kinect_center);
+	      tf::transformTFToEigen(transform_kinect_center,mat);
+	      eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
+	      kinectCloudStruct.transform.push_back(transformation);
+	      std::cout << "kinect_center to world: " << std::endl;
+	      std::cout << transformation << std::endl;
+	    }else
+	      ROS_ERROR("Failed to get /kinect_center transform!");
 	    
+	    tf::StampedTransform transform_stereo_left;
+	    if(tf_listener.waitForTransform("/world", "/bumblebeeLeft",ros::Time(0),ros::Duration(3.0))){
+	      tf_listener.lookupTransform("/world", "/bumblebeeLeft",ros::Time(0),transform_stereo_left);
+	      tf::transformTFToEigen(transform_stereo_left,mat);
+	      eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
+	      stereoCloudStruct.transform.push_back(transformation);
+	      std::cout << "bumblebeeLeft to world: " << std::endl;
+	      std::cout << transformation << std::endl;
+	    }else
+	      ROS_ERROR("Failed to get /bumblebeeLeft transform!");
 	    
-/*	    tf::StampedTransform transform_stereo_left;
-	    tf_listener.waitForTransform("/world", "/bumblebeeLeft",ros::Time(0),ros::Duration(3.0));
-	    tf_listener.lookupTransform("/world", "/bumblebeeLeft",ros::Time(0),transform_stereo_left);
-	    tf::transformTFToEigen(transform_stereo_left,mat);
-	    eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
-	    stereoCloudStruct.transform[0] = transformation;
 	 
 	    tf::StampedTransform transform_stereo_right;
-	    tf_listener.waitForTransform("/world", "/bumblebeeRight",ros::Time(0),ros::Duration(3.0));
-	    tf_listener.lookupTransform("/world", "/bumblebeeRight",ros::Time(0),transform_stereo_right);
-	    tf::transformTFToEigen(transform_stereo_right,mat);
-	    eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
-	    stereoCloudStruct.transform[1] = transformation;
+	    if(tf_listener.waitForTransform("/world", "/bumblebeeRight",ros::Time(0),ros::Duration(3.0))){
+	      tf_listener.lookupTransform("/world", "/bumblebeeRight",ros::Time(0),transform_stereo_right);
+	      tf::transformTFToEigen(transform_stereo_right,mat);
+	      eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
+	      stereoCloudStruct.transform.push_back(transformation);
+	      std::cout << "bumblebeeRight to world: " << std::endl;
+	      std::cout << transformation << std::endl;
+	    }else
+	      ROS_ERROR("Failed to get /bumblebeeRight transform!");
+	    
 	 
 	    tf::StampedTransform transform_stereo_center;
-	    tf_listener.waitForTransform("/world", "/bumblebeeCenter",ros::Time(0),ros::Duration(3.0));
-	    tf_listener.lookupTransform("/world", "/bumblebeeCenter",ros::Time(0),transform_stereo_center);
-	    tf::transformTFToEigen(transform_stereo_center,mat);
-	    eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
-	    stereoCloudStruct.transform[2] = transformation;
-	    */
+	    if(tf_listener.waitForTransform("/world", "/bumblebeeCenter",ros::Time(0),ros::Duration(3.0))){
+	      tf_listener.lookupTransform("/world", "/bumblebeeCenter",ros::Time(0),transform_stereo_center);
+	      tf::transformTFToEigen(transform_stereo_center,mat);
+	      eig_mat =  mat.matrix(); transformation = eig_mat.cast<float>();
+	      stereoCloudStruct.transform.push_back(transformation);
+	      std::cout << "bumblebeeCenter to world: " << std::endl;
+	      std::cout << transformation << std::endl;
+	    }else
+	      ROS_ERROR("Failed to get /bumblebeeCenter transform!");
+	    
+	    
 	  }
 	  catch (tf::TransformException &ex)
 	  {
