@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="kinect" default="true" />
-  <arg name="stereo" default="false" />
+  <arg name="kinect" default="false" />
+  <arg name="stereo" default="true" />
   
    <group if="$(arg kinect)">
      
@@ -14,7 +14,7 @@
       <!-- Publish global extrinsic calibration -->
       <!--<param name="/kinect_center/source" value="/world" />-->
 	<param name="kinect_center/rate" value="3" />
-	<param name="kinect_center/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_center_cloud_local_salt_3.pcd" />
+	<param name="kinect_center/cloud" value="$(find cloud_publisher)/images/kinect/modelling/salt/3/kinect_center_cloud_local_salt_3.pcd" />
 	<node pkg="cloud_publisher" type="cloud_publisher" name="kinect_center" output="screen" />
       </group>
   
@@ -23,7 +23,7 @@
       <!-- Publish global extrinsic calibration -->
       <!-- <param name="/kinect_center/source" value="/world" />-->
 	<param name="kinect_left/rate" value="3" />
-	<param name="kinect_left/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_left_cloud_local_salt_3.pcd" />
+	<param name="kinect_left/cloud" value="$(find cloud_publisher)/images/kinect/modelling/salt/3/kinect_left_cloud_local_salt_3.pcd" />
 	<node pkg="cloud_publisher" type="cloud_publisher" name="kinect_left" output="screen"/>
       </group>
   
@@ -31,7 +31,7 @@
       <!-- Publish global extrinsic calibration -->
       <!-- <param name="/kinect_center/source" value="/world" />-->
 	<param name="kinect_right/rate" value="3" />
-	<param name="kinect_right/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_right_cloud_local_salt_3.pcd" />
+	<param name="kinect_right/cloud" value="$(find cloud_publisher)/images/kinect/modelling/salt/3/kinect_right_cloud_local_salt_3.pcd" />
 	<node pkg="cloud_publisher" type="cloud_publisher" name="kinect_right" output="screen"/>
       </group>
   </group>
@@ -47,7 +47,7 @@
       <!-- Publish global extrinsic calibration -->
       <!--<param name="/kinect_center/source" value="/world" />-->
 	<param name="bumblebeeLeft/rate" value="3" />
-	<param name="bumblebeeLeft/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_center_cloud_local_salt_3.pcd" />
+	<param name="bumblebeeLeft/cloud" value="$(find cloud_publisher)/images/bb/modelling/kit_salt_cylinder/1/bumblebeeLeft_cloud_kit_salt_cylinder_1.pcd" />
 	<node pkg="cloud_publisher" type="cloud_publisher" name="bumblebeeLeft" output="screen" />
       </group>
   
@@ -56,7 +56,7 @@
       <!-- Publish global extrinsic calibration -->
       <!-- <param name="/kinect_center/source" value="/world" />-->
 	<param name="bumblebeeRight/rate" value="3" />
-	<param name="bumblebeeRight/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_left_cloud_local_salt_3.pcd" />
+	<param name="bumblebeeRight/cloud" value="$(find cloud_publisher)/images/bb/modelling/kit_salt_cylinder/1/bumblebeeRight_cloud_kit_salt_cylinder_1.pcd" />
 	<node pkg="cloud_publisher" type="cloud_publisher" name="bumblebeeRight" output="screen"/>
       </group>
   
@@ -64,7 +64,7 @@
       <!-- Publish global extrinsic calibration -->
       <!-- <param name="/kinect_center/source" value="/world" />-->
 	<param name="bumblebeeCenter/rate" value="3" />
-	<param name="bumblebeeCenter/cloud" value="$(find cloud_publisher)/images/salt/3/kinect_right_cloud_local_salt_3.pcd" />
+	<param name="bumblebeeCenter/cloud" value="$(find cloud_publisher)/images/bb/modelling/kit_salt_cylinder/1/bumblebeeCenter_cloud_kit_salt_cylinder_1.pcd" />
 	<node pkg="cloud_publisher" type="cloud_publisher" name="bumblebeeCenter" output="screen"/>
       </group>
   </group>
