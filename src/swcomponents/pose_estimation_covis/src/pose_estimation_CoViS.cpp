@@ -184,7 +184,7 @@ int main(int argc, char **argv) {
     ROS_INFO_STREAM("Advertising service \"" << n.getNamespace() << "/prepareEstimation\"...");
     ros::ServiceServer servPrepare = n.advertiseService<ReqPrepare, RespPrepare>("prepareEstimation", prepareEstimation);
 
-    ROS_INFO_STREAM("Advertising service \"" << n.getNamespace() << "/segmented\"...");
+   // ROS_INFO_STREAM("Advertising service \"" << n.getNamespace() << "/segmented\"...");
     //ros::ServiceServer servsegmented = n.advertiseService<SegmentedMsgT::Request, SegmentedMsgT::Response>("segmented", segmented);
 
     //Instantiate Recognition Object
@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
     rec->setCorrNum(corrnum);
     rec->setGravity(gravity);
     rec->setVerbose(verbose);
-
+    
     /*
     * Setup output visualization topic
     */
@@ -278,6 +278,7 @@ bool estimate(ReqEstimate& req, RespEstimate& resp) {
     // Get the scene
     pcl::PointCloud<pcl::PointXYZRGB> s;
     pcl::fromROSMsg(*cloud, s);
+    std::cout << "Size of scene cloud = " << cloud->data.size() << std::endl;
     DescT::Vec scene = du.fromPCL<pcl::PointXYZRGB,DescT>(s);
 
     std::vector<DescVecT> objects;
@@ -300,26 +301,23 @@ bool estimate(ReqEstimate& req, RespEstimate& resp) {
     std::cout << "object database size: " << (int)rec->getObjects().size() << std::endl;
     // Start Global pose estimation
     Detection::Vec detections = rec->recognize(scene);
-
+    //rec->showCorrespondences();
 
   if(detections.empty()){
       ROS_ERROR("ERROR in detection step. Detection vector is empty!!");
       return false;
   }
   
-    std::cout << "1"  << std::endl;
     // Report
     if(req.print)
     	print(detections);
      
-    std::cout << "detections.size()" << (int)detections.size()  << std::endl;
+   // std::cout << "detections.size()" << (int)detections.size()  << std::endl;
 
    for(size_t i = 0; i<= detections.size()-1; i++)
    {
 	   Detection& det = detections[i];
 	  std::cout << "label: " << det.label  << std::endl;
-std::cout << "3"  << std::endl;
-std::cout << "cols: " << det.pose.cols() << "rows: " << det.pose.rows()  << std::endl;
 
 	   // TODO: Scale [mm] --> [m]
 	   det.pose(0,3) *= 0.001;

@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV REQUIRED)
 
-find_package(PCL REQUIRED QUIET)
+find_package(PCL 1.8 REQUIRED QUIET)
 add_definitions(${PCL_DEFINITIONS})
 
 find_package(
@@ -73,11 +73,13 @@ include_directories(
 
 
 ########################################################################
-#### SDH Node
+#### Pose_estimation_node Node
 ########################################################################
 add_executable(${PROJECT_NAME} src/pose_estimation_CoViS.cpp src/CADModel.cpp)
+add_dependencies(${PROJECT_NAME} caros_common_msgs_generate_messages_cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${COVIS_LIBRARIES} ${PCL_LIBRARIES})
 
 add_executable(test_pose_estimation_covis test_node/test_node.cpp)
-target_link_libraries(test_pose_estimation_covis ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_dependencies(test_pose_estimation_covis caros_common_msgs_generate_messages_cpp)
+target_link_libraries(test_pose_estimation_covis ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${COVIS_LIBRARIES} ${PCL_LIBRARIES})
 

@@ -101,7 +101,7 @@ target_link_libraries(stereo_camera ${catkin_LIBRARIES} ${COVIS_LIBRARIES})
 
 add_executable(stereo_to_points src/stereo_to_points.cpp)
 add_dependencies(stereo_to_points caros_common_msgs_generate_messages_cpp)
-target_link_libraries(stereo_to_points ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(stereo_to_points ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${COVIS_LIBRARIES} ${PCL_LIBRARIES})
 
 
 

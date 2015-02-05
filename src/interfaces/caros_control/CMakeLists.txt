@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS message_generation std_msgs roscpp geome
 set(RW_ROOT "$ENV{RW_ROOT}")
 find_package(RobWork REQUIRED PATHS "${RW_ROOT}")
 
+find_package( OpenCV REQUIRED )
 ########################################################################
 #### CoViS
 ########################################################################
@@ -73,10 +74,12 @@ add_dependencies(${library_name}
 # ${catkin_EXPORTED_TARGETS} should be used if this target depends on things (e.g. message or service headers) that are imported from other catkin packages. (see http://docs.ros.org/hydro/api/catkin/html/howto/building_msgs.html) - The dependency targets can also be specified manually as is done here for the caros_common_msgs and caros_control_msgs dependencies.
   caros_common_msgs_generate_messages_cpp
   caros_control_msgs_generate_messages_cpp
+  caros_common
 )
 
 target_link_libraries(${library_name}
   ${catkin_LIBRARIES}
   ${COVIS_LIBRARIES}
   ${ROBWORK_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )

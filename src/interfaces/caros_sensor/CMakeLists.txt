@@ -8,6 +8,8 @@ set(library_name "${PROJECT_NAME}")
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS message_generation std_msgs geometry_msgs caros_common_msgs caros_common caros_sensor_msgs)
 
+find_package( OpenCV REQUIRED )
+
 ########################################################################
 #### CoViS
 ########################################################################
@@ -50,7 +52,7 @@ set(RW_ROOT "$ENV{RW_ROOT}")
 #Include default settings for constructing a robwork dependent project
 find_package(RobWork REQUIRED PATHS "${RW_ROOT}")
 
-include_directories(include ${ROBWORK_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}  ${COVIS_INCLUDE_DIR})
+include_directories(include ${ROBWORK_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${COVIS_INCLUDE_DIR})
 
 add_library(${library_name} 
   src/ButtonSensorSIProxy.cpp
@@ -69,4 +71,5 @@ target_link_libraries(${library_name}
   ${catkin_LIBRARIES}
   ${COVIS_LIBRARIES}
   ${ROBWORK_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )

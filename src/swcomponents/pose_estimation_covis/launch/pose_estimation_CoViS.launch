@@ -1,29 +1,29 @@
 <launch>
    <!-- Visualizer subscribes to the topics of this node -->
-   <node pkg="point_cloud_visualization" name="point_cloud_visualization" type="point_cloud_visualization" output="screen">
-       <param name="source" value="pose_estimation_CoViS"/>
+   <node pkg="point_cloud_visualization" name="Pose_estimation_result" type="point_cloud_visualization" output="screen">
+       <param name="source" value="pose_estimation_covis"/>
        <param name="topic" value="result_rgbcloud"/>
    </node>
    
-   <node pkg="pose_estimation_CoViS" name="pose_estimation_CoViS" type="pose_estimation_CoViS" output="screen">
+   <node pkg="pose_estimation_covis" name="pose_estimation_covis" type="pose_estimation_covis" output="screen">
 
        <!-- Topic to subscribe to! -->
-       <param name="global_topic" value="/global/cloud_pcd"/>
-       <param name="local_topic" value="/local/cloud_pcd"/>
+       <param name="global_topic" value="/cloud_merge/kinect_left_global"/>
+       <param name="local_topic" value="/cloud_merge/kinect_aligned"/>
 
        <!-- Parameters -->
-       <param name="table" value="true"/> <!-- kinect= true stereo = false -->
+       <param name="table" value="false"/> <!-- kinect= true stereo = false -->
        <param name="planar" value="false"/>
        <param name="outliers" value="true"/>
        <param name="reverse" value="false"/>
        <param name="far" value="1500"/>
        <param name="gravity" value="false"/>
-       <param name="verbose" value="false"/>
+       <param name="verbose" value="true"/>
       
-       <param name="cothres" value="0.75"/>
+       <param name="cothres" value="0.75"/> <!-- upper coplanarity fraction limit for detection pruning -->
        <param name="leaf" value="8.0"/> <!--8.0 -->
-       <param name="radius" value="25"/> <!--25-->
-       <param name="threshold" value="10"/>
+       <param name="radius" value="25"/> <!--Feature radius search 25-->
+       <param name="threshold" value="15"/>
        <param name="fraction" value="0.25"/>
        <param name="corrnum" value="1"/>
    </node>
