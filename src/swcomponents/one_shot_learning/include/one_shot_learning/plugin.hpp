@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QMap>
 #include <QMutex>
+#include <QThreadPool>
 #include <stdio.h>
 
 #include <caros/common.hpp>
@@ -86,20 +87,23 @@ public:
 private:
     QVTKWidget 					*qv;
     QAction 					*myAction;
+    QAction 					*actionReload;
     QAction 					*myLoadAction;
     QAction 					*loadSolidGTAction;
-    
+ //   QThread 					*_modeller_thread;
     QMutex 					_mutexState;
     QMutex 					_mutexRWS;
     QMutex 					_mutexRobot;
     QMutex					_mutexRWSUp;
     
     QTimer					*_updateTimer;
+    QThreadPool					*_threadpool;
     
     rw::models::WorkCell::Ptr 			_rwc;
     rw::kinematics::State 			_state;
     rw::models::Device::Ptr 			_robot;
     std::string 				_gripper_name;
+    unsigned int 				_sensor_num;
     dti::grasp_planning::Grasp_sampler*	_sampler;
     grasp_planning::Workcell* 			_grasp_wc;
     
@@ -109,7 +113,7 @@ private:
     one_shot_learning::motion_planner::PlayBack* _pb; 
     motion_planner::RobotController* 		_ctrl;
     
-    pcl::visualization::PCLVisualizer 		pviz;
+    pcl::visualization::PCLVisualizer 		*pviz;
     QString 					m_name;
     int 					modelling_cnt;
     bool 					loaded;
@@ -123,13 +127,13 @@ private:
     std::string					_gtask_path;
     std::string 				_replay_path;
     bool					_grasp_scene_loaded;
+    unsigned int				_rotation_count;
 private:    
     void init();
     void addModel(ModelData model);
     void addModelChild(QTreeWidgetItem *parent, QString name, QString size, QString extension, bool hasGraspTable);
-    void addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA> model, pcl::PolygonMesh solid_model);
+    void addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model, pcl::PolygonMesh::Ptr solid_model);
     bool loadModels();
-    void RefreshTreeWidget();
     void updateGrasptableWidget(QTreeWidgetItem *item, bool hasGraspTable);
     bool removeDir(const QString & dirName);
     void stateChangedListener(const rw::kinematics::State& state);
@@ -160,6 +164,7 @@ private Q_SLOTS:
     bool btnGraspClicked();
     bool btnLoadGraspSceneClicked();
     bool btnGraspGenerationClicked();
+    bool btnRotateObjectClicked();
     void checkBoxLogPoseChecked(bool checked);
     void deleteModel();
     void loadGTModel();
@@ -167,9 +172,10 @@ private Q_SLOTS:
     void treeWidgetClicked(QTreeWidgetItem* item, int col);
     void comboBoxRobot_changed(int item);
     void comboBoxGripper_changed(int item);
+    void comboBoxSensor_changed(int item);
     
-    void modelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA> model);
-    void solidModelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA> model,pcl::PolygonMesh solid_model);
+    void modelCreatedCallBack();
+    void solidModelCreatedCallBack();
     void turnModelCallBack();
 
     void consoleOut(QString msg);
@@ -178,6 +184,7 @@ private Q_SLOTS:
     void updateRobWorkStudio(void);
     void updateGripperQ(rw::math::Q q, QString gripper_name);
     void simulate(rw::trajectory::Path<rw::math::Q> path, QString device);
+    void RefreshTreeWidget();
     
     void btnTestClicked();
     

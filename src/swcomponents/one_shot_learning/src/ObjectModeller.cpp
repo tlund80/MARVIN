@@ -18,45 +18,79 @@
 
 #include <pcl/registration/icp.h>
 #include <pcl/registration/icp_nl.h>
+#include <qcoreapplication.h>
 
 namespace dti{
 namespace one_shot_learning {
   
   
-ObjectModeller::ObjectModeller(SharedData *data) : _sharedData(data)
+ObjectModeller::ObjectModeller(SharedData *data, QObject *parent) 
+      : _sharedData(data)
 {
-  start();
-  isRunning = true;
+ // start();
   doModel = false;
   doSolidModel = false;
   doModelAlignment = false;
-  
-  reconstruct = new ReconstructPointCloud();
+
   
 }
 
 ObjectModeller::~ObjectModeller() {
-  delete reconstruct;
+  std::cout << "~ObjectModeller()" << std::endl;
 }
-void ObjectModeller::shutdown()
-{
-  isRunning = false;
-  this->quit();
-  this->exit();
+
+void ObjectModeller::shutdown(){
+  //isRunning = false;
 }
 
 void ObjectModeller::createmodel(pcl::PointCloud<pcl::PointXYZRGBA> in)
 {
   _cloud = in.makeShared();
-  //if(_cloud->isOrganized()) std::cout << "_cloud is organized" << std::endl;
+
+ // pcl::PointCloud<pcl::PointNormal>::Ptr _point_normals(new pcl::PointCloud<pcl::PointNormal>);
+ // EstimateNormals(_cloud, _point_normals);	
+  
+  ///Concatenate the XYZRGBA and normal fields*
+//  pcl::copyPointCloud(*_cloud, *_point_normals);
+  views.push_back(_cloud);
+  
+  if(views.size() > 1){
+    Eigen::Matrix4f initial_transformation, final_transformation;
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr src = views[0];
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr tar = views[1];
+    
+    initial_alignment(src, tar,initial_transformation,true);
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_source(new   pcl::PointCloud<pcl::PointXYZRGBA>);
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr output(new   pcl::PointCloud<pcl::PointXYZRGBA>);
+    pcl::transformPointCloud (*src, *new_source, initial_transformation);
+    pcl::io::savePCDFile("/home/thso/ia0.pcd",*new_source);
+    pcl::io::savePCDFile("/home/thso/ia1.pcd",*tar);
+	    
+    std::cout << "running ICP!!" << std::cout;
+    pairAlign(new_source,tar,output,final_transformation,true);
+    pcl::io::savePCDFile("/home/thso/registred_model.pcd",*output);
+    
+  }else{
+    Q_EMIT modelCreated();
+  }
+   
+   
+  //pcl::io::savePCDFile("/home/thso/mode.pcd", *_point_normals);
+  
+ // Q_EMIT modelCreated();
+   //if(_cloud->isOrganized()) std::cout << "_cloud is organized" << std::endl;
   //else std::cout << "_cloud is not organized" << std::endl;
    doModel = true;
+ // if(!isRunning())
+ //   start();
+    
+ 
 }
 
 void ObjectModeller::createSolidmodel(pcl::PointCloud<pcl::PointXYZRGBA> in)
 {
   _cloud = in.makeShared();
-   
+
   doSolidModel = true;
 }
 
@@ -67,50 +101,13 @@ void ObjectModeller::alignGTModelAndSceneModel(pcl::PointCloud<pcl::PointXYZRGBA
   doModelAlignment = true;
 }
 
-void ObjectModeller::run()
-{
- /* Crop box for world frame = kinect right 
-  Eigen::Vector3f boxTranslatation; boxTranslatation[0]=0.25;  boxTranslatation[1]=-0.3;   boxTranslatation[2]=0.6;  
-  Eigen::Vector3f boxRotation;   boxRotation[0]=0;  // rotation around x-axis  
-				  boxRotation[1]=-0.785;  // rotation around y-axis 
-				  boxRotation[2]=0.785;  //in radians rotation around z-axis. this rotates your cube 45deg around z-axis. 
-  */
-  Eigen::Vector3f boxTranslatation; boxTranslatation[0]=0;  boxTranslatation[1]=-0.5;   boxTranslatation[2]=0;  
-  Eigen::Vector3f boxRotation;   boxRotation[0]=0;  // rotation around x-axis  
-				  boxRotation[1]=0;  // rotation around y-axis 
-				  boxRotation[2]=-0.785;  //in radians rotation around z-axis. this rotates your cube 45deg around z-axis.
- 
- 
-  while(isRunning)
-  {
-     //std::cout << "object modeller current Thread Id: " << int(QThread::currentThreadId()) << std::endl;
-    //std::cout << "Object modeller is calling!!" << std::endl;
+void ObjectModeller::run(){
+   std::cout << "Object modeller thread: " << QThread::currentThreadId() << std::endl;     
+
+  //  reconstruct = new ReconstructPointCloud();
     if(doModel)
     {
-      //CropBox(_cloud,_cloud,0.7,0.7, 0.0, 0.6,boxTranslatation,boxRotation);//1.0,1.0,0.9,1.4
-      CropBox(_cloud,_cloud,0.4,0.4, 0.0, 0.6,boxTranslatation,boxRotation);//1.0,1.0,0.9,1.4
-      //pcl::io::savePCDFile("crop_box.pcd",*_cloud);
-   
-      removePlane(_cloud,_cloud,0.012);
-       
-    //  radiusOutlierRemoval(_cloud, _cloud, 0.06);
-
-   //   statisticalOutlierRemoval(_cloud,_cloud,0.5);
-      
-      std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr, Eigen::aligned_allocator_indirection<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> > clusters;
-      if(extractClusters(_cloud, clusters))
-      {
-	  pcl::PointCloud<pcl::PointNormal>::Ptr _normals(new pcl::PointCloud<pcl::PointNormal>);
-      //  pcl::PointCloud<pcl::PointNormal>::Ptr _new(new pcl::PointCloud<pcl::PointNormal>);
-      
-	 // pcl::io::savePCDFile("before_mls.pcd",*clusters[0]);
-      
-	 // reconstruct->MLSApproximation(clusters[0], clusters[0]);
-      
-	//  pcl::io::savePCDFile("model_created.pcd",*clusters[0]);
-	  
-	  //Signal to GUI to turn the model
-	 // emit turnModel();
+      std::cout << "doModel" << std::endl;
        
 //	  EstimateNormals(clusters[0], _normals);	
 	  // Concatenate the XYZRGBA and normal fields*
@@ -125,8 +122,8 @@ void ObjectModeller::run()
 	  //reconstruct->saveToObj("mesh.obj", mesh);
 	  //reconstruct->saveToVTK("mesh.vtk", mesh);
      
-	  views.push_back(clusters[0]);
-	  if(views.size() > 1)
+//	  views.push_back(clusters[0]);
+/*	  if(views.size() > 1)
 	  {
 	    Eigen::Matrix4f initial_transformation, final_transformation;
 	    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr src = views[0];
@@ -147,13 +144,15 @@ void ObjectModeller::run()
 	    
 	  }else
 	  {
-	    emit modelCreated(*clusters[0]);
-	  }
-      }
+*/
+//	  _sharedData->setFlagTurnModel();
+	 //   Q_EMIT modelCreated();
+	//    emit modelCreated(*clusters[0]);
+//	  }
+ //    }
       doModel = false;
     }
-    
-    
+      
     if(doSolidModel)
     {
       
@@ -167,16 +166,15 @@ void ObjectModeller::run()
 	  EstimateNormals(_cloud, _normals);	
 	  // Concatenate the XYZRGBA and normal fields*
 	  pcl::copyPointCloud (*_cloud, *_normals);
-      
-	  pcl::PolygonMesh mesh;
-	  reconstruct->poisson(_normals,mesh,8,6,32,4.0f); //8,12,8,4.0f)
+     
+	  reconstruct->poisson(_normals,_mesh,8,6,32,4.0f); //8,12,8,4.0f)
 	  // mesh = reconstruct->GreedyProjectionTriangulation(_new, 0.05);
 	  //pcl::PolygonMesh mesh = reconstruct->MarchingCubes(_normals);
      
 	  //reconstruct->saveToObj("mesh.obj", mesh);
 	  //reconstruct->saveToVTK("mesh.vtk", mesh);
 	  
-	  emit solidModelCreated(*_cloud,mesh);
+	//  emit solidModelCreated();
      
 	  doSolidModel = false;
       
@@ -201,41 +199,46 @@ void ObjectModeller::run()
       
     }
     
-    //Sleep 500msek
-    QThread::msleep(500);
-  }
-  std::cout << "Object modeller thread is shutting down!" << std::endl;
+    
+    
+    
+    
+    std::cout << "Runnable ended" << std::endl;
+
+   //  delete reconstruct;
+  //  thread()->terminate();
+  //  thread()->wait();
+   
+  //   Q_EMIT finished();
+     
 }
 
-
-void ObjectModeller::initial_alignment(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, Eigen::Matrix4f &final_transform, bool downsample = true)
-{
+void ObjectModeller::initial_alignment(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,
+				        pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, 
+				        Eigen::Matrix4f &final_transform, bool downsample = true){
 	  float max_correspondence_distance_ = 5.0;
 	  int nr_iterations_ =  500;
 	  float min_sample_distance_ = 0.005;
 
 
 	  // Downsample for consistency and speed
-	    // \note enable this for large datasets
-	    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr src (new pcl::PointCloud<pcl::PointXYZRGBA>);
-	    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr tgt (new pcl::PointCloud<pcl::PointXYZRGBA>);
-	    pcl::VoxelGrid<pcl::PointXYZRGBA> grid;
-	    if (downsample)
-	    {
-	      grid.setLeafSize (0.005, 0.005, 0.005);
-	      grid.setInputCloud (src_cloud);
-	      grid.filter (*src);
+	  // \note enable this for large datasets
+	  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr src (new pcl::PointCloud<pcl::PointXYZRGBA>);
+	  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr tgt (new pcl::PointCloud<pcl::PointXYZRGBA>);
+	  pcl::VoxelGrid<pcl::PointXYZRGBA> grid;
+	  if (downsample){
+	    grid.setLeafSize (0.005, 0.005, 0.005);
+	    grid.setInputCloud (src_cloud);
+	    grid.filter (*src);
+	    
+	    grid.setInputCloud (target_cloud);
+	    grid.filter (*tgt);
 
-	      grid.setInputCloud (target_cloud);
-	      grid.filter (*tgt);
-
-	      std::cout << "Filtered cloud contains " << src->size () << " data points" << std::endl;
-	    }
-	    else
-	    {
-	      src = src_cloud;
-	      tgt = target_cloud;
-	    }
+	    std::cout << "Filtered cloud contains " << src->size () << " data points" << std::endl;
+	  }else{
+	    src = src_cloud;
+	    tgt = target_cloud;
+	  }
 
 	    
 	    int normest_Ksearch = 20;
@@ -320,7 +323,6 @@ void ObjectModeller::initial_alignment(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &
 	  
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /** \brief Align a pair of PointCloud datasets and return the result
   * \param cloud_src the source PointCloud
@@ -328,8 +330,7 @@ void ObjectModeller::initial_alignment(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &
   * \param output the resultant aligned source PointCloud
   * \param final_transform the resultant transform between source and target
   */
-bool ObjectModeller::pairAlign (pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &output, Eigen::Matrix4f &final_transform, bool downsample = true)
-{
+bool ObjectModeller::pairAlign (pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &output, Eigen::Matrix4f &final_transform, bool downsample = true){
 
   bool result = true;
   //
@@ -451,9 +452,7 @@ bool ObjectModeller::pairAlign (pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_clo
   return result;
  }
 
-
-void ObjectModeller::EstimateNormals(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,pcl::PointCloud<pcl::PointNormal>::Ptr &target_cloud)
-{
+void ObjectModeller::EstimateNormals(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,pcl::PointCloud<pcl::PointNormal>::Ptr &target_cloud){
 	// Normal estimation*
 	pcl::NormalEstimation<pcl::PointXYZRGBA, pcl::PointNormal> n;
 	pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointNormal>);
@@ -470,8 +469,7 @@ void ObjectModeller::EstimateNormals(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &sr
 	pcl::copyPointCloud(*cloud_with_normals, *target_cloud);
 }
 
-void ObjectModeller::statisticalOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double mean)
-{
+void ObjectModeller::statisticalOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double mean){
 	 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGBA>);
 	if(src_cloud->size() > 0)
 	{
@@ -492,8 +490,7 @@ void ObjectModeller::statisticalOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA
 	}
 }
 
-void ObjectModeller::radiusOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double radius)
-{
+void ObjectModeller::radiusOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double radius){
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGBA>);
 
 	if(src_cloud->size() > 0)
@@ -515,8 +512,7 @@ void ObjectModeller::radiusOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Pt
 	}
 }
 
-void ObjectModeller::removePlane(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double dist_threads)
-{
+void ObjectModeller::removePlane(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double dist_threads){
    //*********************************************************************//
    //	Plane fitting
    /**********************************************************************/
@@ -572,8 +568,7 @@ void ObjectModeller::removePlane(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cl
 }
 
 void ObjectModeller::CropBox(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud,
-             float rx, float ry, float minz, float maxz, Eigen::Vector3f boxTranslatation, Eigen::Vector3f boxRotation)
-{
+             float rx, float ry, float minz, float maxz, Eigen::Vector3f boxTranslatation, Eigen::Vector3f boxRotation){
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr filtered (new pcl::PointCloud<pcl::PointXYZRGBA>);
   
   pcl::CropBox<pcl::PointXYZRGBA> cropFilter; 
@@ -590,8 +585,7 @@ void ObjectModeller::CropBox(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,
   
 }
 
-bool ObjectModeller::extractClusters(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr, Eigen::aligned_allocator_indirection<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> > &clusters)
-{
+bool ObjectModeller::extractClusters(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr, Eigen::aligned_allocator_indirection<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> > &clusters){
     
     pcl::search::KdTree<pcl::PointXYZRGBA>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGBA>);
    
@@ -668,5 +662,16 @@ bool ObjectModeller::extractClusters(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &sr
     return true;
   
 }
+
+void ObjectModeller::getCloudModel(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &model){
+  QMutexLocker lock(&_mutexCloud);
+  model = _cloud;
+}
+
+void ObjectModeller::getMeshModel(pcl::PolygonMesh &mesh){ 
+  QMutexLocker lock(&_mutexMesh);
+  mesh = _mesh;
+}
+
 }
 }  // namespace object_modeller_gui

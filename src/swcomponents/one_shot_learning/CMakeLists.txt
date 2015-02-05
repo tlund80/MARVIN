@@ -4,7 +4,7 @@ SET(CMAKE_BUILD_TYPE debug)
 ########################################################################
 #### Catkin Packages
 ########################################################################
-find_package(catkin REQUIRED COMPONENTS roscpp caros_common_msgs caros_common pcl_ros pose_estimation_covis sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp caros_common_msgs caros_common pcl_ros pose_estimation_covis sensor_msgs projector_select_image)
 
 #find_package(OpenCV REQUIRED)
 
@@ -18,7 +18,7 @@ LINK_DIRECTORIES(${COVIS_LIBRARY_DIRS})
 ########################################################################
 #### Find PCL
 ########################################################################
-find_package(PCL REQUIRED QUIET)
+find_package(PCL 1.8 REQUIRED QUIET)
 add_definitions(${PCL_DEFINITIONS})
 
 ########################################################################
@@ -115,7 +115,7 @@ catkin_package(
 #  LIBRARIES ${library_name}
   # CATKIN_DEPENDS:
   # - rosconsole is not used in the header files, so should not be added to the list here.
-  CATKIN_DEPENDS roscpp sensor_msgs
+  CATKIN_DEPENDS roscpp sensor_msgs projector_select_image
   #DEPENDS RobWork
 )
 

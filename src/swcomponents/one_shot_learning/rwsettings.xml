@@ -25,7 +25,9 @@
               <String>~MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
               <String>/home/tsolund/MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
               <String>/home/thso/dti_co_worker/trunk/MARVIN/src/swcomponents/one_shot_learning/geometry/scene/empty_sdh_scene/empty_sdh_scene.wc.xml</String>
+              <String>/home/thso/dti_co_worker/trunk/MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify_ur1.model.wc _120914.xml</String>
               <String>/home/thso/dti_co_worker/trunk/MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
+              <String>/home/thso/catkin_ws/MARVIN/src/swcomponents/marvin/scene/Marvin_calibration_verify.model.wc.xml</String>
             </StringList>
           </Value>
         </Property>
@@ -194,13 +196,13 @@
         <Property>
           <Name>PreviousOpenDirectory</Name>
           <Value>
-            <String>/home/thso/dti_co_worker/trunk/MARVIN/src/swcomponents/marvin/scene/</String>
+            <String>/home/thso/catkin_ws/MARVIN/src/swcomponents/marvin/scene/</String>
           </Value>
         </Property>
         <Property>
           <Name>QtMainWindowState</Name>
           <Value>
-            <IntList>0 0 0 -1 0 0 0 0 -3 0 0 0 3 0 0 0 0 0 0 1 62 0 0 1 -19 -4 2 0 0 0 5 -5 0 0 0 6 0 74 0 111 0 103 1 0 0 0 40 0 0 1 -19 0 0 0 103 0 -1 -1 -1 -5 0 0 0 16 0 84 0 114 0 101 0 101 0 86 0 105 0 101 0 119 0 0 0 1 83 0 0 0 -62 0 0 0 -101 0 -1 -1 -1 -5 0 0 0 24 0 80 0 114 0 111 0 112 0 101 0 114 0 116 0 121 0 86 0 105 0 101 0 119 0 0 0 1 -116 0 0 0 -119 0 0 0 -119 0 -1 -1 -1 -5 0 0 0 16 0 80 0 108 0 97 0 110 0 110 0 105 0 110 0 103 0 0 0 0 0 -1 -1 -1 -1 0 0 1 -94 0 -1 -1 -1 -5 0 0 0 20 0 76 0 117 0 97 0 67 0 111 0 110 0 115 0 111 0 108 0 101 0 0 0 1 108 0 0 0 -87 0 0 0 -101 0 -1 -1 -1 0 0 0 1 0 0 1 -52 0 0 1 -19 -4 2 0 0 0 3 -5 0 0 0 16 0 80 0 108 0 97 0 121 0 66 0 97 0 99 0 107 1 0 0 0 40 0 0 1 22 0 0 0 -115 0 -1 -1 -1 -5 0 0 0 6 0 76 0 111 0 103 1 0 0 1 68 0 0 0 -47 0 0 0 103 0 -1 -1 -1 -5 0 0 0 14 0 83 0 101 0 110 0 115 0 111 0 114 0 115 0 0 0 0 0 -1 -1 -1 -1 0 0 0 -102 0 -1 -1 -1 0 0 0 3 0 0 5 -1 0 0 1 81 -4 1 0 0 0 1 -5 0 0 0 12 0 112 0 108 0 117 0 103 0 105 0 110 1 0 0 0 0 0 0 5 -1 0 0 2 -110 0 -1 -1 -1 0 0 2 -23 0 0 1 -19 0 0 0 4 0 0 0 4 0 0 0 8 0 0 0 8 -4 0 0 0 1 0 0 0 2 0 0 0 4 0 0 0 22 0 70 0 105 0 108 0 101 0 84 0 111 0 111 0 108 0 66 0 97 0 114 1 0 0 0 0 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 12 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 0 121 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 38 0 83 0 116 0 97 0 110 0 100 0 97 0 114 0 100 0 86 0 105 0 101 0 119 0 115 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 1 105 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 20 0 80 0 108 0 117 0 103 0 105 0 110 0 115 0 66 0 97 0 114 1 0 0 2 -120 -1 -1 -1 -1 0 0 0 0 0 0 0 0</IntList>
+            <IntList>0 0 0 -1 0 0 0 0 -3 0 0 0 3 0 0 0 0 0 0 2 2 0 0 2 3 -4 2 0 0 0 5 -5 0 0 0 6 0 74 0 111 0 103 1 0 0 0 40 0 0 2 3 0 0 0 103 0 -1 -1 -1 -5 0 0 0 16 0 84 0 114 0 101 0 101 0 86 0 105 0 101 0 119 0 0 0 0 40 0 0 3 -8 0 0 0 -101 0 -1 -1 -1 -5 0 0 0 24 0 80 0 114 0 111 0 112 0 101 0 114 0 116 0 121 0 86 0 105 0 101 0 119 0 0 0 1 -116 0 0 0 -119 0 0 0 -119 0 -1 -1 -1 -5 0 0 0 16 0 80 0 108 0 97 0 110 0 110 0 105 0 110 0 103 0 0 0 0 -107 0 0 1 -94 0 0 1 -94 0 -1 -1 -1 -5 0 0 0 20 0 76 0 117 0 97 0 67 0 111 0 110 0 115 0 111 0 108 0 101 0 0 0 1 108 0 0 0 -87 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 -52 0 0 2 3 -4 2 0 0 0 3 -5 0 0 0 16 0 80 0 108 0 97 0 121 0 66 0 97 0 99 0 107 1 0 0 0 40 0 0 0 -1 0 0 0 -115 0 -1 -1 -1 -5 0 0 0 6 0 76 0 111 0 103 1 0 0 1 45 0 0 0 -2 0 0 0 103 0 -1 -1 -1 -5 0 0 0 14 0 83 0 101 0 110 0 115 0 111 0 114 0 115 0 0 0 0 40 0 0 3 -8 0 0 0 -102 0 -1 -1 -1 0 0 0 3 0 0 5 -1 0 0 1 59 -4 1 0 0 0 1 -5 0 0 0 12 0 112 0 108 0 117 0 103 0 105 0 110 1 0 0 0 0 0 0 5 -1 0 0 2 -42 0 -1 -1 -1 0 0 2 37 0 0 2 3 0 0 0 4 0 0 0 4 0 0 0 8 0 0 0 8 -4 0 0 0 1 0 0 0 2 0 0 0 4 0 0 0 22 0 70 0 105 0 108 0 101 0 84 0 111 0 111 0 108 0 66 0 97 0 114 1 0 0 0 0 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 12 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 0 121 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 38 0 83 0 116 0 97 0 110 0 100 0 97 0 114 0 100 0 86 0 105 0 101 0 119 0 115 0 86 0 105 0 101 0 119 0 51 0 68 1 0 0 1 105 -1 -1 -1 -1 0 0 0 0 0 0 0 0 0 0 0 20 0 80 0 108 0 117 0 103 0 105 0 110 0 115 0 66 0 97 0 114 1 0 0 2 -120 -1 -1 -1 -1 0 0 0 0 0 0 0 0</IntList>
           </Value>
         </Property>
         <Property>
@@ -212,13 +214,13 @@
         <Property>
           <Name>WindowPosX</Name>
           <Value>
-            <Integer>58</Integer>
+            <Integer>57</Integer>
           </Value>
         </Property>
         <Property>
           <Name>WindowPosY</Name>
           <Value>
-            <Integer>24</Integer>
+            <Integer>-4</Integer>
           </Value>
         </Property>
         <Property>

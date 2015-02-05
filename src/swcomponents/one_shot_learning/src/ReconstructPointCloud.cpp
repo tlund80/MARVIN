@@ -174,7 +174,7 @@ pcl::PolygonMesh ReconstructPointCloud::GreedyProjectionTriangulation(pcl::Point
 ///////////////////////////////////////////////////////////////////
 pcl::PolygonMesh ReconstructPointCloud::MarchingCubes(pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals)
 {
-	double leafSize = 0.5;
+	//double leafSize = 0.5;
     double isoLevel = 0.5;
 
 	// Create search tree*

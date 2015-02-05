@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1015</width>
-    <height>344</height>
+    <height>346</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -41,7 +41,7 @@
          <x>0</x>
          <y>0</y>
          <width>494</width>
-         <height>299</height>
+         <height>301</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -623,9 +623,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="btnRotateObject">
+            <property name="text">
+             <string>2) Rotate</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="btnGenerateGraspTable">
             <property name="text">
-             <string>2) Create Grasp table</string>
+             <string>3) Create Grasp table</string>
             </property>
            </widget>
           </item>

@@ -14,6 +14,8 @@
 
 #include <rw/graphics/Model3D.hpp>
 #include <rw/geometry/Geometry.hpp>
+#include <rw/models/Object.hpp>
+#include <rw/kinematics/MovableFrame.hpp>
 
 namespace dti{
 namespace one_shot_learning {
@@ -42,8 +44,7 @@ private:
    // Grasp tables of the estimated and ground truth model
    std::vector<rwlibs::task::GraspTask::Ptr> _gtask_list;
    std::vector<rwlibs::task::GraspTask::Ptr> _gtask_GT_list;
-  // rwlibs::task::GraspTask _gtask;
- //  rwlibs::task::GraspTask _gtask_GT;
+
    bool  _has_grasp_table;
    bool  _has_grasp_table_GT;
    
@@ -103,12 +104,17 @@ public:
    void addPoseHypothesis(rw::math::Transform3D<double> pose){_poses.push_back(pose); };
    rw::math::Transform3D<double> getBestPose(void){return _poses[0];};
    void getPoseHypothesis( std::vector<rw::math::Transform3D<double> > &hypothesis){hypothesis = _poses; };
-  
+   
+    
    bool has_gtask(void) {return _has_grasp_table; };
    bool has_ground_truth_gtask(void) {return _has_grasp_table_GT; };
    bool has_ground_truth_mesh(void) {return _has_GTMeshModel; };
    bool has_ground_truth_cloud(void) {return _has_GTCloudModel; };
-  /* void delete_PointCloud(void){ _pcdData = NULL;};
+ 
+   
+   
+   
+   /* void delete_PointCloud(void){ _pcdData = NULL;};
    void delete_Mesh(void){ _meshData = NULL;};
    void delete_PointCloud_GT(void){ _gtCloudModel = NULL;};
    void delete_Mesh_GT(void){ _gtMeshModel = NULL;};

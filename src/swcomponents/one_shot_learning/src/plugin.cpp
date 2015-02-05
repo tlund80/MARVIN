@@ -24,6 +24,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
+
 // ROS includes
 #include <ros/ros.h>
 
@@ -47,37 +48,37 @@ using namespace rw::models;
 namespace dti{
 namespace one_shot_learning
 {
-One_shot_learning::One_shot_learning(): rws::RobWorkStudioPlugin("plugin", QIcon(":/DTI_logo.png"))
-{
+One_shot_learning::One_shot_learning(): rws::RobWorkStudioPlugin("plugin", QIcon(":/DTI_logo.png")){
+  
       setupUi(this);
-      pviz.setBackgroundColor(0.5, 0.5, 0.5);
+      
+ /*     pviz = new  pcl::visualization::PCLVisualizer("", false);
+      pviz->setBackgroundColor(0.5, 0.5, 0.5);
       qv = new QVTKWidget;
-      vtkSmartPointer<vtkRenderWindow> renderWindow = pviz.getRenderWindow();
+      vtkSmartPointer<vtkRenderWindow> renderWindow = pviz->getRenderWindow();
       qv->SetRenderWindow(renderWindow);
       qv->setFocusPolicy(Qt::StrongFocus);
+
       Ui_plugin::horizontalLayout->addWidget(qv);
       Ui_plugin::horizontalLayout->update();
-      pviz.setWindowBorders(false);
+      pviz->setWindowBorders(false);
      
-      //Registre Qt meta types
-     qRegisterMetaType<pcl::PointCloud<pcl::PointXYZRGBA> >("pcl::PointCloud<pcl::PointXYZRGBA>");
-     qRegisterMetaType<pcl::PolygonMesh>("pcl::PolygonMesh"); 
-     QCoreApplication::processEvents();
-         
-    sharedData = new SharedData();
-    rosComm = new RosCommunication(sharedData);
-    modeller = new ObjectModeller(sharedData);
-    _ctrl = new  motion_planner::RobotController(rosComm);
-    _grasp_wc = new dti::grasp_planning::Workcell();
-    _sampler = new dti::grasp_planning::Grasp_sampler();
-  
+      ///Registre Qt meta types
+      qRegisterMetaType<pcl::PointCloud<pcl::PointXYZRGBA> >("pcl::PointCloud<pcl::PointXYZRGBA>");
+      qRegisterMetaType<pcl::PolygonMesh>("pcl::PolygonMesh"); 
+   
+    */
      modelling_cnt = 0; // number of refinement steps
      type = dti::grasp_planning::SDH_PAR;
      _grasp_scene_loaded = false;
+     _sensor_num = 0;
+     _rotation_count = 0;
+
+     std::cout << "Starting GUi in thread: " << QThread::currentThreadId() << std::endl;  
+     
 }
 
-One_shot_learning::~One_shot_learning()
-{
+One_shot_learning::~One_shot_learning(){
   delete sharedData;
   delete modeller;
   delete rosComm;
@@ -85,21 +86,20 @@ One_shot_learning::~One_shot_learning()
   delete _grasp_wc;
   
   delete qv;
+  delete pviz;
   delete myAction;
+  delete actionReload;
   delete myLoadAction;
 }
 
-void One_shot_learning::initialize()
-{
+void One_shot_learning::initialize(){
    Q_EMIT consoleOutSig("Initializing workcell!");
       loaded =false;
-  //  rw::models::WorkCell::Ptr rwc =  getRobWorkStudio()->getWorkcell();
     getRobWorkStudioSafe()->stateChangedEvent().add(boost::bind(&One_shot_learning::stateChangedListener,this,_1), this); 
  
 }
 
-void One_shot_learning::open(WorkCell* workcell)
-{
+void One_shot_learning::open(WorkCell* workcell){
    //Get or update workcell pointer
    _rwc =  workcell;
    setState(_rwc->getDefaultState());
@@ -108,10 +108,10 @@ void One_shot_learning::open(WorkCell* workcell)
     
 }
 
-bool One_shot_learning::event(QEvent *event)
-{
+bool One_shot_learning::event(QEvent *event){
  if((event->type() == QEvent::WindowActivate))
  {
+   
    //Window is loaded for the first time
    if(!loaded)
    {
@@ -126,14 +126,15 @@ bool One_shot_learning::event(QEvent *event)
     rosComm->StartRobotSubscriber();
     //TODO: recover SDH node if initializaion returns false
     rosComm->InitializeSDH();
-    rosComm->StartSDHSubscriber();  
+    rosComm->StartSDHSubscriber();
+    
    }
  }
   
   return true;
 }
-void One_shot_learning::close()
-{
+
+void One_shot_learning::close(){
 
 }
 
@@ -142,9 +143,15 @@ void One_shot_learning::stateChangedListener(const rw::kinematics::State& state)
     //_state = state;
 }
 
-void One_shot_learning::init()
-{
-    
+void One_shot_learning::init(){
+       
+     sharedData= new SharedData();
+     rosComm = new RosCommunication(sharedData);
+     modeller = new ObjectModeller(sharedData);
+     _ctrl = new  motion_planner::RobotController(rosComm);
+     _grasp_wc = new dti::grasp_planning::Workcell();
+     _sampler = new dti::grasp_planning::Grasp_sampler();
+      
     const int w = Ui_plugin::treeWidget->width();
     Ui_plugin::treeWidget->setColumnCount(4);
     Ui_plugin::treeWidget->setColumnWidth(0,w/4);
@@ -159,11 +166,15 @@ void One_shot_learning::init()
     Ui_plugin::treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
     
     myAction = new QAction(tr("&Delete"), this);
+    actionReload = new QAction(tr("&Reload models"), this);
+    
    // myAction->setIcon(QIcon(":/aCool.png"));
     myAction->setShortcut(tr("Ctrl+D"));
+    actionReload->setShortcut(tr("Ctrl+R"));
     myAction->setStatusTip(tr("Delete"));
+    actionReload->setStatusTip(tr("Reload models"));
     connect(myAction, SIGNAL(triggered()), this, SLOT(deleteModel()));
-    
+    connect(actionReload, SIGNAL(triggered()), this, SLOT(RefreshTreeWidget()));    
   //  myLoadAction = new QAction(tr("&Load Point cloud Groud Truth Model"), this);
   //  loadSolidGTAction = new QAction(tr("&Load Solid Groud Truth Model"), this);
 
@@ -177,6 +188,7 @@ void One_shot_learning::init()
   //  Ui_plugin::treeWidget->addAction(myLoadAction);
   //  Ui_plugin::treeWidget->addAction(loadSolidGTAction);
     Ui_plugin::treeWidget->addAction(myAction);
+    Ui_plugin::treeWidget->addAction(actionReload);
 
   
     comboBoxRobot->clear();
@@ -215,42 +227,61 @@ void One_shot_learning::init()
         if(_name.compare("SDH") == 0 || _name.compare("PG70") == 0) comboBoxGripper->addItem(_name);
 	else comboBoxRobot->addItem(_name);
     }
-    _updateTimer = new QTimer();
-    _updateTimer->setInterval(100);
+   // _updateTimer = new QTimer();
+   // _updateTimer->setInterval(100);
   
     QObject::connect(rosComm, SIGNAL(rosShutdown()), this, SLOT(close()));
-    connect(rosComm, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection);
-    connect(rosComm, SIGNAL(robotPose(rw::math::Q,QString)), this, SLOT(updateRobotQ(rw::math::Q, QString)), Qt::DirectConnection);
-    connect(rosComm, SIGNAL(gipperconfiguration(rw::math::Q,QString)), this, SLOT(updateGripperQ(rw::math::Q,QString)), Qt::DirectConnection);
-    connect(modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection);
-    connect(modeller, SIGNAL(modelCreated(pcl::PointCloud<pcl::PointXYZRGBA>)), this, SLOT(modelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA>)), Qt::UniqueConnection);
-    connect(modeller, SIGNAL(solidModelCreated(pcl::PointCloud<pcl::PointXYZRGBA>,pcl::PolygonMesh)), this, SLOT(solidModelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA>,pcl::PolygonMesh)), Qt::UniqueConnection);
+    if(!connect(rosComm, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection))
+       std::cerr << "Could not connect consoleSignal from RosCommunication class to main thread" << std::endl;
+    if(!connect(rosComm, SIGNAL(robotPose(rw::math::Q,QString)), this, SLOT(updateRobotQ(rw::math::Q, QString)), Qt::DirectConnection))
+       std::cerr << "Could not connect robotpose signal from RosCommunication class to main thread updateRobotQ()" << std::endl;
+    if(!connect(rosComm, SIGNAL(gipperconfiguration(rw::math::Q,QString)), this, SLOT(updateGripperQ(rw::math::Q,QString)), Qt::DirectConnection))
+      std::cerr << "Could not connect gipperconfiguration() signal from RosCommunication class to main thread updateGripperQ()" << std::endl;
+  
+     connect(modeller, SIGNAL(modelCreated()), this, SLOT(modelCreatedCallBack()));
+	 
+    // connect(&modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)));
+    //
+ //    connect(&modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)));
+ /*   if(!connect(modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection))
+      std::cerr << "Could not connect consoleSignal() signal from modeller class to main thread consoleOut()" << std::endl;
+      
+ //   connect(modeller, SIGNAL(modelCreated()), this, SLOT(modelCreatedCallBack()), Qt::QueuedConnection);
+    connect(modeller, SIGNAL(solidModelCreated()), this, SLOT(solidModelCreatedCallBack()), Qt::UniqueConnection);
     connect(modeller,SIGNAL(turnModel()),this,SLOT(turnModelCallBack()));
-    connect(_sampler,SIGNAL(status(double)),this,SLOT(sampleStatus(double)),Qt::DirectConnection);
-    connect(_sampler,SIGNAL(finish_sampling(bool)),this,SLOT(sampleFinish(bool)),Qt::DirectConnection);
-    connect(Ui_plugin::btnCreateModel,SIGNAL(pressed()), this, SLOT(btnCreateModelClicked()), Qt::UniqueConnection);
-    connect(Ui_plugin::btnEstimatePose,SIGNAL(pressed()), this, SLOT(btnEstimatePoseClicked()));
-    connect(Ui_plugin::btnGrasp,SIGNAL(pressed()), this, SLOT(btnGraspClicked()));
-    connect(Ui_plugin::btnLoadGraspScene, SIGNAL(pressed()), this, SLOT(btnLoadGraspSceneClicked()));
-    connect(Ui_plugin::btnGenerateGraspTable, SIGNAL( pressed()), this, SLOT(btnGraspGenerationClicked()));
-    connect(Ui_plugin::treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*, int)),this,SLOT(treeWidgetClicked(QTreeWidgetItem*, int)));
-    connect(Ui_plugin::checkBoxLogPose,SIGNAL(toggled(bool)), this, SLOT(checkBoxLogPoseChecked(bool)));
-    //connect(Ui_plugin::checkBox,SIGNAL(toggled(bool)), this, SLOT(checkBoxLogPoseChecked(bool)));
-    connect(Ui_plugin::comboBoxRobot,SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxRobot_changed(int)));
-    connect(Ui_plugin::comboBoxGripper,SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxGripper_changed(int)));
+   */
+   connect(_sampler,SIGNAL(status(double)),this,SLOT(sampleStatus(double)),Qt::DirectConnection);
+   connect(_sampler,SIGNAL(finish_sampling(bool)),this,SLOT(sampleFinish(bool)),Qt::DirectConnection);
+   
+   
+   /// Connect GUI elements
+   connect(Ui_plugin::btnCreateModel,SIGNAL(pressed()), this, SLOT(btnCreateModelClicked()), Qt::UniqueConnection);
+   connect(Ui_plugin::btnEstimatePose,SIGNAL(pressed()), this, SLOT(btnEstimatePoseClicked()));
+   connect(Ui_plugin::btnGrasp,SIGNAL(pressed()), this, SLOT(btnGraspClicked()));
+   connect(Ui_plugin::btnLoadGraspScene, SIGNAL(pressed()), this, SLOT(btnLoadGraspSceneClicked()));
+   connect(Ui_plugin::btnGenerateGraspTable, SIGNAL( pressed()), this, SLOT(btnGraspGenerationClicked()));
+   connect(Ui_plugin::btnRotateObject, SIGNAL( pressed()), this, SLOT(btnRotateObjectClicked()));
+   connect(Ui_plugin::treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*, int)),this,SLOT(treeWidgetClicked(QTreeWidgetItem*, int)));
+   connect(Ui_plugin::checkBoxLogPose,SIGNAL(toggled(bool)), this, SLOT(checkBoxLogPoseChecked(bool)));
+   //connect(Ui_plugin::checkBox,SIGNAL(toggled(bool)), this, SLOT(checkBoxLogPoseChecked(bool)));
+   connect(Ui_plugin::comboBoxRobot,SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxRobot_changed(int)));
+   connect(Ui_plugin::comboBoxGripper,SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxGripper_changed(int)));
+   connect(Ui_plugin::comboBoxSelectSensor,SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxSensor_changed(int)));
+   connect(Ui_plugin::btnTest,SIGNAL(pressed()), this, SLOT(btnTestClicked()));
 
-    // Connect main thread to console
-    connect(this, SIGNAL(consoleOutSig(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection );
+   /// Connect main thread to console
+   connect(this, SIGNAL(consoleOutSig(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection );
     
-    connect(Ui_plugin::btnTest,SIGNAL(pressed()), this, SLOT(btnTestClicked()));
-    connect(_ctrl, SIGNAL(simulate(rw::trajectory::Path<rw::math::Q>,QString)),this, SLOT(simulate(rw::trajectory::Path<rw::math::Q>,QString)));
-    connect(_updateTimer, SIGNAL(timeout()),this, SLOT(updateRobWorkStudio(void)));
+   
+   connect(_ctrl, SIGNAL(simulate(rw::trajectory::Path<rw::math::Q>,QString)),this, SLOT(simulate(rw::trajectory::Path<rw::math::Q>,QString)));
+   //connect(_updateTimer, SIGNAL(timeout()),this, SLOT(updateRobWorkStudio(void)));
     
-    _updateTimer->start();
+   blockSignals(false);   
+ //TODO:: Jeg har udkommenteret timeren
+   //  _updateTimer->start();
 }
 
-void One_shot_learning::simulate(rw::trajectory::Path<rw::math::Q> _path,QString device)
-{
+void One_shot_learning::simulate(rw::trajectory::Path<rw::math::Q> _path,QString device){
   //Visulize the path
   rw::models::Device::Ptr _device = getRobWorkStudioSafe()->getWorkcell()->findDevice(device.toStdString());
   
@@ -260,24 +291,24 @@ void One_shot_learning::simulate(rw::trajectory::Path<rw::math::Q> _path,QString
    _pb->forward();
 }
 
-void One_shot_learning::updateRobWorkStudio(void)
-{
+void One_shot_learning::updateRobWorkStudio(void){
   getRobWorkStudioSafe()->setState(getState());
+  
 }
 
-void One_shot_learning::btnTestClicked()
-{ 
+void One_shot_learning::btnTestClicked(){ 
+  
+ // rosComm->ShowRandomDotPattern(2);
   /*  rw::math::Q openQ(7,-1.571,-1.571,1.571, -0.296, 0.240, -0.296, 0.240);
     Q openQ1(7,-1.048, 0.174, 1.047 ,-1.048, 0.174, -1.048, 0.174);
     if(rosComm->SDHMoveQ(openQ)){
       for(int i = 0; i<2000000000; i++);
-      rosComm->SDHMoveQ(openQ1);
+      rosComm->SDHMoveQ(openQ1);	    Q_EMIT modelCreated();
     }
   */
 }
 
-void One_shot_learning::updateGripperQ(rw::math::Q q, QString gripper_name)
-{
+void One_shot_learning::updateGripperQ(rw::math::Q q, QString gripper_name){
   if(Ui_plugin::checkBoxLiveUpdate->isChecked()){
   std::string name;
   if(gripper_name.contains("/")){
@@ -309,8 +340,8 @@ void One_shot_learning::updateGripperQ(rw::math::Q q, QString gripper_name)
   }
   }
 }
-void One_shot_learning::updateRobotQ(rw::math::Q q, QString robot_name)
-{
+
+void One_shot_learning::updateRobotQ(rw::math::Q q, QString robot_name){
   if(Ui_plugin::checkBoxLiveUpdate->isChecked()){
   std::string name;
   if(robot_name.contains("/")){
@@ -322,7 +353,7 @@ void One_shot_learning::updateRobotQ(rw::math::Q q, QString robot_name)
   if(_rwc){
     try{
      //find the device to be sure to update the correct device
-    _rob = _rwc->findDevice(name);
+    _rob = _rwc->findDevice(name);	    
     }catch(rw::common::Exception &e)
     {
       RW_THROW(e.what());
@@ -341,8 +372,8 @@ void One_shot_learning::updateRobotQ(rw::math::Q q, QString robot_name)
   }
   }
 }
-void One_shot_learning::loadSolidGTModel()
-{
+
+void One_shot_learning::loadSolidGTModel(){
   Q_EMIT consoleOutSig("Load Solid Ground Truth model!!\n");
 /*  
   pcl::PolygonMesh::Ptr mesh_file(new pcl::PolygonMesh);
@@ -404,8 +435,7 @@ void One_shot_learning::loadSolidGTModel()
   */
 }
 
-void One_shot_learning::loadGTModel()
-{
+void One_shot_learning::loadGTModel(){
   Q_EMIT consoleOutSig("Load Ground Truth model!!\n");
 /*  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pcd_file(new pcl::PointCloud<pcl::PointXYZRGBA>);
   
@@ -461,8 +491,7 @@ void One_shot_learning::loadGTModel()
   */
 }
 
-void One_shot_learning::deleteModel()
-{
+void One_shot_learning::deleteModel(){
    Q_EMIT consoleOutSig("deleteModel!!\n");
    
    //Delete model from harddrive
@@ -540,38 +569,47 @@ void One_shot_learning::deleteModel()
     
 }
 
-void One_shot_learning::checkBoxLogPoseChecked(bool checked)
-{
+void One_shot_learning::checkBoxLogPoseChecked(bool checked){
 
  // if(checked)	ui-> groupBoxPoseLogging->setEnabled(true);
 //  else ui->groupBoxPoseLogging->setEnabled(false);
  
 }
 
-void One_shot_learning::btnCreateModelClicked()
-{
- // std::cout <<"btnCreateModelClicked" << std::endl;
-
+void One_shot_learning::btnCreateModelClicked(){
    m_name = Ui_plugin::lineModelName->text();
-   if(m_name == "")
-   {
+   if(m_name == ""){
        QMessageBox::information(this,"Model Name", "Please add a model name!");
    }
-   else
-   {
+   else{
         Q_EMIT consoleOutSig("Creating new model from the scene!!\n");
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
-	sharedData->getPointCloud(*cloud);
-	std::cout << "cloud size" << (int)cloud->size() << std::endl;
-	if(cloud->size() > 0) modeller->createmodel(*cloud);
-		
+	//sharedData->getPointCloud(*cloud);
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
+	rosComm->getSceneModel(_sensor_num, 0.020,cloud);
+	
+	/*_modeller_thread = new QThread();
+	modeller->moveToThread(_modeller_thread);
+	
+	connect(_modeller_thread, SIGNAL(started()), modeller, SLOT(run()));
+	connect(_modeller_thread, SIGNAL(finished()), this, SLOT(modelCreatedCallBack()), Qt::UniqueConnection);
+	connect(modeller, SIGNAL(finished()), _modeller_thread, SLOT(quit()));
+        connect(modeller, SIGNAL(finished()), modeller, SLOT(deleteLater()));
+	connect(_modeller_thread, SIGNAL(finished()), _modeller_thread, SLOT(deleteLater()));
+	*/
+	if(cloud->size() > 0){
+	  modeller->createmodel(*cloud);
+	}
+	
+	
    }
     Ui_plugin::lineModelName->clear(); 
 }
 
-bool One_shot_learning::btnEstimatePoseClicked()
-{
+bool One_shot_learning::btnEstimatePoseClicked(){
   
+   using namespace rw::kinematics;
+   using namespace rw::models;
+   
    Q_EMIT consoleOutSig("Estimating pose of the object!!\n"); 
    
    if((Ui_plugin::checkBoxLogPose && Ui_plugin::lineSceneName->text().isEmpty()))
@@ -588,6 +626,8 @@ bool One_shot_learning::btnEstimatePoseClicked()
    int index;
    QList<QTreeWidgetItem*> selected = Ui_plugin::treeWidget->selectedItems();
    
+   
+   std::vector<std::pair<int, ModelData> > data;
    std::vector<pcl::PointCloud<pcl::PointXYZRGBA> > models;
    std::vector<QString> names;
    std::vector<std::string> id_vec;
@@ -598,7 +638,7 @@ bool One_shot_learning::btnEstimatePoseClicked()
    {
       QTreeWidgetItem* item = selected[i];
       
-       if(!item->parent()){
+      if(!item->parent()){
 	 QMessageBox::information(this,"Select a model", "Please select a model(s) from the child list. Not the parent list!!");
 	 return false;
        }else{
@@ -606,87 +646,106 @@ bool One_shot_learning::btnEstimatePoseClicked()
 	index = Ui_plugin::treeWidget->currentIndex().row();
       }
     
-  
       if(model_index >= 0)
       {
-	  //std::cout << "model_index: " << model_index << std::endl;
 	  ModelData _data = _models.find(model_index).value();
 	  QString  name = _data.getName();
-	  if(selected_indexes.indexOf(model_index) == -1 && (index == 0 || index == 1))
-	  {
-	    //std::cout << "using estimated model!!" << std::endl;
+	  data.push_back(std::pair<int, ModelData>(index,_data));
+	  
+	  if(selected_indexes.indexOf(model_index) == -1 && (index == 0 || index == 1)){
 	    pcl::PointCloud<pcl::PointXYZRGBA> model = _data.getPointCloud();
+	
 	    models.push_back(model);
 	    names.push_back(name);
 	    selected_indexes.push_back(model_index);
-	  }else if(selected_indexes.indexOf(model_index) == -1 && (index ==2 || index == 3))
-	  {
-	    //std::cout << "using ground truth model!!" << std::endl;
+	    
+	  }else if(selected_indexes.indexOf(model_index) == -1 && (index ==2 || index == 3)){
 	    pcl::PointCloud<pcl::PointXYZRGBA> model = _data.getGTPointCloud();
 	    QString gt_name = "GT_" + name;
+
 	    models.push_back(model);
 	    names.push_back(gt_name);
 	    selected_indexes.push_back(model_index);
 	  }
-	 
-	  if(Ui_plugin::comboBoPEMethod->currentText().compare("CoViS") == 0)
-	  {
-	    std::vector<EstimationResult> res;
-	    if(rosComm->PreparePoseEstimation(models,names,id_vec))
-	    {
-	    
-	      if(rosComm->EstimationPose(id_vec, res))
-	      {
-		Q_EMIT consoleOutSig("Finish..............!\n");
-	       
-		for(size_t j = 0; j<= res.size()-1; j++){
-		    geometry_msgs::Transform po = res[j].getPose();
-		    _data.addPoseHypothesis(caros::toRw(po));
-		    //res[j].getInlierFraction();
-		    Q_EMIT consoleOutSig("Pose:\n");
-		    Q_EMIT consoleOutSig("Translation:\n");
-		    Q_EMIT consoleOutSig("\t x: " + QString::number(po.translation.x) + " y: " + QString::number(po.translation.y) + " z: " + QString::number(po.translation.z) + " \n");
-		    Q_EMIT consoleOutSig("Rotation:\n");
-		    Q_EMIT consoleOutSig("\t x: " + QString::number(po.rotation.x) + " y: " + QString::number(po.rotation.y) + " z: " + QString::number(po.rotation.z) + " w: " + QString::number(po.rotation.w) + " \n");
+      } 
+      
+    } //Finish adding models. Now estimate the pose of all objects and add them to the workcell
+    
+     std::vector<EstimationResult> res;
+     //***************************************************************************  
+     //************************** Covis method **********************************
+     //***************************************************************************
+     if(Ui_plugin::comboBoPEMethod->currentText().compare("CoViS") == 0)
+     {
+      
+       if(rosComm->PreparePoseEstimation(models,names,id_vec)){
+	 if(rosComm->EstimationPose(id_vec, res)){
+	   Q_EMIT consoleOutSig("Finish..............!\n");
+	   
+	   for(size_t j = 0; j<= res.size()-1; j++){
+	     geometry_msgs::Transform po = res[j].getPose();
+	     data[j].second.addPoseHypothesis(caros::toRw(po));
+	     //res[j].getInlierFraction();
+	     Q_EMIT consoleOutSig("Pose:\n");
+	     Q_EMIT consoleOutSig("Translation:\n");
+	     Q_EMIT consoleOutSig("\t x: " + QString::number(po.translation.x) + " y: " + QString::number(po.translation.y) + " z: " + QString::number(po.translation.z) + " \n");
+	     Q_EMIT consoleOutSig("Rotation:\n");
+	     Q_EMIT consoleOutSig("\t x: " + QString::number(po.rotation.x) + " y: " + QString::number(po.rotation.y) + " z: " + QString::number(po.rotation.z) + " w: " + QString::number(po.rotation.w) + " \n");
 		
-		    if(Ui_plugin::checkBoxLogPose)
-		    { //Save Estimation result for visualization in Matlab
-		    int scene_instance = Ui_plugin::spinBoxSceneInstance->value();
-		    res[j].setSceneInstances(scene_instance);
-		    res[j].setSceneName(Ui_plugin::lineSceneName->text());
-		    res[j].addToLog("second_pose_estimation_result", true);
-		    }
-	          }
-	      }
-	      else{
-
-	        QMessageBox::critical(this,"Error", "ould not estimate the pose of the model(s)!");
-		return false;
-	      }
-	      
-	    } 
-	    else
-	    {
-	      QMessageBox::critical(this,"Error", "Could not add models or connect to the pose estimation node. Is the node running!!");
-	    }
+	     //Save Estimation result for visualization in Matlab
+	     if(Ui_plugin::checkBoxLogPose){ 
+	       int scene_instance = Ui_plugin::spinBoxSceneInstance->value();
+	       res[j].setSceneInstances(scene_instance);
+	       res[j].setSceneName(Ui_plugin::lineSceneName->text());
+	       res[j].addToLog("second_pose_estimation_result", true);
+	    }		    
+	  }
+	}
+	else{
+	  QMessageBox::critical(this,"Error", "Could not estimate the pose of the model(s)!");
+	  return false;
+	}
+      }else{
+	QMessageBox::critical(this,"Error", "Could not add models or connect to the pose estimation node. Is the node running!!");
+      }
 	    
-	    
+	  //***************************************************************************  
+	  //************************** Halcon method **********************************
+	  //***************************************************************************
 	  }else if(Ui_plugin::comboBoPEMethod->currentText().compare("Halcon") == 0)
 	  {
 	    QMessageBox::critical(this,"Error", "Halcon Pose estimation method is not implemented yet!!"); 
 	  }
-  
-      } 
-      
-    }
     
+    	// Iterate through all objects and insert object(s) into scene 	    
+    	for(unsigned int k = 0; k<data.size(); k++){	 
+	  MovableFrame::Ptr _frame;
+	  Object::Ptr _obj;
+	  if(data[k].first < 2){
+	   _frame = MovableFrame::Ptr(new MovableFrame(data[k].second.getName().toStdString()));
+	   _rwc->addFrame(_frame.get());
+	   _state = _rwc->getDefaultState();
+	   _frame->setTransform(data[k].second.getBestPose(), _state);
+	   _obj = Object::Ptr(new Object(_frame.get()));
+	   _obj->addGeometry(data[k].second.getRwGeometry().get());
+	   _obj->addModel(data[k].second.getRwModel3D().get());
+	  }else{
+	   _frame = MovableFrame::Ptr(new MovableFrame("GT_" + data[k].second.getName().toStdString())); 
+	   _rwc->addFrame(_frame.get());
+	    _state = _rwc->getDefaultState();
+	   _frame->setTransform(data[k].second.getBestPose(), _state);
+	   _obj = Object::Ptr(new Object(_frame.get()));
+	   _obj->addGeometry(data[k].second.getGTRwGeometry().get());
+	   _obj->addModel(data[k].second.getGTRwModel3D().get());
+	  }
+	  _rwc->add(_obj);	  
+	}	    
    }
    
    return true;
 }
 
-bool One_shot_learning::btnGraspClicked()
-{
+bool One_shot_learning::btnGraspClicked(){
    using namespace dti::one_shot_learning::motion_planner;
    using namespace rw::math;
     
@@ -722,12 +781,14 @@ bool One_shot_learning::btnGraspClicked()
      return true;
 }
 
-bool One_shot_learning::btnLoadGraspSceneClicked()
-{
+bool One_shot_learning::btnLoadGraspSceneClicked(){
    using namespace rw::math;
    using namespace dti::grasp_planning;
  
    delete _grasp_wc;
+   _grasp_scene_loaded = false;
+   _rotation_count = 0;
+   
    _grasp_wc = new Workcell();
    
    Q_EMIT consoleOutSig("Loading the grasping scene!!\n");
@@ -762,18 +823,18 @@ bool One_shot_learning::btnLoadGraspSceneClicked()
      //Use estimated model
      _geometry =  _data.getRwGeometry();
      _model3d = _data.getRwModel3D();
-     ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/estimated/"; ss << gripName; ss << "_gtask_"; ss << _data.getName().toStdString(); ss << ".rwtask";   
+     ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/estimated/"; ss << gripName; ss << "_gtask_"; ss << _data.getName().toStdString(); ss << "_0"; ss << ".rwtask";   
      _gtask_path = ss.str(); ss.str("");
-      ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/estimated/"; ss << gripName; ss << "_replay_"; ss << _data.getName().toStdString(); ss << ".rwplay";   
+      ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/estimated/"; ss << gripName; ss << "_replay_"; ss << _data.getName().toStdString(); ss << "_0"; ss << ".rwplay";   
      _replay_path = ss.str(); ss.str("");
      if(_geometry.isNull() || _model3d.isNull()) return false;
    }else{
      //Use ground truth model 
      _geometry = _data.getGTRwGeometry();
      _model3d = _data.getGTRwModel3D();
-      ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/ground_truth/"; ss << gripName; ss << "_gtask_"; ss << _data.getName().toStdString();  ss << ".rwtask";   
+      ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/ground_truth/"; ss << gripName; ss << "_gtask_"; ss << _data.getName().toStdString(); ss << "_0";  ss << ".rwtask";   
       _gtask_path = ss.str(); ss.str("");
-      ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/ground_truth/"; ss << gripName; ss << "_replay_";ss << _data.getName().toStdString();  ss << ".rwplay";
+      ss << abs_path; ss << "/models/"; ss << _data.getName().toStdString(); ss << "/ground_truth/"; ss << gripName; ss << "_replay_";ss << _data.getName().toStdString(); ss << "_0";  ss << ".rwplay";
       _replay_path = ss.str(); ss.str("");
       if(_geometry.isNull() || _model3d.isNull()) return false;
    }
@@ -803,8 +864,7 @@ bool One_shot_learning::btnLoadGraspSceneClicked()
    return true;
 }
 
-bool One_shot_learning::btnGraspGenerationClicked()
-{
+bool One_shot_learning::btnGraspGenerationClicked(){
   
   using namespace rw::kinematics;
   using namespace rw::models;
@@ -845,53 +905,98 @@ bool One_shot_learning::btnGraspGenerationClicked()
   return true;
 }
 
-void One_shot_learning::modelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA> model)
-{
- // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr m = model.makeShared();
-//  pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(m);
- // pviz.addPointCloud<pcl::PointXYZRGBA>(m,rgb);
- // pviz.addPolygonMesh(solid_model);
- // pviz.addCoordinateSystem(0.1,0);
- // pviz.resetCameraViewpoint();
- 
-  modelling_cnt++;
+bool One_shot_learning::btnRotateObjectClicked(){
+  using namespace rw::kinematics;
+  using namespace rw::math;
   
-  if(modelling_cnt < Ui_plugin::spinRefinemantSteps->value()){
-    QMessageBox::information(this,"Turn object", "Please turn the object such that the bottom is visible!");
-    
-    Q_EMIT consoleOutSig("Refining model!!\n");
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
-    sharedData->getPointCloud(*cloud);
-    std::cout << "cloud size" << (int)cloud->size() << std::endl;
+   if(!_grasp_scene_loaded){
+    RW_WARN("You must load a grasp scene!");
+    return false;
+  }
+  if(_rotation_count >= 16) _rotation_count = 0;
+ 
+  RPY<> _RPY;
+  if(_rotation_count < 4){
+    _RPY = RPY<>(0.0,0.0, _rotation_count * 1.57);
+  }else if(_rotation_count >= 4 && _rotation_count < 8) {
+    _RPY = RPY<>((_rotation_count-4) * 1.57, 0.0, 0.0);
+  }else if(_rotation_count >= 8 && _rotation_count < 12) {
+    _RPY = RPY<>(0.0, (_rotation_count-8) * 1.57, 0.0);
+  }else if(_rotation_count >= 12 && _rotation_count < 16) {
+    _RPY = RPY<>((_rotation_count-12) * 1.57,0.0, 1.57);
+  }
+  
+  
+  Vector3D<> T(0,0,0.037063);
+  Transform3D<> TR(T,_RPY);
+  
+  //Get the right model
+  int model_index =  Ui_plugin::treeWidget->currentIndex().parent().row();
+  ModelData _data = _models.find(model_index).value();
+  Frame::Ptr _f = _grasp_wc->getWorkcell()->findFrame("object");  //();
+  if(!_f) RW_THROW("Could not find frame 'object' ");
+  MovableFrame::Ptr _frame = _f.cast<MovableFrame>();
+  
+  //Find the object 
+  Object::Ptr obj = _grasp_wc->getWorkcell()->findObject(_data.getName().toStdString());
+  if(!_f) RW_THROW("Could not find object: " << _data.getName().toStdString());
+  
+ // rw::math::Transform3D<> TRA = _f->wTf(_state);
+ // std::cout << TRA << std::endl;
+ // rw::math::Transform3D<> TRANSFORMATION = TRA *TR;
+  _frame->setTransform(TR ,_state);
+  getRobWorkStudio()->setState(_state);
+ 
+  //Ensure that the modification is applied to the grasp planning scene
+  _grasp_wc->setWorkcell(getRobWorkStudio()->getWorkcell());
+   _rotation_count++;
+   return true;
+}
 
+void One_shot_learning::modelCreatedCallBack(){
+  modelling_cnt++;
+  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+   std::cout << "modelling_cnt: " << modelling_cnt << std::endl;
+  if(modelling_cnt < 2){ //Ui_plugin::spinRefinemantSteps->value()
+    QMessageBox::information(this,"Turn object", "Please turn the object such that the bottom is visible!");
+    std::cout << "Refining model!! "  << std::endl;
+    Q_EMIT consoleOutSig("Refining model!!\n");
+   // sharedData->getPointCloud(*cloud);
+    if(!rosComm) std::cout << "Help!!" << std::endl;
+      rosComm->getSceneModel(_sensor_num, 0.020,cloud);
+    
     if(cloud->size() > 0) modeller->createmodel(*cloud);
+    
   }else
   {
     Q_EMIT consoleOutSig("Reconstructing model and creating solid model!!\n");
-    std::cout << "cloud size" << (int)model.size() << std::endl;
-    modeller->createSolidmodel(model);
+     std::cout << "Reconstructing model and creating solid model!!" << std::endl;
+    modeller->getCloudModel(cloud);
+    modeller->createSolidmodel(*cloud);
   }
 }
 
-void One_shot_learning::solidModelCreatedCallBack(pcl::PointCloud<pcl::PointXYZRGBA> model,pcl::PolygonMesh solid_model)
-{
+void One_shot_learning::solidModelCreatedCallBack(){
   Q_EMIT consoleOutSig("Solid model created!!\n");
-  addAndSaveModels(model, solid_model); 
+   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+   pcl::PolygonMesh::Ptr mesh(new pcl::PolygonMesh);
+   modeller->getCloudModel(cloud);
+   modeller->getMeshModel(*mesh);
+   
+  addAndSaveModels(cloud, mesh); 
   RefreshTreeWidget();
   
-  int points = (int)model.size();
-  QString msg; msg.append("Model created with "); msg.append(QString::number(points)); msg.append(" points!!");
-  consoleOut(msg);
+//  int points = (int)cloud->size();
+//  QString msg; msg.append("Model created with "); msg.append(QString::number(points)); msg.append(" points!!");
+//  consoleOut(msg);
 }
 
-void One_shot_learning::turnModelCallBack()
-{
+void One_shot_learning::turnModelCallBack(){
  
   
 }
 
-void One_shot_learning::treeWidgetClicked(QTreeWidgetItem* item, int col)
-{
+void One_shot_learning::treeWidgetClicked(QTreeWidgetItem* item, int col){
  //std::cout << "click!!" << std::endl;
  
    if(item->isExpanded() && item->childCount()==0)
@@ -904,15 +1009,15 @@ void One_shot_learning::treeWidgetClicked(QTreeWidgetItem* item, int col)
        pcl::PointCloud<pcl::PointXYZRGBA>::Ptr p = _models.find(model_index).value().getPointCloud().makeShared();
        if(p->points.size()<=0) RW_THROW("Failed to get the model!");
        pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(p);
-       pviz.removeAllPointClouds();
-       pviz.addPointCloud<pcl::PointXYZRGBA>(p,rgb);
+       pviz->removeAllPointClouds();
+       pviz->addPointCloud<pcl::PointXYZRGBA>(p,rgb);
       }
       else if(index == 1)
       { // Show polygone mesh
 	pcl::PolygonMesh mesh = _models.find(model_index).value().getMesh();
 	if(mesh.polygons.size()<=0) RW_THROW("Failed to get the model!");
-	pviz.removeAllPointClouds();
-	pviz.addPolygonMesh(mesh);
+	pviz->removeAllPointClouds();
+	pviz->addPolygonMesh(mesh);
       }else
       {// Show ground truth model
       //Check if the model is a point cloud or a polygone mesh
@@ -921,21 +1026,21 @@ void One_shot_learning::treeWidgetClicked(QTreeWidgetItem* item, int col)
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr p = _models.find(model_index).value().getGTPointCloud().makeShared();
 	if(p->points.size()<=0) RW_THROW("Failed to get the model!");
         pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(p);
-        pviz.removeAllPointClouds();
-        pviz.addPointCloud<pcl::PointXYZRGBA>(p,rgb);
+        pviz->removeAllPointClouds();
+        pviz->addPointCloud<pcl::PointXYZRGBA>(p,rgb);
       }else if(item->text(2) == ".obj" || item->text(2) == ".stl"|| item->text(2) == ".vtk"){
 	pcl::PolygonMesh mesh = _models.find(model_index).value().getGTMesh();
 	if(mesh.polygons.size()<=0) RW_THROW("Failed to get the model!");
-	pviz.removeAllPointClouds();
-	pviz.addPolygonMesh(mesh);
+	pviz->removeAllPointClouds();
+	pviz->addPolygonMesh(mesh);
       }
       }
       
-      pviz.addCoordinateSystem(0.1,0);
+      pviz->addCoordinateSystem(0.1,0);
       
        //Update cloud view
        qv->update();
-      pviz.resetCamera();  //Focus the object in the center of the viewer
+      pviz->resetCamera();  //Focus the object in the center of the viewer
       
       //pviz.resetCameraViewpoint();
        
@@ -946,8 +1051,7 @@ void One_shot_learning::treeWidgetClicked(QTreeWidgetItem* item, int col)
  
 }
 
-void One_shot_learning::RefreshTreeWidget()
-{
+void One_shot_learning::RefreshTreeWidget(){
    Ui_plugin::treeWidget->clear();
      //Clear list with models
      _models.clear();
@@ -962,8 +1066,8 @@ void One_shot_learning::RefreshTreeWidget()
       }
     }
 }
-bool One_shot_learning::loadModels()
-{
+
+bool One_shot_learning::loadModels(){
   // Allocate objects
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pcd_file(new pcl::PointCloud<pcl::PointXYZRGBA>);
   pcl::PolygonMesh::Ptr mesh(new pcl::PolygonMesh);
@@ -1124,64 +1228,73 @@ bool One_shot_learning::loadModels()
   } 
 }
 
-void One_shot_learning::addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA> model, pcl::PolygonMesh solid_model)
-{
+void One_shot_learning::addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model, pcl::PolygonMesh::Ptr solid_model){
     QString path = QString::fromStdString(rosComm->getAbsoluteNodePath());
     QDir modelDir = QDir(path + "/models");
     
-    RW_THROW("You need to change the code for saving models!!");
+  //  RW_THROW("You need to change the code for saving models!!");
    
-    if(!modelDir.exists())
-    {
+    if(!modelDir.exists()){
+         if(!modelDir.mkpath("models")) std::cout << "Could not create model directory!!!" << std::endl;
+    }else{
       
-   //   if(!modelDir.mkpath("pcd")) std::cout << "Could not create pcd model directory!!!" << std::endl;
-   //   if(!modelDir.mkpath("vtk")) std::cout << "Could not create vtk model directory!!!" << std::endl;
-   //   if(!modelDir.mkpath("obj")) std::cout << "Could not create obj model directory!!!" << std::endl; 
-    }
+      if(!modelDir.mkpath(m_name)) std::cout << "Could not create " << m_name.toStdString() <<" directory!!!" << std::endl;
+      modelDir = QDir(path + "/models/" + m_name);
+      if(!modelDir.mkpath("estimated")) std::cout << "Could not create estimated directory!!!" << std::endl;
+      if(!modelDir.mkpath("ground_truth")) std::cout << "Could not create ground directory!!!" << std::endl;
+      
+      
+      QString path_estimate_pcd = modelDir.absolutePath() + "/estimated/" + m_name + ".pcd";
+      QString path_estimate_stl = modelDir.absolutePath() + "/estimated/" + m_name + ".stl";
+      QString path_estimate_obj = modelDir.absolutePath() + "/estimated/" + m_name + ".obj";
+      
+      std::cout << path_estimate_pcd.toStdString() << std::endl;
 
-/*    QString path_pcd = path + "/models/pcd/" + m_name + ".pcd";
-    QString path_vtk = path + "/models/vtk/"  + m_name + ".vtk";
-    QString path_obj = path + "/models/obj/"  + m_name + ".obj";
     
-    if(!QFile(path_pcd).exists() || !QFile(path_pcd).exists() || !QFile(path_pcd).exists())
+    if(!QFile(path_estimate_pcd).exists() || !QFile(path_estimate_stl).exists() || !QFile(path_estimate_obj).exists())
     {
-      pcl::io::savePCDFile(path_pcd.toStdString(), model);
-      pcl::io::saveVTKFile(path_vtk.toStdString(), solid_model);
-      pcl::io::saveOBJFile(path_obj.toStdString(), solid_model);
+      try{
+	    pcl::io::savePCDFile(path_estimate_pcd.toStdString(), *model);
+	    pcl::io::savePolygonFileSTL(path_estimate_stl.toStdString(), *solid_model);
+	    pcl::io::saveOBJFile(path_estimate_obj.toStdString(), *solid_model);
+      }catch(pcl::IOException &e){
+	    pcl::console::print_error(e.what());
+      }
     }
     else
     {
-      QMessageBox::StandardButton reply;
+  /*    QMessageBox::StandardButton reply;
       reply = QMessageBox::question(this,"Model already exists", "Do you want to overwrite the model!", QMessageBox::Yes|QMessageBox::No);
       
-      if (reply == QMessageBox::Yes)
-      {
-	QFile::remove(path_pcd);
-	QFile::remove(path_vtk);
-	QFile::remove(path_obj);
-	pcl::io::savePCDFile(path_pcd.toStdString(), model);
-        pcl::io::saveVTKFile(path_vtk.toStdString(), solid_model);
-        pcl::io::saveOBJFile(path_obj.toStdString(), solid_model);  
+      if (reply == QMessageBox::Yes){
+	 try{
+		pcl::io::savePCDFile(path_estimate_pcd.toStdString(), *model);
+		pcl::io::savePolygonFileSTL(path_estimate_stl.toStdString(), *solid_model);
+		pcl::io::saveOBJFile(path_estimate_obj.toStdString(), *solid_model);
+	    }catch(pcl::IOException &e){
+		pcl::console::print_error(e.what());
+	    }
       }
+      */
     }
-  */
+      
+    }
+
+   
 }
 
-void One_shot_learning::consoleOut(QString msg)
-{
+void One_shot_learning::consoleOut(QString msg){
      log().info() << msg.toStdString() << "\n";
      log().error() << msg.toStdString() << "\n";
 }
 
-void One_shot_learning::closeEvent(QCloseEvent *event)
-{
+void One_shot_learning::closeEvent(QCloseEvent *event){
     //std::cout << "Closing Widget!!" << std::endl;
     modeller->shutdown();
     //Widget::closeEvent(event);
 }
 
-void One_shot_learning::addModel(ModelData model)
-{
+void One_shot_learning::addModel(ModelData model){
     QTreeWidgetItem *item = new QTreeWidgetItem(Ui_plugin::treeWidget);
     item->setText(0,model.getName());
 
@@ -1195,8 +1308,7 @@ void One_shot_learning::addModel(ModelData model)
   
 }
 
-void One_shot_learning::addModelChild(QTreeWidgetItem *parent, QString name, QString size, QString extension, bool hasGraspTable)
-{
+void One_shot_learning::addModelChild(QTreeWidgetItem *parent, QString name, QString size, QString extension, bool hasGraspTable){
     QTreeWidgetItem *item = new QTreeWidgetItem();
     item->setText(0,name);
     item->setText(1,size);
@@ -1215,21 +1327,36 @@ void One_shot_learning::updateGrasptableWidget(QTreeWidgetItem *item, bool hasGr
   else item->setIcon(3, QIcon(QString(QString::fromStdString(path) + "/ui/red_cross.png")));
 }
 
-void One_shot_learning::comboBoxRobot_changed(int item)
-{
+void One_shot_learning::comboBoxRobot_changed(int item){
   QString text = comboBoxRobot->itemText(item);
   setRobot(_rwc->findDevice(text.toStdString()));
   
  // if(!_robot) //RW_THROW("No device! ");
 }
 
-void One_shot_learning::comboBoxGripper_changed(int item)
-{
-  _gripper_name = comboBoxRobot->itemText(item).toStdString();
+void One_shot_learning::comboBoxGripper_changed(int item){
+  _gripper_name = comboBoxGripper->itemText(item).toStdString();
 }
 
-void One_shot_learning::sampleStatus(double percent)
-{
+void One_shot_learning::comboBoxSensor_changed(int item){
+  _sensor_num = item; 
+  switch(_sensor_num){ 
+  
+    case 0: //Kinect
+       rosComm->ShowBlack();
+      break;
+      
+    case 1: //stereo
+      rosComm->ShowRandomDotPattern(3);
+      break;
+      
+    case 2: //both
+      rosComm->ShowRandomDotPattern(3);
+      break;
+  }
+}
+
+void One_shot_learning::sampleStatus(double percent){
    std::cout << "\r";
    std::cout << "Status: " << percent << "%";
    std::cout << std::flush;
@@ -1267,8 +1394,7 @@ void One_shot_learning::sampleFinish(bool status){
   } 
 }
 
-bool One_shot_learning::removeDir(const QString & dirName)
-{
+bool One_shot_learning::removeDir(const QString & dirName){
     bool result = false;
     QDir dir(dirName);
 

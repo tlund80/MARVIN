@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'plugin.ui'
 **
-** Created: Thu Sep 4 10:02:22 2014
+** Created: Tue Sep 30 21:20:45 2014
 **      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -107,6 +107,7 @@ public:
     QSpacerItem *verticalSpacer_5;
     QHBoxLayout *horizontalLayout_19;
     QPushButton *btnLoadGraspScene;
+    QPushButton *btnRotateObject;
     QPushButton *btnGenerateGraspTable;
     QWidget *tab_2;
     QVBoxLayout *verticalLayout_3;
@@ -130,7 +131,7 @@ public:
     {
         if (plugin->objectName().isEmpty())
             plugin->setObjectName(QString::fromUtf8("plugin"));
-        plugin->resize(1015, 344);
+        plugin->resize(1015, 346);
         QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -148,7 +149,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 494, 299));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 494, 301));
         verticalLayout = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         verticalLayout_2 = new QVBoxLayout();
@@ -491,6 +492,11 @@ public:
 
         horizontalLayout_19->addWidget(btnLoadGraspScene);
 
+        btnRotateObject = new QPushButton(tab_4);
+        btnRotateObject->setObjectName(QString::fromUtf8("btnRotateObject"));
+
+        horizontalLayout_19->addWidget(btnRotateObject);
+
         btnGenerateGraspTable = new QPushButton(tab_4);
         btnGenerateGraspTable->setObjectName(QString::fromUtf8("btnGenerateGraspTable"));
 
@@ -623,7 +629,8 @@ public:
         labelSigmaR->setText(QApplication::translate("plugin", "Sigma_Rot:", 0, QApplication::UnicodeUTF8));
         lineEditsigmaRot->setText(QApplication::translate("plugin", "8", 0, QApplication::UnicodeUTF8));
         btnLoadGraspScene->setText(QApplication::translate("plugin", "1) Load Scene", 0, QApplication::UnicodeUTF8));
-        btnGenerateGraspTable->setText(QApplication::translate("plugin", "2) Create Grasp table", 0, QApplication::UnicodeUTF8));
+        btnRotateObject->setText(QApplication::translate("plugin", "2) Rotate", 0, QApplication::UnicodeUTF8));
+        btnGenerateGraspTable->setText(QApplication::translate("plugin", "3) Create Grasp table", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("plugin", "Grasp tabel generation", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("plugin", "Device", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("plugin", "Robot", 0, QApplication::UnicodeUTF8));

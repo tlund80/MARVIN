@@ -21,6 +21,7 @@
 
 //-------------Qt-------------------------------
 #include <QThread>
+#include <QRunnable>
 #include <QObject>
 
 #include <Eigen/Geometry>
@@ -35,26 +36,31 @@ namespace one_shot_learning {
 ** Class
 *****************************************************************************/
 
-class ObjectModeller : public QThread {
+class ObjectModeller : public QObject {
     Q_OBJECT
 public:
-	ObjectModeller(SharedData *data);
+	ObjectModeller(SharedData *data, QObject *parent = 0);
 	virtual ~ObjectModeller();
 	
 	void shutdown();
 	void createmodel(pcl::PointCloud<pcl::PointXYZRGBA> in);
 	void createSolidmodel(pcl::PointCloud<pcl::PointXYZRGBA> in);
 	void alignGTModelAndSceneModel(pcl::PointCloud<pcl::PointXYZRGBA> src, pcl::PointCloud<pcl::PointXYZRGBA> tar);
+	void getCloudModel(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &model);
+	void getMeshModel(pcl::PolygonMesh &mesh);
 	
+public Q_SLOTS:	
+	void run();	
 
 Q_SIGNALS:
 	void consoleSignal(QString msg);
-	void modelCreated(pcl::PointCloud<pcl::PointXYZRGBA> model);
-	void solidModelCreated(pcl::PointCloud<pcl::PointXYZRGBA> model, pcl::PolygonMesh solid_model);
+	void modelCreated();
+	void solidModelCreated();
 	void turnModel();
+	void finished();
 
 protected:
-	void run();	
+	// virtual void run();	
 private:
   
   void initial_alignment(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud,
@@ -78,14 +84,18 @@ private:
   
   void statisticalOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double mean);
   
-  bool isRunning;
-  bool doModel;
-  bool doSolidModel;
-  bool doModelAlignment;
-  SharedData *_sharedData;
-  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _cloud;
-  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _tar;
-  ReconstructPointCloud *reconstruct;
+  QMutex					_mutexCloud;
+  QMutex					_mutexMesh;
+  
+//  bool 						isRunning;
+  bool 						doModel;
+  bool 						doSolidModel;
+  bool 						doModelAlignment;
+  SharedData 					*_sharedData;
+  pcl::PolygonMesh	 			_mesh;
+  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr 	_cloud;
+  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr 	_tar;
+  ReconstructPointCloud 			*reconstruct;
   std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr, Eigen::aligned_allocator_indirection<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> > views;
   
 };

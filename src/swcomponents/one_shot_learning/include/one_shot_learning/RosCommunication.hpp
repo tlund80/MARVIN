@@ -51,12 +51,18 @@ namespace one_shot_learning {
 *****************************************************************************/
 
 class RosCommunication : public QThread {
+  
     Q_OBJECT
+
 public:
 	RosCommunication(SharedData *data);
 	virtual ~RosCommunication();
 	bool init();
 	void run();
+	bool ShowRandomDotPattern(unsigned int std_dev = 0);
+	bool ShowWhiteImage();
+	bool ShowBlack();
+	bool getSceneModel(unsigned int sensor, float plane_threadshold, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud);
 	void StartPPSubscriber(); 
 	void StartRobotSubscriber();
 	void StartSDHSubscriber(); 
@@ -96,6 +102,10 @@ private:
 	ros::ServiceClient 			_SDH_pause_srv;
 	ros::ServiceClient 			_SDH_grasp_srv;
 	ros::ServiceClient 			_SDH_move_srv;
+	ros::ServiceClient 			_projector_left_srv;
+	ros::ServiceClient 			_projector_right_srv;
+	ros::ServiceClient 			_projector_center_srv;
+	ros::ServiceClient 			_create_model_srv;
 	//std::string				_ur1_ns;
 	//std::string				_ur2_ns;
 	

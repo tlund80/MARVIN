@@ -23,6 +23,8 @@
 // Services
 #include <pose_estimation_covis/estimate.h>
 #include <pose_estimation_covis/prepareEstimation.h>
+#include <projector_select_image/projector_select_image.h>
+#include <caros_common_msgs/CreateObjectModel.h>
 
 namespace dti{
 namespace one_shot_learning {
@@ -58,6 +60,118 @@ bool RosCommunication::init() {
 	start();
 	//run();
 	return true;
+}
+
+bool RosCommunication::ShowRandomDotPattern(unsigned int std_dev)
+{
+  projector_select_image::projector_select_imageRequest _req;
+  projector_select_image::projector_select_imageResponse _res;
+  std::string _image_path;
+  
+  if(std_dev > 6){ 
+   ROS_ERROR_STREAM("No projector pattern corresponds to std_dev=" << std_dev << " " << __FILE__ );
+   return false; 
+  }
+  
+  ros::start(); // explicitly needed since our nodehandle is going out of scope.
+  ros::NodeHandle n;
+ 
+  _projector_left_srv = n.serviceClient<projector_select_image::projector_select_image>("/projector_select_image_left/ChooseImage");
+  _projector_right_srv = n.serviceClient<projector_select_image::projector_select_image>("/projector_select_image_right/ChooseImage");
+  _projector_center_srv = n.serviceClient<projector_select_image::projector_select_image>("/projector_select_image_center/ChooseImage");
+  
+  switch(std_dev)
+  {
+    case 0:
+      _image_path = "1280X800_00.png";
+      break;
+      
+    case 1:
+      _image_path = "1280X800_01.png";
+      break;
+      
+    case 2:
+      _image_path = "1280X800_02.png";
+      break;
+      
+    case 3:
+      _image_path = "1280X800_03.png";
+      break;
+      
+    case 4:
+      _image_path = "1280X800_04.png";
+      break;
+        
+    case 5:
+      _image_path = "white.png";
+      break;
+      
+    case 6:
+      _image_path = "black.png";
+      break;
+      
+    default:
+      
+      break;
+  }
+  _req.image_path = _image_path;
+  
+  if(!_projector_left_srv.call(_req,_res)){
+    ROS_ERROR("Could not call projector_select_image_left service. Is the projector_select_image node running?");
+    return false;
+  }
+  
+  if(!_projector_right_srv.call(_req,_res)){
+    ROS_ERROR("Could not call projector_select_image_right service. Is the projector_select_image node running?");
+    return false;
+  }
+  if(!_projector_center_srv.call(_req,_res)){
+    ROS_ERROR("Could not call projector_select_image_center service. Is the projector_select_image node running?");
+    return false;
+  }
+  return _res.success;
+  
+}
+
+bool RosCommunication::ShowWhiteImage()
+{
+  return ShowRandomDotPattern(5);
+}
+
+bool RosCommunication::ShowBlack()
+{
+  return ShowRandomDotPattern(6);
+}
+
+bool RosCommunication::getSceneModel(unsigned int sensor, float plane_threadshold, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud)
+{
+  caros_common_msgs::CreateObjectModelRequest _req;
+  caros_common_msgs::CreateObjectModelResponse _res;
+  
+  if(sensor > 2){
+     ROS_ERROR_STREAM("No sensor corresponds to " << sensor << " " << __FILE__ );
+    return false;
+  }
+  
+  ros::start(); // explicitly needed since our nodehandle is going out of scope.
+  ros::NodeHandle n;
+ 
+  _create_model_srv = n.serviceClient<caros_common_msgs::CreateObjectModel>("/cloud_merge/create_model");
+  
+  _req.sensor = sensor;
+  _req.plane_remove_threadshold = plane_threadshold;
+ 
+  if(!_create_model_srv.call(_req,_res)){
+      ROS_ERROR("Could not call create_model service. Is the cloud_merge node running?");
+    return false;
+  }
+  
+  sensor_msgs::PointCloud2 m = _res.model;
+  pcl::PointCloud < pcl::PointXYZRGBA > PointCloudPCL;
+  pcl::fromROSMsg (m, PointCloudPCL);
+  pcl::copyPointCloud(PointCloudPCL,*cloud);
+  
+  return _res.success;
 }
 
 bool RosCommunication::MoveRobotLinear(std::vector<rw::math::Transform3D<double> >& path, std::vector<float>& blends, float speed)
@@ -308,8 +422,7 @@ void RosCommunication::StartSDHSubscriber()
 	if(!_sub_sdhState) _sub_sdhState = n.subscribe("/caros_sdh/caros_gripper_service_interface/GripperState",1,&RosCommunication::sdhCallBack,this);
   
 }
-  
-  
+    
 bool RosCommunication::PreparePoseEstimation(std::vector<pcl::PointCloud<pcl::PointXYZRGBA> > model, std::vector<QString> name, std::vector<std::string> &id_vec)
 {
    ros::start(); // explicitly needed since our nodehandle is going out of scope.
@@ -318,7 +431,7 @@ bool RosCommunication::PreparePoseEstimation(std::vector<pcl::PointCloud<pcl::Po
    // Subscribe to prepare estimation service to create a surface model
    ROS_INFO("Subscribing to prepare pose estimation service...");
    if(!ros::service::waitForService("/pose_estimation_covis/prepareEstimation", ros::Duration(2))) return false;
-   ros::ServiceClient prepare = n.serviceClient<pose_estimation_covis::prepareEstimation>("/pose_estimation_CoViS/prepareEstimation");
+   ros::ServiceClient prepare = n.serviceClient<pose_estimation_covis::prepareEstimation>("/pose_estimation_covis/prepareEstimation");
  
    sensor_msgs::PointCloud2 ros_model;
    pose_estimation_covis::prepareEstimation pMsg;
@@ -356,7 +469,7 @@ bool RosCommunication::EstimationPose(std::vector<std::string> id_vec, std::vect
    // Subscribe to global estimation service
    ROS_INFO("Subscribing to pose estimation service...");
    if(!ros::service::waitForService("/pose_estimation_covis/estimate", ros::Duration(2))) return false;
-   ros::ServiceClient estimate = n.serviceClient<pose_estimation_covis::estimate>("/pose_estimation_CoViS/estimate");
+   ros::ServiceClient estimate = n.serviceClient<pose_estimation_covis::estimate>("/pose_estimation_covis/estimate");
 
    pose_estimation_covis::estimate eMsg;
   

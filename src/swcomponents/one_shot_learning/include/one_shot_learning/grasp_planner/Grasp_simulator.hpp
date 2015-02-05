@@ -35,8 +35,7 @@ public:
   void ResumeSimulator();
   
   void stop();
-  void RecordStatePath(bool record, std::string file_path)
-  {
+  void RecordStatePath(bool record, std::string file_path){
     _recordStatePath = record;
     _record_file_path = file_path;
   }; 
@@ -54,7 +53,7 @@ protected:
   void run();
   
 Q_SIGNALS:
-  void finish_sampling(bool finish);
+  void finish();
   void status(double percent);
   
 private:

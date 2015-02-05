@@ -1,6 +1,8 @@
 #include <one_shot_learning/grasp_planner/Grasp_simulator.hpp>
 
 #include <rw/RobWork.hpp>
+#include <QFile>
+#include <QStringList>
 
 USE_ROBWORK_NAMESPACE
 using namespace robwork;
@@ -41,9 +43,7 @@ void Grasp_simulator::run()
        }
    }
   
-
-
-  
+  Q_EMIT finish();
 }
 
 void Grasp_simulator::PauseSimulator(){
@@ -445,6 +445,23 @@ int Grasp_simulator::getPercentDone(){
 
 void Grasp_simulator::SaveGraspTask(){
   using namespace rwlibs::task;
+ 
+  //Check if the file already exists
+  QString file_name = QString::fromStdString(_filename);
+  QFile file(file_name);
+  if(file.exists()){
+    QStringList l = file_name.split(".");
+    QString path = l[0];
+    
+    //find next number to store
+    for(int i = 0; i < 9; i++){
+      QString nr = QString::number(i);
+     if(!path.endsWith(nr)){
+    //  path.replace()
+     } 
+    }
+  }
+  
   // save the result
   std::cout << "Saving Grasp task to: " << _filename << std::endl;
   
