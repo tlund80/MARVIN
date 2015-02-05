@@ -26,7 +26,7 @@ add_definitions(${PCL_DEFINITIONS})
 find_package(
   CoViS
   REQUIRED
-  #HINTS $ENV{DTI_COMMON_ROOT}/CoViS
+  HINTS $ENV{CoViS_DIR}
 )
 LINK_DIRECTORIES(${COVIS_LIBRARY_DIRS})
 ################################################
