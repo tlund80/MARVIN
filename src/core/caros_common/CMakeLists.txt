@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(
   CoViS
   REQUIRED
-  #HINTS $ENV{DTI_COMMON_ROOT}/CoViS
+  HINTS $ENV{CoViS_DIR}
 )
 LINK_DIRECTORIES(${COVIS_LIBRARY_DIRS})
 ########################################################################
@@ -54,7 +54,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${library_name}
   CATKIN_DEPENDS message_runtime std_msgs roscpp caros_common_msgs image_geometry
-  DEPENDS RobWork CoViS 
+  DEPENDS RobWork CoViS OpenCV
 )
 
 include_directories(
