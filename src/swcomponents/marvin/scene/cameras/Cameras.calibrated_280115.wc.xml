@@ -1,0 +1,269 @@
+<Frame name="CorrectedBase" refframe="UR1Mount">
+	<Pos> 0 0 0 </Pos> <RPY> 0 0 0 </RPY>
+</Frame> 
+
+<!-- BumbleBee 1 -->
+
+<Frame name="BB-1-Stereo" refframe="CorrectedBase">
+<Transform>
+<!---0.877336 0.287081 -0.384534 0.643406
+0.479732 0.504976 -0.717535 0.256284
+-0.0118106 -0.813992 -0.580756 0.726622-->
+
+-0.886958 0.282053 -0.365722 0.653888
+0.461266 0.501118 -0.732198 0.253751
+-0.0232491 -0.818124 -0.574572 0.818278
+</Transform>
+</Frame>
+
+<Frame name="BB-1-Left" refframe="BB-1-Stereo">
+	<RPY>0 0 0</RPY>
+	<Pos>0 0 0</Pos>
+</Frame>
+
+<Frame name="BB-1-Left-Sim" refframe="BB-1-Left">
+	<RPY>0 0 180</RPY>
+	<Pos>0 0 0</Pos>
+	<Property name="CameraType">Stereo</Property>
+	<Property name="CameraName">BB-1-Left</Property>
+	<Property name="Camera"> 32.9177 1024 768</Property>
+	<Property name="CameraCalibrationFrame">BB-1-Stereo</Property>
+	<Property name="ROSTopicName">/bumblebeeRight/left/image_rect_color</Property>
+</Frame>
+
+<Frame name="BB-1-Right" refframe="BB-1-Stereo" type="Movable">
+	<RPY> 0 0 0</RPY>
+	<Pos> 0.12 0 0</Pos>
+</Frame>
+
+<Frame name="BB-1-Right-Sim" refframe="BB-1-Right" type="Movable">
+	<RPY>0 0 180</RPY>
+	<Pos>0 0 0</Pos>
+	<Property name="CameraType">Stereo</Property>
+	<Property name="CameraName">BB-1-Right</Property>
+	<Property name="Camera"> 32.9177 1024 768</Property>
+	<Property name="CameraCalibrationFrame">BB-1-Stereo</Property>
+	<Property name="ROSTopicName">/bumblebeeRight/right/image_rect_color</Property>
+
+</Frame>
+
+<Drawable name="BB-1-Geo" refframe="BB-1-Stereo" >
+	<RPY>90 0 0</RPY>
+	<Pos> 0.0609 -0.0005 0.0023</Pos>
+	<Polytope file="BumbleBee2" />
+</Drawable>
+
+<CollisionModel name="BB-1-BoundingBox" refframe="CorrectedBase" >
+	<RPY>0 0 0</RPY>
+	<Pos>0.64 0.35 0.75</Pos>
+	<Box x="0.43" y="0.43" z="0.43"/>
+</CollisionModel>
+	
+
+<!-- BumbleBee 2 -->
+
+<Frame name="BB-2-Stereo" refframe="CorrectedBase">
+<!--	<RPY> 27.98 -0.557 -124.44 </RPY>
+	<Pos> 0.533255 -1.36882 0.83815</Pos>-->
+
+<Transform>
+0.883613 0.26476 -0.386174 0.534031
+0.468189 -0.490479 0.735003 -1.3754
+0.00518975 -0.830261 -0.557351 0.82364
+</Transform>
+</Frame>
+
+<Frame name="BB-2-Left" refframe="BB-2-Stereo">
+	<RPY>0 0 0</RPY>
+	<Pos>0 0 0</Pos>
+</Frame>
+
+<Frame name="BB-2-Left-Sim" refframe="BB-2-Left">
+	<RPY>0 0 180</RPY>
+	<Pos>0 0 0</Pos>
+	<Property name="CameraType">Stereo</Property>
+	<Property name="CameraName">BB-2-Left</Property>
+	<Property name="Camera"> 32.9177 1024 768</Property>
+	<Property name="CameraCalibrationFrame">BB-2-Stereo</Property>
+	<Property name="ROSTopicName">/bumblebeeLeft/left/image_rect_color</Property>
+</Frame>
+
+<Frame name="BB-2-Right" refframe="BB-2-Stereo" type="Movable">
+	<RPY> 0 0 0</RPY>
+	<Pos> 0.12 0 0</Pos>
+</Frame>
+
+<Frame name="BB-2-Right-Sim" refframe="BB-2-Right" type="Movable">
+	<RPY>0 0 180</RPY>
+	<Pos>0 0 0</Pos>
+	<Property name="CameraType">Stereo</Property>
+	<Property name="CameraName">BB-2-Right</Property>
+	<Property name="Camera"> 32.9177 1024 768</Property>
+	<Property name="CameraCalibrationFrame">BB-2-Stereo</Property>
+	<Property name="ROSTopicName">/bumblebeeLeft/right/image_rect_color</Property>
+</Frame>
+
+<Drawable name="BB-2-Geo" refframe="BB-2-Stereo" >
+	<RPY>90 0 0 </RPY>
+	<Pos> 0.0609 -0.0005 0.0023</Pos>
+	<Polytope file="BumbleBee2" />
+</Drawable>
+	
+ 
+<CollisionModel name="BB-2-BoundingBox" refframe="CorrectedBase" >
+	<RPY>0 0 0</RPY>
+	<Pos>0.64 -1.4 0.75</Pos>
+	<Box x="0.5" y="0.43" z="0.43"/>
+</CollisionModel>
+
+<!-- BumbleBee 3 -->
+
+<Frame name="BB-3-Stereo" refframe="CorrectedBase">
+	<RPY> -90 0 -120 </RPY>
+	<Pos> -0.7 -0.53 0.810776</Pos>
+</Frame>
+
+<Frame name="BB-3-Left" refframe="BB-3-Stereo">
+<!--	<RPY>0 0 0</RPY>
+	<Pos>0 0 0</Pos>-->
+<Transform>
+-0.000607213 -0.60875 0.793362 -0.66923
+-0.999977 -0.00499934 -0.00460136 -0.458602
+0.00676737 -0.793347 -0.608732 0.822191
+</Transform>
+</Frame>
+
+<Frame name="BB-3-Left-Sim" refframe="BB-3-Left">
+	<RPY>0 0 180</RPY>
+	<Pos>0 0 0</Pos>
+	<Property name="CameraType">Stereo</Property>
+	<Property name="CameraName">BB-3-Left</Property>
+	<Property name="Camera"> 32.9177 1024 768</Property>
+	<Property name="CameraCalibrationFrame">BB-3-Stereo</Property>
+	<Property name="ROSTopicName">/bumblebeeCenter/left/image_rect_color</Property>
+
+</Frame>
+
+<Frame name="BB-3-Right" refframe="BB-3-Stereo" type="Movable">
+	<RPY> 0 0 0</RPY>
+	<Pos> 0.12 0 0</Pos>
+</Frame>
+
+<Frame name="BB-3-Right-Sim" refframe="BB-3-Right" type="Movable">
+	<RPY>0 0 180</RPY>
+	<Pos>0 0 0</Pos>
+	<Property name="CameraType">Stereo</Property>
+	<Property name="CameraName">BB-3-Right</Property>
+	<Property name="Camera"> 32.9177 1024 768</Property>
+	<Property name="CameraCalibrationFrame">BB-3-Stereo</Property>
+	<Property name="ROSTopicName">/bumblebeeCenter/right/image_rect_color</Property>
+</Frame>
+
+<Drawable name="BB-3-Geo" refframe="BB-3-Stereo" >
+	<RPY>90 0 0 </RPY>
+	<Pos> 0.0609 -0.0005 0.0023</Pos>
+	<Polytope file="BumbleBee2" />
+</Drawable>
+
+<Frame name="BB-3-BoundingBox-frame" refframe="CorrectedBase" type="Movable"/>
+<CollisionModel name="BB-3-BoundingBox" refframe="BB-3-BoundingBox-frame" >
+	<RPY>0 0 0</RPY>
+	<Pos>-0.8 -0.63 0.810776</Pos>
+	<Box x="0.41" y="0.61" z="0.41"/>
+</CollisionModel>
+<!-- Kinects -->
+
+
+<Frame name="kinect-1" refframe="CorrectedBase" type="Movable">
+<!--<Transform>
+-0.877336 0.287081 -0.384534 0.643406
+0.479732 0.504976 -0.717535 0.256284
+-0.0118106 -0.813992 -0.580756 0.726622
+</Transform>-->
+
+<Transform>
+-0.838286 0.33705 -0.428572 0.465
+0.545222 0.522731 -0.655352 0.3
+0.00314159 -0.783039 -0.621965 0.724788
+</Transform>
+</Frame>
+
+<Frame name="kinect-1-Sim" refframe="kinect-1" type="Movable">
+	<RPY> 0 0 180 </RPY>
+	<Pos> 0 0 0</Pos>
+	<Property name="CameraType">RGB-D</Property>
+    <Property name="CameraName">kinect-1</Property>
+	<Property name="Camera"> 35 640 480</Property>
+	<Property name="CameraCalibrationFrame">kinect-1</Property>
+</Frame>
+
+
+<Frame name="kinect-2" refframe="CorrectedBase" >
+<!--	<RPY> 27.98 -0.557 -124.44 </RPY>
+	<Pos> 0.533255 -1.36882 0.83815</Pos>-->
+<Transform>
+0.87844 0.246306 -0.409483 0.581276
+0.477689 -0.475041 0.739019 -1.31748
+-0.0124966 -0.844789 -0.534953 0.724788
+</Transform>
+</Frame>
+<Frame name="kinect-2-Sim" refframe="kinect-2" type="Movable">
+	<RPY> 0 0 180</RPY>
+	<Pos> 0 0 0 </Pos>
+	<Property name="CameraType">RGB-D</Property>
+	<Property name="CameraName">kinect-2</Property>
+	<Property name="Camera"> 57 640 480</Property>
+	<Property name="CameraCalibrationFrame">kinect-2</Property>
+</Frame>
+
+
+
+<Frame name="kinect-3" refframe="CorrectedBase">
+<!--	<RPY> -90 0 -120 </RPY>
+	<Pos> -0.7 -0.53 0.810776</Pos>-->
+<Transform>
+-0.0173545 -0.603727 0.797002 -0.640151
+-0.999799 0.00248683 -0.0198866 -0.527698
+0.0100241 -0.797187 -0.603649  0.726873
+</Transform>
+</Frame>
+<Frame name="kinect-3-Sim" refframe="kinect-3" type="Movable">
+	<RPY> 0 0 180 </RPY>
+	<Pos> 0 0 0 </Pos>
+	<Property name="CameraType">RGB-D</Property>
+	<Property name="CameraName">kinect-3</Property>
+	<Property name="Camera"> 57 640 480</Property>
+	<Property name="CameraCalibrationFrame">kinect-3</Property>
+	<Property name="ROSTopicName">/kinect_center/rgb/image_rect_color</Property>
+	<Property name="ROSTopicNameDepth">/kinect_center/depth_registered/image_rect</Property>
+</Frame>
+
+<Frame name="carmine-1" refframe="CorrectedBase">
+<RPY> -156.717 0.956 -127.509</RPY>
+<Pos> -0.606643 -0.048186 0.717263 </Pos>
+
+</Frame>
+<Frame name="carmine-1-Sim" refframe="carmine-1" >
+	<RPY> 0 0 180 </RPY>
+	<Pos> 0 0 0 </Pos>
+	<Property name="CameraType">RGB-D</Property>
+	<Property name="CameraName">carmine-1</Property>
+	<Property name="Camera"> 57 640 480</Property>
+	<Property name="CameraCalibrationFrame">carmine-1</Property>
+	<Property name="ROSTopicName">/carmine1/rgb/image_rect_color</Property>
+	<Property name="ROSTopicNameDepth">/carmine1/depth_registered/image_raw</Property>
+</Frame>
+<Frame name="carmine-1-BoundingBox-frame" refframe="CorrectedBase" type="Movable"/>
+<CollisionModel name="carmine-1-BoundingBox" refframe="carmine-1-BoundingBox-frame" >
+	<RPY>0 0 0</RPY>
+	<Pos>-0.65 0.0 0.775</Pos>
+	<Box x="0.30" y="0.25" z="0.25"/>
+</CollisionModel>
+
+<Frame name="carmine-2-BoundingBox-frame" refframe="CorrectedBase" type="Movable"/>
+<CollisionModel name="carmine-2-BoundingBox" refframe="carmine-2-BoundingBox-frame" >
+	<RPY>0 0 0</RPY>
+		<Pos>-0.65 -1.05 0.775</Pos>
+	<Box x="0.30" y="0.25" z="0.25"/>
+</CollisionModel>
+	
