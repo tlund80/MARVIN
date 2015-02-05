@@ -1,0 +1,768 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<CartesianTask>
+
+  <Targets/>
+
+  <Entities>
+    <CartesianTask>
+      <Targets>
+        <CartesianTarget id="0">
+          <Transform3D>
+            <Pos>0.0203442744516696 -0.05356019048341289 0.004374063574600566</Pos>
+            <Rotation3D>0.593393232177501 -0.602197282945632 0.5340813649799412 -0.3660413082677645 0.3890572598469325 0.8453686824114197 -0.7168669560298913 -0.6971318963964386 0.01043486363798091</Rotation3D>
+          </Transform3D>
+          <Id></Id>
+          <Index>0</Index>
+          <PropertyMap>
+            <Property>
+              <Name>GripperConfiguration</Name>
+              <Value>
+                <Q>-1.571 -1.571 1.571 -1.048 0.174 -1.048 0.174</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interference</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceAngles</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceDistances</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interferences</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcptTarget</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>0.02034427445166954 -0.05356019048341287 0.004374063574600608</Pos>
+                  <Rotation3D>0.593393232177501 -0.602197282945632 0.5340813649799412 -0.3660413082677645 0.3890572598469325 0.8453686824114197 -0.7168669560298913 -0.6971318963964386 0.01043486363798091</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityAfterLifting</Name>
+              <Value>
+                <Q>0.01</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>TestStatus</Name>
+              <Value>
+                <Integer>12</Integer>
+              </Value>
+            </Property>
+          </PropertyMap>
+        </CartesianTarget>
+      </Targets>
+      <Entities/>
+      <Id></Id>
+      <Index>0</Index>
+      <PropertyMap>
+        <Property>
+          <Name>Approach</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>CloseQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 0 0.419 0 0.419</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Offset</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>OpenQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 -1.048 0.174 -1.048 0.174</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Retract</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0.1</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>TauMax</Name>
+          <Value>
+            <Q>0.2 2 10 2 2 2 2</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>refframe</Name>
+          <Value>
+            <String>object</String>
+          </Value>
+        </Property>
+      </PropertyMap>
+    </CartesianTask>
+    <CartesianTask>
+      <Targets>
+        <CartesianTarget id="0">
+          <Transform3D>
+            <Pos>0.006388482205510684 0.03239140571538835 0.03129915507997989</Pos>
+            <Rotation3D>0.05037787537886107 0.01984176801039769 -0.9985331110757087 0.04115872070821383 0.9989120169431812 0.02192583216593686 0.9978817712444571 -0.04220292227710233 0.04950640331611311</Rotation3D>
+          </Transform3D>
+          <Id></Id>
+          <Index>0</Index>
+          <PropertyMap>
+            <Property>
+              <Name>ContactsGrasp</Name>
+              <Value>
+                <DoubleList>0.03201076792266067 -0.04047300481873568 -0.005309166101060362 -0.2213161819312545 0.9720966117702247 0.07776454847950305 -0.6256813982545086 21.08201829556629 -0.2365983134917409 0.03083275638461878 0.1094319147451351 -0.01006051904653461 -0.1562262427486345 -0.9872595793611161 0.03019741771007571 -1.969355994835901 -21.0642311625017 -1.10045914041989 0.03108218390837652 0.109418107502691 -0.01017330839957732 -0.3576902998035845 -0.9311515894280398 0.07081219479762668 -0.01641405355981175 -0.04272962411775898 0.003249501478609623</DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>GripperConfiguration</Name>
+              <Value>
+                <Q>-1.570796327386256 -1.570796331870473 1.570796352428434 -0.6361123043227165 0.4189999948298002 -0.6433296576544346 0.4189999940803624</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>GripperConfigurationPost</Name>
+              <Value>
+                <Q>-1.570796327376952 -1.570796331862777 1.57079635170625 -0.3129519566509785 0.4189999998986522 -0.2702071164888208 0.418999999914722</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interference</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceAngles</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceDistances</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interferences</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftResult</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcpApproach</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>0.006388482205510693 0.03239140571538836 0.0315446550799799</Pos>
+                  <Rotation3D>0.0503778753788607 0.01984176801039769 -0.9985331110757089 0.04115872070821383 0.9989120169431813 0.02192583216593687 0.9978817712444573 -0.04220292227710234 0.04950640331611289</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcptTarget</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>0.006388482205510696 0.03239140571538836 0.03129915507997991</Pos>
+                  <Rotation3D>0.05037787537886107 0.01984176801039769 -0.9985331110757087 0.04115872070821383 0.9989120169431812 0.02192583216593686 0.9978817712444571 -0.04220292227710233 0.04950640331611311</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityAfterLifting</Name>
+              <Value>
+                <Q>0.04</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityBeforeLifting</Name>
+              <Value>
+                <Q>0.0004474780984024922 0.002330353322117464 0.7555923943631829</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>TestStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+          </PropertyMap>
+        </CartesianTarget>
+      </Targets>
+      <Entities/>
+      <Id></Id>
+      <Index>1</Index>
+      <PropertyMap>
+        <Property>
+          <Name>Approach</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>CloseQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 0 0.419 0 0.419</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Offset</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>OpenQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 -1.048 0.174 -1.048 0.174</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Retract</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0.1</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>TauMax</Name>
+          <Value>
+            <Q>0.2 2 10 2 2 2 2</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>refframe</Name>
+          <Value>
+            <String>object</String>
+          </Value>
+        </Property>
+      </PropertyMap>
+    </CartesianTask>
+    <CartesianTask>
+      <Targets>
+        <CartesianTarget id="0">
+          <Transform3D>
+            <Pos>0.002307496296489405 0.04943366127280599 -0.02489296614976235</Pos>
+            <Rotation3D>0.007461098639789155 0.9999047494450426 0.01161137564346744 -0.6565526609800523 0.01365669993926611 -0.7541565473472874 -0.7542432865906727 -0.001996643186756573 0.6565920179600762</Rotation3D>
+          </Transform3D>
+          <Id></Id>
+          <Index>0</Index>
+          <PropertyMap>
+            <Property>
+              <Name>GripperConfiguration</Name>
+              <Value>
+                <Q>-1.571 -1.571 1.571 -1.048 0.174 -1.048 0.174</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interference</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceAngles</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceDistances</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interferences</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcptTarget</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>0.002307496296489396 0.049433661272806 -0.02489296614976234</Pos>
+                  <Rotation3D>0.007461098639789155 0.9999047494450426 0.01161137564346744 -0.6565526609800523 0.01365669993926611 -0.7541565473472874 -0.7542432865906727 -0.001996643186756573 0.6565920179600762</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityAfterLifting</Name>
+              <Value>
+                <Q>0</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>TestStatus</Name>
+              <Value>
+                <Integer>12</Integer>
+              </Value>
+            </Property>
+          </PropertyMap>
+        </CartesianTarget>
+      </Targets>
+      <Entities/>
+      <Id></Id>
+      <Index>2</Index>
+      <PropertyMap>
+        <Property>
+          <Name>Approach</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>CloseQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 0 0.419 0 0.419</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Offset</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>OpenQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 -1.048 0.174 -1.048 0.174</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Retract</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0.1</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>TauMax</Name>
+          <Value>
+            <Q>0.2 2 10 2 2 2 2</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>refframe</Name>
+          <Value>
+            <String>object</String>
+          </Value>
+        </Property>
+      </PropertyMap>
+    </CartesianTask>
+    <CartesianTask>
+      <Targets>
+        <CartesianTarget id="0">
+          <Transform3D>
+            <Pos>-0.0084333833574207 0.03586555076310063 0.01730733506636124</Pos>
+            <Rotation3D>-0.9213645165972688 0.2620582226554101 -0.2870764976346348 0.2614064246967236 0.9643437543662745 0.04132559185340588 0.2876701386705912 -0.03696770690001797 -0.9570158201220068</Rotation3D>
+          </Transform3D>
+          <Id></Id>
+          <Index>0</Index>
+          <PropertyMap>
+            <Property>
+              <Name>ContactsGrasp</Name>
+              <Value>
+                <DoubleList>0.009247588735041352 -0.04058619716090484 0.03147721125975571 -0.03590007512527758 0.9811574807154553 -0.1898451543814073 4.399033071698312 21.06313403981048 -2.215790429080997 0.03321424790441049 0.1093153582072859 0.003797479207822398 -0.455578157353711 -0.8893511045409149 -0.03877054802361893 -1.541104601546289 -20.435645208676 5.84775133960318</DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>GripperConfiguration</Name>
+              <Value>
+                <Q>-1.57079632700941 -1.570796331816168 1.570796351152329 -0.6390417622954376 0.418999990920879 -0.6341287152326969 0.4189999935632489</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>GripperConfigurationPost</Name>
+              <Value>
+                <Q>-1.568932328181843 -1.570796518223446 1.570796351762223 -0.3775004259158696 0.4190417762991769 -0.1531028532195854 0.4190402172473657</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interference</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceAngles</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceDistances</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interferences</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftResult</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcpApproach</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>-0.008433383357420707 0.03586555076310063 0.01755283506636125</Pos>
+                  <Rotation3D>-0.921364516597269 0.2620582226554101 -0.2870764976346348 0.2614064246967236 0.9643437543662747 0.0413255918534059 0.2876701386705912 -0.03696770690001798 -0.9570158201220069</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcptTarget</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>-0.008433383357420693 0.03586555076310061 0.01730733506636127</Pos>
+                  <Rotation3D>-0.9213645165972688 0.2620582226554101 -0.2870764976346348 0.2614064246967236 0.9643437543662745 0.04132559185340588 0.2876701386705912 -0.03696770690001797 -0.9570158201220068</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityAfterLifting</Name>
+              <Value>
+                <Q>0.08</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityBeforeLifting</Name>
+              <Value>
+                <Q>6.208935796059301e-11 9.177582128437423e-09 0.8421040205574224</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>TestStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+          </PropertyMap>
+        </CartesianTarget>
+      </Targets>
+      <Entities/>
+      <Id></Id>
+      <Index>3</Index>
+      <PropertyMap>
+        <Property>
+          <Name>Approach</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>CloseQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 0 0.419 0 0.419</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Offset</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>OpenQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 -1.048 0.174 -1.048 0.174</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Retract</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0.1</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>TauMax</Name>
+          <Value>
+            <Q>0.2 2 10 2 2 2 2</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>refframe</Name>
+          <Value>
+            <String>object</String>
+          </Value>
+        </Property>
+      </PropertyMap>
+    </CartesianTask>
+    <CartesianTask>
+      <Targets>
+        <CartesianTarget id="0">
+          <Transform3D>
+            <Pos>-0.004979161476423657 0.03232042810750162 0.01661289578864589</Pos>
+            <Rotation3D>-0.691093692365063 -0.2893355839196641 -0.6623250170808069 -0.3085754398183171 0.9467772123852415 -0.09161936503252796 0.6535829758448093 0.1410596681759121 -0.7435936146175179</Rotation3D>
+          </Transform3D>
+          <Id></Id>
+          <Index>0</Index>
+          <PropertyMap>
+            <Property>
+              <Name>ContactsGrasp</Name>
+              <Value>
+                <DoubleList>0.03089273569051167 -0.0395591347464375 -0.01275902953432793 -0.6656217819921197 0.6510635229494592 0.3647792927542267 -10.52969840497369 11.62222718452052 6.723783237402096 0.02975724307248747 -0.04007759214713923 -0.01439859017896646 -0.5824198835939844 0.8109053398711417 0.05674159816957897 -0.1728674209586196 0.2406839441677073 0.01684141289290756 0.03114714423814744 -0.03937428178669634 -0.01262472925337659 -0.9378356831194914 0.2522179333800578 0.238433104977664 0 0 0 0.03114714423814744 -0.03937428178669634 -0.01262472925337659 -0.9378356831194914 0.2522179333800578 0.238433104977664 0 0 0 0.02948125151255752 -0.04029956571383995 -0.01468975664187256 -0.3537022947099176 0.9137394872695469 0.1999370804061214 8.56628060832195 4.088101860629859 -0.736302906060228 0.02947137404768613 -0.04030851495668766 -0.01469359301402062 -0.3483774935021862 0.9171291599511947 0.1936678238333618 -0.1968131392334316 0.5181249432560773 0.109411121809199 0.002141131586391858 0.1095447390564368 0.0325841626267357 -0.03233544069932143 -0.9856428313583575 -0.1657185211938039 3.404387132388822 -17.61936221282973 -7.23912680288095</DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>GripperConfiguration</Name>
+              <Value>
+                <Q>-1.570796327105599 -1.570796331843985 1.570796351297038 -0.6268285529266834 0.4189999930531743 -0.6534462214084125 0.4189999907676398</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>GripperConfigurationPost</Name>
+              <Value>
+                <Q>-1.570764153119307 -1.57079633183898 1.570796351771746 -0.1686234793353214 0.4189945841794342 -0.4286353494253961 0.4189948358702011</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interference</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceAngles</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>InterferenceDistances</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>Interferences</Name>
+              <Value>
+                <DoubleList></DoubleList>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftResult</Name>
+              <Value>
+                <Double>0</Double>
+              </Value>
+            </Property>
+            <Property>
+              <Name>LiftStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcpApproach</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>-0.00497916147642366 0.03232042810750162 0.01685839578864587</Pos>
+                  <Rotation3D>-0.6910936923650632 -0.2893355839196641 -0.6623250170808069 -0.3085754398183171 0.9467772123852414 -0.09161936503252796 0.6535829758448092 0.1410596681759121 -0.7435936146175182</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>ObjectTtcptTarget</Name>
+              <Value>
+                <Transform3D>
+                  <Pos>-0.004979161476423667 0.03232042810750162 0.0166128957886459</Pos>
+                  <Rotation3D>-0.691093692365063 -0.2893355839196641 -0.6623250170808069 -0.3085754398183171 0.9467772123852415 -0.09161936503252796 0.6535829758448093 0.1410596681759121 -0.7435936146175179</Rotation3D>
+                </Transform3D>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityAfterLifting</Name>
+              <Value>
+                <Q>0.08</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>QualityBeforeLifting</Name>
+              <Value>
+                <Q>0.000951434115023235 0.01959583579939841 0.638393694029172</Q>
+              </Value>
+            </Property>
+            <Property>
+              <Name>TestStatus</Name>
+              <Value>
+                <Integer>4</Integer>
+              </Value>
+            </Property>
+          </PropertyMap>
+        </CartesianTarget>
+      </Targets>
+      <Entities/>
+      <Id></Id>
+      <Index>4</Index>
+      <PropertyMap>
+        <Property>
+          <Name>Approach</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>CloseQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 0 0.419 0 0.419</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Offset</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>OpenQ</Name>
+          <Value>
+            <Q>-1.571 -1.571 1.571 -1.048 0.174 -1.048 0.174</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>Retract</Name>
+          <Value>
+            <Transform3D>
+              <Pos>0 0 0.1</Pos>
+              <Rotation3D>1 0 0 0 1 0 0 0 1</Rotation3D>
+            </Transform3D>
+          </Value>
+        </Property>
+        <Property>
+          <Name>TauMax</Name>
+          <Value>
+            <Q>0.2 2 10 2 2 2 2</Q>
+          </Value>
+        </Property>
+        <Property>
+          <Name>refframe</Name>
+          <Value>
+            <String>object</String>
+          </Value>
+        </Property>
+      </PropertyMap>
+    </CartesianTask>
+  </Entities>
+
+  <Id></Id>
+
+  <Index>-1</Index>
+
+  <PropertyMap>
+    <Property>
+      <Name>GraspController</Name>
+      <Value>
+        <String>GraspController</String>
+      </Value>
+    </Property>
+    <Property>
+      <Name>Gripper</Name>
+      <Value>
+        <String>SchunkHand</String>
+      </Value>
+    </Property>
+    <Property>
+      <Name>TCP</Name>
+      <Value>
+        <String>SchunkHand.SDHTCP</String>
+      </Value>
+    </Property>
+  </PropertyMap>
+
+</CartesianTask>
