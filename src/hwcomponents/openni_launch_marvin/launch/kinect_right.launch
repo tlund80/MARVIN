@@ -2,7 +2,7 @@
    <!-- Make sure that depth registration is turned on by default
    by overriding the default of the openni_launch parameter 'depth_registration'.
    This parameter should be used from the command line for this package instead. -->
-   <arg name="depth_reg" default="false" />
+   <arg name="depth_reg" default="true" />
    <!-- Optionally suppress loading the driver nodelet -->
    <arg name="load_camera_driver" default="true" />
    
@@ -27,10 +27,6 @@
       <!-- Optionally suppress loading the driver nodelet and/or publishing the default tf tree. Useful if you are playing back recorded raw data from a bag, or are supplying a more accurate tf tree from calibration. -->
       <arg name="load_driver" value="$(arg load_camera_driver)" />
       <arg name="publish_tf" default="false" />
-   </include>
-
-   <include file="$(find kinect_calibration)/launch/kinect_frames.launch">
-      <arg name="camera" value="kinect_right" />
    </include>
    
    <!-- Load extrinsics -->
