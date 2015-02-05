@@ -342,7 +342,7 @@ int main(int argc, char **argv)
 
   packagePath = ros::package::getPath("frame_saver");
 
-  tf_listener = new tf::TransformListener();
+  tf_listener = new tf::TransformListener(ros::Duration(30.0));
 
   cout << "=====================================" << endl;
   cout << "        Type 'back' to go up         " << endl;
