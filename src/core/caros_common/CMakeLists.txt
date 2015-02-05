@@ -54,7 +54,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${library_name}
   CATKIN_DEPENDS message_runtime std_msgs roscpp caros_common_msgs image_geometry
-  DEPENDS RobWork CoViS
+  DEPENDS RobWork CoViS 
 )
 
 include_directories(
