@@ -2,6 +2,8 @@
 <launch>
  <include file="$(find projector_select_image)/launch/projector_left.launch"/>
  <!--<include file="$(find projector_select_image)/launch/projector_center.launch"/>-->
+ <include file="$(find openni_launch_marvin)/launch/kinect_center.launch"/>
  <include file="$(find projector_select_image)/launch/projector_right.launch"/>
+<include file="$(find stereo_camera)/launch/BumblebeeCenter.launch"/>
 
 </launch>
