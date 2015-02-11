@@ -214,13 +214,13 @@
         <Property>
           <Name>WindowPosX</Name>
           <Value>
-            <Integer>65</Integer>
+            <Integer>1337</Integer>
           </Value>
         </Property>
         <Property>
           <Name>WindowPosY</Name>
           <Value>
-            <Integer>24</Integer>
+            <Integer>120</Integer>
           </Value>
         </Property>
         <Property>

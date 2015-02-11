@@ -63,6 +63,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
+#include <tf/transform_broadcaster.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/publisher.h>
 
@@ -118,6 +119,11 @@ pcl_ros::Publisher<PointT> _pubAlignFull;
 pcl_ros::Publisher<PointT> _pubKinectLeft;
 pcl_ros::Publisher<PointT> _pubKinectRight;
 pcl_ros::Publisher<PointT> _pubKinectCenter;
+
+pcl_ros::Publisher<PointT> _pubBBLeft;
+pcl_ros::Publisher<PointT> _pubBBRight;
+pcl_ros::Publisher<PointT> _pubBBCenter;
+
 ros::ServiceServer _model_srv;
 
 void removePlane(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, double dist_threads)
@@ -344,7 +350,7 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
   float color_importance = 2.0f;
   float spatial_importance = 1.0f;
   float normal_importance = 5.0f;
-  bool use_single_cam_transform = true;
+  bool use_single_cam_transform = false; //Kinect = true
  // bool use_supervoxel_refinement = false;
   
   /// Preparation of Input: Supervoxel Oversegmentation
@@ -475,7 +481,7 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
    //   for(uint32_t i = 0; i<= segment_indice.size()-1; i++){
 	  //Get all supervoxels in one segment
 	  std::map<uint32_t, std::vector<uint32_t> >::iterator seg_iter;
-	  std::cout << "segment_supervoxel_map size: " << segment_supervoxel_map.size() << std::endl;
+	//  std::cout << "segment_supervoxel_map size: " << segment_supervoxel_map.size() << std::endl;
 	  for(seg_iter = segment_supervoxel_map.begin(); seg_iter != segment_supervoxel_map.end(); seg_iter++) {
 		///First get the label
 		uint32_t segment_label = seg_iter->first;
@@ -532,23 +538,26 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
 			  //Compute centroid 
 			  Eigen::Vector4d centroid;
 			  pcl::compute3DCentroid(*segment_cloud,centroid);
-			  computePrincipalCurvature(segment_cloud);
+			//  computePrincipalCurvature(segment_cloud);
 			  
 			  std::cout << "Centroid: " << centroid << std::endl;
 			    
 			 pcl::PointCloud<pcl::PointXYZL>::Ptr temp_label_cloud (new pcl::PointCloud<pcl::PointXYZL> );
 			 //Only add segments smaller than t= 5000
-			 if(centroid[2] < 1.14f && centroid[2] > 1.05f && theta < 2.20f && (theta_avg < 2.20f)){//(theta < 1.50f || centroid[2] > 1.10) && (theta_avg > 2.00f)){
-			      CloudT::Ptr temp (new CloudT);
+			 //if(centroid[2] < 1.14f && centroid[2] > 1.05f && theta < 2.20f && (theta_avg < 2.20f)){//(theta < 1.50f || centroid[2] > 1.10) && (theta_avg > 2.00f)){
+			 if(theta < 1.00f && (theta_avg < 2.20f)){//(theta < 1.50f || centroid[2] > 1.10) && (theta_avg > 2.00f)){
+			   
+			   CloudT::Ptr temp (new CloudT);
 			            
 			      //Deep copy
 			      *temp = *segment_cloud; 
 			      label_cloud(segment_cloud,temp_label_cloud, 1);
 			      *labled_cloud += *temp_label_cloud;
-			      std::stringstream ss;
-			      std::cout << "Saving segment " << label <<  "..."<< std::endl;
-			      ss << "/home/thso/segment_" << label; ss << ".pcd";
-			      pcl::io::savePCDFile(ss.str(),*segment_cloud);
+			      ROS_ERROR("Valid cluster found!");
+			     // std::stringstream ss;
+			     // std::cout << "Saving segment " << label <<  "..."<< std::endl;
+			     // ss << "/home/thso/segment_" << label; ss << ".pcd";
+			     // pcl::io::savePCDFile(ss.str(),*segment_cloud);
 			
 			      clusters.push_back(*temp);
 			 }else{
@@ -821,20 +830,20 @@ void MLSApproximation(CloudT::Ptr &cloud, CloudT::Ptr &target)
 }
 
 void CropBox(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud,
-             float rx, float ry, float minz, float maxz, Eigen::Matrix4f mat)
+             float rx, float ry, float minz, float maxz, Eigen::Matrix4f mat, bool publish_box_marker)
 {
   
    Eigen::Matrix3f rot_center = Eigen::Matrix3f::Identity();
-   Eigen::Vector3f tra_center; tra_center << 1,1,1;
-   Eigen::Affine3f transform(Eigen::Translation3f(0.0,-0.55,0)); //move the base frame to the middle of the table 
+   Eigen::Affine3f transform(Eigen::Translation3f(0.0,-0.50,0)); //move the base frame to the middle of the table 
    Eigen::Matrix4f m = transform.matrix();
-   Eigen::Matrix4f mat_inv = mat.inverse() * m;
+   Eigen::Matrix4f mat_inv = m;//mat.inverse() * m;
    Eigen::Affine3f matrix;
     
    matrix(0,0) = mat_inv(0,0); matrix(0,1) = mat_inv(0,1); matrix(0,2) = mat_inv(0,2); matrix(0,3) =  mat_inv(0,3);
    matrix(1,0) = mat_inv(1,0); matrix(1,1) = mat_inv(1,1); matrix(1,2) = mat_inv(1,2); matrix(1,3) = mat_inv(1,3); 
    matrix(2,0) = mat_inv(2,0); matrix(2,1) = mat_inv(2,1); matrix(2,2) = mat_inv(2,2); matrix(2,3) = mat_inv(2,3);
      
+   
    float x, y, z,roll, pitch, yaw;
    pcl::getTranslationAndEulerAngles(matrix,x,y,z,roll,pitch, yaw);
    Eigen::Vector3f boxTranslatation; boxTranslatation[0] = x; boxTranslatation[1] = y; boxTranslatation[2] = z;
@@ -860,6 +869,51 @@ void CropBox(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud,
   
   pcl::copyPointCloud(*filtered, *target_cloud);
   
+  
+  if(publish_box_marker){
+    
+  _crop_box_marker.header.frame_id = "/world";
+  _crop_box_marker.header.stamp = ros::Time::now();
+  
+  _crop_box_marker.type = visualization_msgs::Marker::CUBE;
+  // Set the marker action.  Options are ADD and DELETE
+  _crop_box_marker.action = visualization_msgs::Marker::ADD;
+   // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
+   tf::Quaternion q;
+   q.setRPY(roll,pitch,yaw);
+    
+  
+   tf::TransformBroadcaster br;
+   tf::Transform tf_transform;
+   tf_transform.setOrigin( tf::Vector3(x,y,z) );
+   tf_transform.setRotation(q);
+   br.sendTransform(tf::StampedTransform(tf_transform, ros::Time::now(), _crop_box_marker.header.frame_id, "cropbox_frame"));
+
+   _crop_box_marker.pose.position.x = double(matrix(0,3));
+   _crop_box_marker.pose.position.y = double(matrix(1,3));
+   _crop_box_marker.pose.position.z = double(matrix(2,3));
+   _crop_box_marker.pose.orientation.x = double(q.getX());
+   _crop_box_marker.pose.orientation.y = double(q.getY());
+   _crop_box_marker.pose.orientation.z = double(q.getZ());
+   _crop_box_marker.pose.orientation.w = double(q.getW());
+   
+   // Set the scale of the marker -- 1x1x1 here means 1m on a side
+   _crop_box_marker.scale.x = 2*rx;
+   _crop_box_marker.scale.y = 2*ry;
+   _crop_box_marker.scale.z = std::abs(maxz - minz);
+   
+   // Set the color -- be sure to set alpha to something non-zero!
+   _crop_box_marker.color.r = 0.0f;
+   _crop_box_marker.color.g = 1.0f;
+   _crop_box_marker.color.b = 0.0f;
+   _crop_box_marker.color.a = 0.7f;
+   
+   _crop_box_marker.lifetime = ros::Duration(120);
+   
+   _crop_box_marker_publisher.publish(_crop_box_marker);
+    
+  }
+  
 }
 
 void publish_marker(double rx, double ry, double minz, double maxz,  Eigen::Matrix4f mat){  
@@ -872,7 +926,6 @@ void publish_marker(double rx, double ry, double minz, double maxz,  Eigen::Matr
    // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
 
    Eigen::Matrix3f rot_center = Eigen::Matrix3f::Identity();
-   Eigen::Vector3f tra_center; tra_center << 1,1,1;
    Eigen::Affine3f transform(Eigen::Translation3f(0.0,-0.55,0)); //move the base frame to the middle of the table 
    Eigen::Matrix4f m = transform.matrix();
    Eigen::Matrix4f mat_inv = mat.inverse() * m;
@@ -882,18 +935,27 @@ void publish_marker(double rx, double ry, double minz, double maxz,  Eigen::Matr
    matrix(1,0) = mat_inv(1,0); matrix(1,1) = mat_inv(1,1); matrix(1,2) = mat_inv(1,2); matrix(1,3) = mat_inv(1,3); 
    matrix(2,0) = mat_inv(2,0); matrix(2,1) = mat_inv(2,1); matrix(2,2) = mat_inv(2,2); matrix(2,3) = mat_inv(2,3);
      
-  // float x, y, z,roll, pitch, yaw;
-  // pcl::getTranslationAndEulerAngles(matrix,x,y,z,roll,pitch, yaw);
+    float x, y, z,roll, pitch, yaw;
+   pcl::getTranslationAndEulerAngles(matrix,x,y,z,roll,pitch, yaw);
    // Matrix3f mat;
-    Eigen::Quaternionf q(matrix.rotation());
+    //Eigen::Quaternionf q(matrix.rotation());
+    tf::Quaternion q;
+    q.setRPY(roll,pitch,yaw);
+    
+  
+   tf::TransformBroadcaster br;
+   tf::Transform tf_transform;
+   tf_transform.setOrigin( tf::Vector3(x,y,z) );
+   tf_transform.setRotation(q);
+   br.sendTransform(tf::StampedTransform(tf_transform, ros::Time::now(), _crop_box_marker.header.frame_id, "cropbox_frame"));
 
    _crop_box_marker.pose.position.x = double(matrix(0,3));
    _crop_box_marker.pose.position.y = double(matrix(1,3));
    _crop_box_marker.pose.position.z = double(matrix(2,3));
-   _crop_box_marker.pose.orientation.x = double(q.x());
-   _crop_box_marker.pose.orientation.y = double(q.y());
-   _crop_box_marker.pose.orientation.z = double(q.z());
-   _crop_box_marker.pose.orientation.w = double(q.w());
+   _crop_box_marker.pose.orientation.x = double(q.getX());
+   _crop_box_marker.pose.orientation.y = double(q.getY());
+   _crop_box_marker.pose.orientation.z = double(q.getZ());
+   _crop_box_marker.pose.orientation.w = double(q.getW());
    
    // Set the scale of the marker -- 1x1x1 here means 1m on a side
    _crop_box_marker.scale.x = 2*rx;
@@ -931,73 +993,92 @@ void PassThroughFilter(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud,
 bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_common_msgs::CreateObjectModel::Response &res){
 
   /// Allocate point clouds
-  CloudT::Ptr out (new CloudT);
-  CloudT::Ptr filtered (new CloudT);
   CloudT::Ptr final_cloud (new CloudT);
   
   std::vector<CloudT,  Eigen::aligned_allocator_indirection<CloudT> > clusters;
 	
    ///Now do pre-processing for each cloud
    for(int i = 0; i< 3; i++){
-     i=0;
+       CloudT::Ptr filtered (new CloudT);
+       CloudT::Ptr out (new CloudT);
+    // int i=0;
+      ROS_INFO("Cropping cloud from view %i", i);
      Eigen::Matrix4f mat;
      if(req.sensor == 0){
 	filtered = kinectCloudStruct.Clouds.find(i)->second;
 	mat = kinectCloudStruct.transform.at(i);  
-	CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
+
+	//CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
 	// PassThroughFilter(filtered,filtered,0.0,2.0,"z");
      }else if(req.sensor == 1){
         filtered = stereoCloudStruct.Clouds.find(i)->second;
 	mat = stereoCloudStruct.transform.at(i); 
-	double rx, ry, minz, maxz;
-	rx = 0.65; ry = 0.3; minz = -0.2; maxz = 0.8;
-	CropBox(filtered,filtered,rx,ry, minz, maxz,mat);
-	publish_marker( rx,ry,minz,maxz, mat);
+	
 	// PassThroughFilter(filtered,filtered,0.0,2.0,"z");
+//		 _pubBBLeft.publish(*filtered);
      }else{
-      return false; 
-     }
+      return false;      
+    }
     
-     
+     double rx, ry, minz, maxz;
+     rx = 0.65; ry = 0.3; minz = -0.2; maxz = 0.8;
+     CropBox(filtered,filtered,rx,ry, minz, maxz,mat, true);
+  //   publish_marker( rx,ry,minz,maxz, mat);
+	
+     ROS_INFO("Saving view %i to hard drive!!", i);
      std::stringstream ss;
      ss << "/home/thso/view_" << i; ss << ".pcd";
-     pcl::io::savePCDFile(ss.str(), *filtered  );
-	 
-/*     pcl::PointCloud<pcl::Normal>::Ptr dummy_ptr;
+     if(filtered->points.size() > 0) pcl::io::savePCDFile(ss.str(), *filtered  );
+    
+/*	 
+     pcl::PointCloud<pcl::Normal>::Ptr dummy_ptr;
      LCCPSegmentation(filtered, dummy_ptr, clusters,true,false);
      
-//     removePlane(filtered,filtered,0.005); //0.015 gredy 
-//     radiusOutlierRemoval(filtered,filtered,0.08); 
-
-     //Find the correct models
-     PCL_INFO("Selecting cluster......\n");
+      //Find the correct models
+     PCL_INFO("Selecting cluster for view %i ......\n", i);
      for(int j = 0; j < clusters.size(); j++){
        //Filtering by simple point size criterion
        std::cout << clusters[j].points.size() << " points in cluster" << std::endl;
        if(clusters.at(j).points.size() < 50000 && clusters.at(j).points.size() > 500){
 	 ROS_ERROR("Selecting cluster!!");
-	 filtered->clear();
-         *filtered = clusters.at(j);
-	// pcl::io::savePCDFile("/home/thso/selected_cluster.pcd", *filtered  );
-	 
-	 //Transform cloud
-	 pcl::transformPointCloud(*filtered,*out,mat);
-	 KinectPointCloudPCLCombined += *out;
+         *out += clusters.at(j);
+	
        }
-       
      }
      clusters.clear();
+     
      std::vector<int> index;
-     pcl::removeNaNFromPointCloud(*filtered,*filtered,index);
+     pcl::removeNaNFromPointCloud(*out,*final_cloud,index);
+     
+     if(req.sensor == 0) KinectPointCloudPCLCombined += *final_cloud;
+     else if(req.sensor == 1) StereoPointCloudPCLCombined += *final_cloud;
+     
+     
+     ss.str("");
+     ss << "/home/thso/selected_cluster_" << i; ss << ".pcd";
+     pcl::io::savePCDFile(ss.str(), *final_cloud  );       
+     out->clear();
+     filtered->clear();
+ */
+//     removePlane(filtered,filtered,0.005); //0.015 gredy 
+//     radiusOutlierRemoval(filtered,filtered,0.08); 
 
 //     pcl::io::savePCDFile("/home/thso/mls_filtered.pcd", *filtered  );
    //  MLSApproximation(filtered, filtered);
   
-     size_t erased = kinectCloudStruct.Clouds.erase(i);
-     if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(i, filtered)).second){
+ /*    size_t erased = kinectCloudStruct.Clouds.erase(i);
+     if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(i, final_cloud)).second){
 	ROS_ERROR("Could not add cloud to map");
      }
-*/
+   */
+     
+  }
+   
+  
+  
+  
+  
+  
   /*   if(i > 0){
      pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _src =  kinectCloudStruct.Clouds.find(i-1)->second; 
      pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _tar =  kinectCloudStruct.Clouds.find(i)->second; 
@@ -1008,7 +1089,7 @@ bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_com
     */ 
   //   pcl::transformPointCloud(*filtered,*out,mat);
   //   KinectPointCloudPCLCombined += *out;
-   }
+
      //pcl::io::savePCDFile("/home/thso/scene_w_plane.pcd", KinectPointCloudPCLCombined  );
      //smooth(kinectCloudStruct.Clouds,final_cloud,kinectCloudStruct.transform,0.5);
    //  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model = KinectPointCloudPCLCombined.makeShared();
@@ -1043,27 +1124,33 @@ bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_com
 	//pcl::io::savePCDFile("proj_cloud.pcd", *proj_cloud);
       //  pcl::io::savePCDFile("model.pcd", *clusters[0]);
 	//*clusters[0]+= *proj_cloud;
-  
+	
+  //   result->header.frame_id = "/world";
+  //  _pubAlignKinect.publish(clusters[0]);
    
- /*  try{
-	pcl::io::savePCDFile("/home/thso/final_model.pcd", KinectPointCloudPCLCombined);
+   
+   
+   sensor_msgs::PointCloud2 cloud_model;
+   
+   try{
+	  if(req.sensor == 0){
+	    pcl::io::savePCDFile("/home/thso/final_kinect_model.pcd", KinectPointCloudPCLCombined);
+	    pcl::toROSMsg(KinectPointCloudPCLCombined,cloud_model);
+	  }else if(req.sensor == 1){
+	    pcl::io::savePCDFile("/home/thso/final_stereo_model.pcd", StereoPointCloudPCLCombined);
+	    pcl::toROSMsg(StereoPointCloudPCLCombined,cloud_model);
+	  }
    }catch(pcl::IOException &e){
 	std::cerr << e.what() << std::endl; 
    }
- */
-   
-//   result->header.frame_id = "/world";
-  //  _pubAlignKinect.publish(clusters[0]);
   
-     KinectPointCloudPCLCombined.clear();
-
-  ROS_INFO("Saving model to hard drive!!");
-/*  pcl::io::savePCDFile("/home/thso/saved_model.pcd",*clusters[0]);
-  sensor_msgs::PointCloud2 cloud_model;
-  pcl::toROSMsg(*clusters[0],cloud_model);
+  KinectPointCloudPCLCombined.clear();
+  StereoPointCloudPCLCombined.clear();
+  
+  ///Send result
   res.model = cloud_model;
   res.success = true;
-  */
+  
   return true;  
 }
 
@@ -1073,6 +1160,7 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
   sensor_msgs::PointCloud2::ConstPtr cloud_right;
   sensor_msgs::PointCloud2::ConstPtr cloud_center;
   
+  Eigen::Matrix4f mat;
   CloudT PointCloudPCL;
 
   switch(req.sensor)
@@ -1085,6 +1173,8 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /kinect_left/depth_registered/points point cloud failed!");
 	  return false;
 	}
+	mat = kinectCloudStruct.transform.at(0);
+	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 	if(kinectCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /kinect_left cloud from map!");
 	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
 	    ROS_ERROR("Could not insert /kinect_left cloud into map!");
@@ -1096,6 +1186,8 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /kinect_right/depth_registered/points point cloud failed!");
 	  return false;
 	}
+        mat = kinectCloudStruct.transform.at(1);
+	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 	if(kinectCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /kinect_right cloud from map!");
 	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
 	    ROS_ERROR("Could not insert /kinect_right cloud into map!");  
@@ -1107,6 +1199,8 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /kinect_center/depth_registered/points point cloud failed!");
 	  return false;
 	}
+	mat = kinectCloudStruct.transform.at(2);
+	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 	if(kinectCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /kinect_center cloud from map!");
 	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
           ROS_ERROR("Could not insert /kinect_center cloud into map!"); 
@@ -1129,6 +1223,8 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /bumblebeeLeft/points point cloud failed!");
 	  return false;
 	}
+	mat = stereoCloudStruct.transform.at(0);
+	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 	if(stereoCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /bumblebeeLeft cloud from map!");
 	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
 	    ROS_ERROR("Could not insert /bumblebeeLeft cloud into map!");
@@ -1141,6 +1237,8 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /bumblebeeRight/points point cloud failed!");
 	  return false;
 	}
+	mat = stereoCloudStruct.transform.at(1);
+	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 
 	if(stereoCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /bumblebeeRight cloud from map!");
 	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
@@ -1154,6 +1252,8 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
 	  ROS_WARN("Retrieval of /bumblebeeCenter/points point cloud failed!");
 	  return false;
 	}
+	mat = stereoCloudStruct.transform.at(2);
+	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 
 	if(stereoCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /bumblebeeCenter cloud from map!");
 	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
@@ -1211,7 +1311,7 @@ void kinectPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
     kinectCloudStruct.kinect_received[0] = true;
     Eigen::Matrix4f mat = kinectCloudStruct.transform.at(0);
     pcl::transformPointCloud(*filtered,*filtered,mat);
-    CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
+    CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat, false);
  //   removePlane(filtered,filtered,0.020); //0.015 gredy 
     _pubKinectLeft.publish(*filtered);
     KinectPointCloudPCLCombined += *filtered;
@@ -1225,7 +1325,7 @@ void kinectPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
     kinectCloudStruct.kinect_received[1] = true;
     Eigen::Matrix4f mat = kinectCloudStruct.transform.at(1);
     pcl::transformPointCloud(*filtered,*filtered,mat);
-    CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
+    CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat, false);
  //   removePlane(filtered,filtered,0.020); //0.015 gredy 
     KinectPointCloudPCLCombined += *filtered;
     _pubKinectRight.publish(*filtered);
@@ -1239,7 +1339,7 @@ void kinectPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
      kinectCloudStruct.kinect_received[2] = true;
      Eigen::Matrix4f mat = kinectCloudStruct.transform.at(2);
      pcl::transformPointCloud(*filtered,*filtered,mat);
-     CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
+     CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat,false);
    //  removePlane(filtered,filtered,0.020); //0.015 gredy 
      _pubKinectCenter.publish(*filtered);
      KinectPointCloudPCLCombined += *filtered;
@@ -1308,7 +1408,7 @@ void stereoPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
  
  if(stereoCloudStruct.stereo_received[0] == true && stereoCloudStruct.stereo_received[1] == true && stereoCloudStruct.stereo_received[2] == true)
  {
- //  std::cout << "All Stereo frames received " << std::endl;
+  //std::cout << "All Stereo frames received " << std::endl;
    stereoCloudStruct.stereo_received[0] = false;
    stereoCloudStruct.stereo_received[1] = false;
    stereoCloudStruct.stereo_received[2] = false;
@@ -1320,7 +1420,8 @@ void stereoPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
      stereoCloudStruct.Clouds[i] = *filtered;
    }
   */ 
-   
+   StereoPointCloudPCLCombined.header.frame_id = "/world";
+   StereoPointCloudPCLCombined.header.stamp = ros::Time::now().toNSec();
    _pubAlignStereo.publish(StereoPointCloudPCLCombined);
    
  }
@@ -1342,7 +1443,8 @@ void stereoPointCloudSub(ros::NodeHandle nh, string name)
 {
 
   std::stringstream PointCloudPath;
-  PointCloudPath << name << "/points";
+  //TODO: Change to this when running at MARVIN PointCloudPath << name << "/points";
+  PointCloudPath << name << "/depth_registered/points";
 
   point_cloud_vector.push_back(new ros::Subscriber());
   *point_cloud_vector.back() = nh.subscribe(PointCloudPath.str(), 1, stereoPointCloudCallback);
@@ -1354,12 +1456,12 @@ int main(int argc, char **argv)
 	 ros::init(argc, argv, "cloud_merge");
 	 ros::NodeHandle nodeHandle = ros::NodeHandle("~");
 
-	 kinectPointCloudSub(nodeHandle, "/kinect_left");
-	 kinectPointCloudSub(nodeHandle, "/kinect_right");
-	 kinectPointCloudSub(nodeHandle, "/kinect_center");
-	 stereoPointCloudSub(nodeHandle, "/bumblebeeRight");
-	 stereoPointCloudSub(nodeHandle, "/bumblebeeLeft");
-	 stereoPointCloudSub(nodeHandle, "/bumblebeeCenter");
+//	 kinectPointCloudSub(nodeHandle, "/kinect_left");
+//	 kinectPointCloudSub(nodeHandle, "/kinect_right");
+//	 kinectPointCloudSub(nodeHandle, "/kinect_center");
+//	 stereoPointCloudSub(nodeHandle, "/bumblebeeRight");
+//	 stereoPointCloudSub(nodeHandle, "/bumblebeeLeft");
+//	 stereoPointCloudSub(nodeHandle, "/bumblebeeCenter");
 
 	 //Publisher
         _pubAlignKinect = pcl_ros::Publisher<PointT> (nodeHandle, "kinect_aligned", 1);
@@ -1368,6 +1470,9 @@ int main(int argc, char **argv)
 	_pubKinectLeft = pcl_ros::Publisher<PointT> (nodeHandle, "kinect_left_global", 1);
 	_pubKinectRight = pcl_ros::Publisher<PointT> (nodeHandle, "kinect_right_global", 1);
 	_pubKinectCenter = pcl_ros::Publisher<PointT> (nodeHandle, "kinect_center_global", 1);
+	_pubBBLeft = pcl_ros::Publisher<PointT> (nodeHandle, "bumblebeeLeft_left_global", 1);
+	_pubBBRight = pcl_ros::Publisher<PointT> (nodeHandle, "bumblebeeRight_right_global", 1);
+	_pubBBCenter = pcl_ros::Publisher<PointT> (nodeHandle, "bumblebeeCenter_center_global", 1);
 	_model_srv = nodeHandle.advertiseService("create_model", create_model_callback);
         _crop_box_marker_publisher = nodeHandle.advertise<visualization_msgs::Marker>("visualization_marker", 100);
 	 tf::TransformListener tf_listener;
@@ -1387,7 +1492,7 @@ int main(int argc, char **argv)
 	      std::cout << "kinect_left to world: " << std::endl;
 	      std::cout << transformation << std::endl;
 	  }else
-	    ROS_ERROR("Failed to get /kinect_left transform!");
+	    ROS_WARN("Failed to get /kinect_left transform!");
 	  
 	    tf::StampedTransform transform_kinect_right;
 	    if(tf_listener.waitForTransform("/world", "/kinect_right",ros::Time(0),ros::Duration(3.0))){
@@ -1398,7 +1503,7 @@ int main(int argc, char **argv)
 	      std::cout << "kinect_right to world: " << std::endl;
 	      std::cout << transformation << std::endl;
 	    }else
-	      ROS_ERROR("Failed to get /kinect_right transform!");
+	      ROS_WARN("Failed to get /kinect_right transform!");
 	 
 	    tf::StampedTransform transform_kinect_center;
 	    if(tf_listener.waitForTransform("/world", "/kinect_center",ros::Time(0),ros::Duration(3.0))){
@@ -1409,7 +1514,7 @@ int main(int argc, char **argv)
 	      std::cout << "kinect_center to world: " << std::endl;
 	      std::cout << transformation << std::endl;
 	    }else
-	      ROS_ERROR("Failed to get /kinect_center transform!");
+	      ROS_WARN("Failed to get /kinect_center transform!");
 	    
 	    tf::StampedTransform transform_stereo_left;
 	    if(tf_listener.waitForTransform("/world", "/bumblebeeLeft",ros::Time(0),ros::Duration(3.0))){
@@ -1420,7 +1525,7 @@ int main(int argc, char **argv)
 	      std::cout << "bumblebeeLeft to world: " << std::endl;
 	      std::cout << transformation << std::endl;
 	    }else
-	      ROS_ERROR("Failed to get /bumblebeeLeft transform!");
+	      ROS_WARN("Failed to get /bumblebeeLeft transform!");
 	    
 	 
 	    tf::StampedTransform transform_stereo_right;
@@ -1432,7 +1537,7 @@ int main(int argc, char **argv)
 	      std::cout << "bumblebeeRight to world: " << std::endl;
 	      std::cout << transformation << std::endl;
 	    }else
-	      ROS_ERROR("Failed to get /bumblebeeRight transform!");
+	      ROS_WARN("Failed to get /bumblebeeRight transform!");
 	    
 	 
 	    tf::StampedTransform transform_stereo_center;
@@ -1444,7 +1549,7 @@ int main(int argc, char **argv)
 	      std::cout << "bumblebeeCenter to world: " << std::endl;
 	      std::cout << transformation << std::endl;
 	    }else
-	      ROS_ERROR("Failed to get /bumblebeeCenter transform!");
+	      ROS_WARN("Failed to get /bumblebeeCenter transform!");
 	    
 	    
 	  }
