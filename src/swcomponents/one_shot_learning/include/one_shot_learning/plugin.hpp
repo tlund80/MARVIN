@@ -113,7 +113,8 @@ private:
     one_shot_learning::motion_planner::PlayBack* _pb; 
     motion_planner::RobotController* 		_ctrl;
     
-    pcl::visualization::PCLVisualizer 		*pviz;
+    pcl::visualization::PCLVisualizer		*pviz;
+  //  boost::shared_ptr<pcl::visualization::PCLVisualizer> pviz;
     QString 					m_name;
     int 					modelling_cnt;
     bool 					loaded;
@@ -132,7 +133,7 @@ private:
     void init();
     void addModel(ModelData model);
     void addModelChild(QTreeWidgetItem *parent, QString name, QString size, QString extension, bool hasGraspTable);
-    void addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model, pcl::PolygonMesh::Ptr solid_model);
+    void addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr unfiltered_model, pcl::PolygonMesh::Ptr solid_model);
     bool loadModels();
     void updateGrasptableWidget(QTreeWidgetItem *item, bool hasGraspTable);
     bool removeDir(const QString & dirName);

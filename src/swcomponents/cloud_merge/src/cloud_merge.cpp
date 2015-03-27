@@ -39,6 +39,7 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/surface/mls.h>
 #include <pcl/console/time.h>
 #include <pcl/registration/icp.h>
@@ -78,6 +79,8 @@
 #include <map>
 #include <ode/odeconfig.h>
 
+#include <omp.h>
+
 
 using namespace std;
 using namespace tr1;
@@ -86,14 +89,15 @@ using namespace sensor_msgs;
 
 typedef pcl::PointXYZRGBA PointT;
 typedef pcl::PointCloud<PointT> CloudT;
+typedef pcl::PointXYZRGBNormal PointNT;
+typedef pcl::PointCloud<PointNT> PointCloudNT;
 
 vector<ros::Subscriber*> point_cloud_vector;
 //std::vector<double> plane_coeff;
-pcl::ModelCoefficients::Ptr plane_coeff;
 
 CloudT PointCloudPCLCombined;
 CloudT KinectPointCloudPCLCombined;
-CloudT StereoPointCloudPCLCombined;
+PointCloudNT StereoPointCloudPCLCombined;
 
 visualization_msgs::Marker _crop_box_marker;
  ros::Publisher _crop_box_marker_publisher;
@@ -112,8 +116,42 @@ struct stereoClouds
   bool stereo_received[3];
 } stereoCloudStruct;
 
+struct SegmentationParams{ 
+  SegmentationParams():
+      voxel_resolution(0.0035f), //-v
+      seed_resolution(0.022f), //-s
+      color_importance(2.0f), //-c
+      spatial_importance(5.0f), //-z
+      normal_importance (8.0f), // -n
+      use_single_cam_transform (false), // -tvoxel  Kinect = true
+      use_supervoxel_refinement (false), // -refine
+  
+    // LCCPSegmentation Stuff
+      concavity_tolerance_threshold (13), //-ct
+      smoothness_threshold (0.1), //-st
+      min_segment_size (10), //-smooth
+      use_extended_convexity (true), //-ec
+      use_sanity_criterion (true) {} //-sc
+  
+  float voxel_resolution; //-v
+  float seed_resolution; //-s
+  float color_importance; //-c
+  float spatial_importance; //-z
+  float normal_importance;  // -n
+  bool use_single_cam_transform; // -tvoxel  Kinect = true
+  bool use_supervoxel_refinement; // -refine
+  
+    // LCCPSegmentation Stuff
+  float concavity_tolerance_threshold; //-ct
+  float smoothness_threshold; //-st
+  uint32_t min_segment_size; //-smooth
+  bool use_extended_convexity; //-ec
+  bool use_sanity_criterion; //-sc
+  
+};
+
 pcl_ros::Publisher<PointT> _pubAlignKinect;
-pcl_ros::Publisher<PointT> _pubAlignStereo;
+pcl_ros::Publisher<PointNT> _pubAlignStereo;
 pcl_ros::Publisher<PointT> _pubAlignFull;
 
 pcl_ros::Publisher<PointT> _pubKinectLeft;
@@ -126,13 +164,13 @@ pcl_ros::Publisher<PointT> _pubBBCenter;
 
 ros::ServiceServer _model_srv;
 
-void removePlane(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, double dist_threads)
+void computePlaneCoeff(CloudT::Ptr &src_cloud,pcl::ModelCoefficients::Ptr coefficients, double dist_threads)
 {
    //*********************************************************************//
    //	Plane fitting
    /**********************************************************************/
     
-   pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
+  // pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
    pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
 
    // Create the segmentation object
@@ -152,127 +190,54 @@ void removePlane(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, double dist_
      PCL_ERROR ("Could not estimate a planar model for the given dataset.");
      //return (-1);
    }
-   
-   plane_coeff = coefficients;
-  // plane_coeff.clear();
- //  for(int i = 0; i < coefficients->values.size(); i++)
-  //   plane_coeff.push_back(coefficients->values.at(i));
 
- /*  std::cerr << "Model coefficients: " << coefficients->values[0] << " "
+   std::cerr << "Model coefficients: " << coefficients->values[0] << " "
                                        << coefficients->values[1] << " "
                                        << coefficients->values[2] << " "
                                        << coefficients->values[3] << std::endl;
 
-*/
-   //*********************************************************************//
-   //	Extract Indices
-   /**********************************************************************/
 
-   CloudT::Ptr cloud_f (new CloudT);
-   CloudT::Ptr cloud_p (new CloudT);
-  // Create the filtering object
-  pcl::ExtractIndices<PointT> extract;
-  // Extract the inliers
-  extract.setInputCloud (src_cloud);
-  extract.setIndices(inliers);
-  extract.setNegative (false);
-  extract.setKeepOrganized(false);
-  extract.filter (*cloud_p);
- // std::cerr << "PointCloud representing the planar component: " << cloud_p->width * cloud_p->height << " data points." << std::endl; 
- /*  try{
-	pcl::io::savePCDFile("plane_fitting_indicies.pcd", *cloud_p);
-  }catch(pcl::IOException &e){
-	std::cerr << e.what() << std::endl; 
-  }
-*/
-  // Create the filtering object
-  extract.setNegative (true);
-  extract.setKeepOrganized(false);
-  extract.filter (*cloud_f);
-
-  pcl::copyPointCloud(*cloud_f, *target_cloud);
 
 }
 
-bool extractClusters(CloudT::Ptr &src_cloud,
-		     std::vector<CloudT::Ptr, Eigen::aligned_allocator_indirection<CloudT::Ptr> > &clusters,
-		     unsigned int minClusterSize, unsigned int maxClusterSize, unsigned int clusterThreadshold
-		    )
+bool extractLargestClusters(CloudT::Ptr &src_cloud, CloudT::Ptr largest_clusters, double cluster_tol)
 {
     
     pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
    
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<PointT> ec;
-    ec.setClusterTolerance (0.02); // 2cm
-    ec.setMinClusterSize (minClusterSize); //100
-    ec.setMaxClusterSize (maxClusterSize); //50000
+    ec.setClusterTolerance (cluster_tol); // 2cm
+    ec.setMinClusterSize (50); //100
+    ec.setMaxClusterSize (800000); //50000
     ec.setSearchMethod (tree);
     ec.setInputCloud(src_cloud);
     ec.extract (cluster_indices); 
     
      std::cout<<"Found "  << cluster_indices.size() << " clusters" << std::endl;
+     unsigned int largest_cloud = 0;
      
     if ( cluster_indices.size() < 1) return false;
-    
- //    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model (new pcl::PointCloud<pcl::PointXYZRGBA>);
      
-    for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
-    {
-       
+    for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){   
 	CloudT::Ptr cloud_cluster (new CloudT);
-   
 	for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
 	    cloud_cluster->points.push_back (src_cloud->points[*pit]); //*
 
-	    if(cloud_cluster->points.size () > clusterThreadshold) //clusterThreadshold = 500
-	     {
+	    if(cloud_cluster->points.size () > largest_cloud){ //clusterThreadshold = 500{
 	     	 cloud_cluster->width = cloud_cluster->points.size ();
 	     	 cloud_cluster->height = 1;
 	     	 cloud_cluster->is_dense = true;
+		 largest_cloud = cloud_cluster->points.size ();
 		 
-	/*	 Eigen::Vector4f centroid;
-		 pcl::compute3DCentroid(*cloud_cluster,centroid);
-		 
-		 pcl::PCA<pcl::PointXYZRGBA> _pca; 
-		 pcl::PointXYZRGBA projected; 
-		 pcl::PointXYZRGBA reconstructed;
-		 pcl::PointCloud<pcl::PointXYZRGBA > cloudi = *cloud_cluster;
-		 pcl::PointCloud<pcl::PointXYZRGBA> finalCloud;
-		 
-		 try{
-		      //Do PCA for each point to preserve color information
-		      //Add point cloud to force PCL to init_compute else a exception is thrown!!!HACK
-		      _pca.setInputCloud(cloud_cluster);
-		      for(int i = 0; i < (int)cloud_cluster->size(); i++)
-		      {
-			_pca.project(cloudi[i],projected);
-			_pca.reconstruct (projected, reconstructed);
+		 pcl::copyPointCloud(*cloud_cluster, *largest_clusters);
+	     	 
+		 std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
 
-			//assign colors
-			projected.r = cloudi[i].r;
-			projected.g = cloudi[i].g;
-			projected.b = cloudi[i].b;
-
-			//add point to cloud
-			finalCloud.push_back(projected);
-		}
-		 }catch(pcl::InitFailedException &e)
-		 {
-		    PCL_ERROR(e.what());
-		 }
-
-*/
-	     	 std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-
-		 //clusters.push_back(finalCloud.makeShared());
-		  clusters.push_back(cloud_cluster);
-	     }
-	     
-	     
-	  //    pcl::copyPointCloud(*cloud_cluster, *model);
+	     }     
+	  
       }
-    
+	
     return true;
   
 }
@@ -336,23 +301,103 @@ void computePrincipalCurvature(CloudT::Ptr &src_cloud){
   std::cout << descriptor << std::endl;
 }
 
-void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr input_normals_ptr,
-		      std::vector<CloudT, Eigen::aligned_allocator_indirection<CloudT> > &clusters,
-		      bool use_supervoxel_refinement, bool has_normals ){
+bool moveObjectFrame(CloudT::Ptr &src_cloud, CloudT::Ptr &tar_cloud){
   
-  ///------------------------------------------------- Supervoxel computation ------------------------------------------------------
+ 	Eigen::Vector4f centroid;
+        pcl::compute3DCentroid(*src_cloud,centroid);
+	
+	//  pcl::transformPointCloud(*src_cloud,*temp,mat);
+		 
+	pcl::PCA<PointT> _pca; 
+	PointT projected; 
+	PointT reconstructed;
+	CloudT cloudi = *src_cloud;
+	CloudT finalCloud;
+		 
+	try{
+	     //Do PCA for each point to preserve color information
+	     //Add point cloud to force PCL to init_compute else a exception is thrown!!!HACK
+	     _pca.setInputCloud(src_cloud);
+	     int i;
+	 //    #pragma omp parallel for
+	     for(i = 0; i < (int)src_cloud->size(); i++)     {
+	       _pca.project(cloudi[i],projected);
+	       Eigen::Matrix3f eigen = _pca.getEigenVectors();
+	       
+	       // flip axis to satisfy right-handed system
+              if (eigen.col(0).cross(eigen.col(1)).dot(eigen.col(2)) < 0) {
+		        projected.z = -projected.z; //Avoid flipping the model
+              }
+              
+	       _pca.reconstruct (projected, reconstructed);
+
+	       pcl::PCLPointCloud2 c;
+	       pcl::toPCLPointCloud2(cloudi,c);
+	       if(pcl::getFieldIndex(c,"rgba") >= 0){
+		 //assign colors
+		 projected.r = cloudi[i].r;
+		 projected.g = cloudi[i].g;
+		 projected.b = cloudi[i].b;
+	       }
+	       //add point to cloud
+	       finalCloud.push_back(projected);
+	       
+	    }
+	    
+	}catch(pcl::InitFailedException &e){
+	  PCL_ERROR(e.what());
+	  
+	}
+
+
+//	   pcl::io::savePCDFile("/home/thso/pca_cloud.pcd",finalCloud);	
+	pcl::copyPointCloud(finalCloud,*tar_cloud);
+  
+}
+
+bool LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr input_normals_ptr,
+		      std::vector<CloudT, Eigen::aligned_allocator_indirection<CloudT> > &clusters,
+		      SegmentationParams params, bool has_normals, int view_nr ){
+  
+   ///Compute plane coefficients
+  pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
+  computePlaneCoeff(src_cloud,coefficients,0.010);
   
    if(!has_normals)
      PCL_WARN ("Could not find normals point cloud. Normals will be calculated. This only works for single-camera-view pointclouds.\n");
-  /// Supervoxel Stuff
-  float voxel_resolution = 0.0045f;
-  float seed_resolution = 0.03f;
+  /// Supervoxel parameters
+/*  float voxel_resolution = params.voxel_resolution;
+  float seed_resolution = params.seed_resolution;
+  float color_importance = params.color_importance;
+  float spatial_importance = params.spatial_importance;
+  float normal_importance = params.normal_importance;
+  bool use_single_cam_transform = params.use_single_cam_transform; //Kinect = true
+  bool use_supervoxel_refinement = params.use_supervoxel_refinement;
+  */   
+     
+  float voxel_resolution = 0.0035f;
+  float seed_resolution = 0.020f;
   float color_importance = 2.0f;
-  float spatial_importance = 1.0f;
-  float normal_importance = 5.0f;
+  float spatial_importance = 5.0f;
+  float normal_importance = 8.0f;
   bool use_single_cam_transform = false; //Kinect = true
- // bool use_supervoxel_refinement = false;
+  bool use_supervoxel_refinement = true;
   
+  
+   /// LCCPSegmentation Variables
+/*  float concavity_tolerance_threshold = params.concavity_tolerance_threshold; //30
+  float smoothness_threshold = params.smoothness_threshold;
+  uint32_t min_segment_size = params.min_segment_size;
+  bool use_extended_convexity = params.use_extended_convexity;
+  bool use_sanity_criterion = params.use_sanity_criterion;
+ */ 
+  float concavity_tolerance_threshold = 15.0f; //30
+  float smoothness_threshold = 0.1f;
+  uint32_t min_segment_size = 10;
+  bool use_extended_convexity = false;
+  bool use_sanity_criterion = true;
+  
+ ///------------------------------------------------- Supervoxel computation ------------------------------------------------------
   /// Preparation of Input: Supervoxel Oversegmentation
   pcl::SupervoxelClustering<PointT> super (voxel_resolution, seed_resolution, use_single_cam_transform);
   super.setInputCloud (src_cloud);
@@ -384,15 +429,10 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
 
   ///------------------------------------------------- Segmentation step ------------------------------------------------------
   
-  /// LCCPSegmentation Variables
-  float concavity_tolerance_threshold = 30; //30
-  float smoothness_threshold = 0.1;
-  uint32_t min_segment_size = 2;
-  bool use_extended_convexity = true;
-  bool use_sanity_criterion = false;
+ 
   
   uint k_factor = 0;
-  if (use_extended_convexity)
+ // if (use_extended_convexity)
     k_factor = 1;
   
   /// The Main Step: Perform LCCPSegmentation
@@ -414,6 +454,10 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
   pcl::PointCloud<pcl::PointXYZL>::Ptr sv_labeled_cloud = super.getLabeledCloud ();
   pcl::PointCloud<pcl::PointXYZL>::Ptr lccp_labeled_cloud = sv_labeled_cloud->makeShared ();
   lccp.relabelCloud (*lccp_labeled_cloud);
+  
+    std::stringstream ss;
+    ss << "/home/thso/original_labled_cloud_" << view_nr; ss << ".pcd";
+    pcl::io::savePCDFile(ss.str(),*lccp_labeled_cloud);	 
  // pcl::LCCPSegmentation<PointT>::SupervoxelAdjacencyList sv_adjacency_list;
  // lccp.getSVAdjacencyList (sv_adjacency_list);  // Needed for visualization
   
@@ -426,40 +470,46 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
       ///Get all LCCP segments
       std::map<uint32_t, std::vector<uint32_t> > segment_supervoxel_map;   
       lccp.getSegmentSupervoxelMap(segment_supervoxel_map);
-      uint32_t _num_of_segment = segment_supervoxel_map.size();
-      std::cout << "Number of segment : " << _num_of_segment << std::endl;
-      ///Initialize map to store inliers(segments)
+      if(segment_supervoxel_map.empty()){ 
+	 pcl::console::print_error("ERROR: Failed to get segmented supervoxel map for LCCP algorithm!");
+	 return false;
+      }
+        
       std::map<uint32_t, pcl::PointIndices::Ptr> segment_indice;
-      for(uint32_t i = 0; i< _num_of_segment; i++){
+  /*    for(uint32_t i = 0; i< _num_of_segment; i++){
+	std::cout << "i: " << i << std::endl;
 	 pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
 	 segment_indice.insert(std::pair<uint32_t, pcl::PointIndices::Ptr>(i,inliers));
       }
-      
+    */  
       ///Iterate through LCCP labled cloud to copy label to inlier map
       pcl::PointCloud<pcl::PointXYZL>::iterator cloud_iter;
-       std::map<uint32_t, uint32_t> pointcloud_label_to_new_label;
-       int count = 0;
+      std::map<uint32_t, uint32_t> pointcloud_label_to_new_label;
+      int count = 0;
       for (cloud_iter = lccp_labeled_cloud->begin(); cloud_iter != lccp_labeled_cloud->end(); cloud_iter++) {
 	//TODO: Kig på om label er ny. hvis: lig gamle lable i map på 1 til antal segmenters plads
 	  uint32_t label =cloud_iter->label; 
+	  //if(label != 1) std::cout << label << " " << std::endl;
 	  if(pointcloud_label_to_new_label.count(label) == 0){ //The label dosen't exist
-	      std::cout << "add label :" << count << std::endl;
-             pointcloud_label_to_new_label.insert(std::pair<uint32_t,uint32_t>(label, count));
+	     pcl::console::print_highlight("adding original label %d as label %d in inlier map\n",label, count);
+	     ///Initialize map to store inliers(segments)
+	     ///(Create new inlier object to hold the segment points)
+	     pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
+	     segment_indice.insert(std::pair<uint32_t, pcl::PointIndices::Ptr>(count,inliers));
+             
+	     pointcloud_label_to_new_label.insert(std::pair<uint32_t,uint32_t>(label, count));
 	     count++;
-	  }else{ //label already exist. get the label position from pointcloud_label_to_new_label
-	   uint32_t index = pointcloud_label_to_new_label.find(label)->second;
-	 //  std::cout << "Save label :" << pointcloud_label_to_new_label.find(label)->first << " at index: " << index << std::endl;
-	   if(index >= _num_of_segment ){
-	     pcl::console::print_error("error: map index cannot exceed number of segments in cloud");
-	     break;
 	  }
+	  //label already exist. get the label position from pointcloud_label_to_new_label
+	   uint32_t index = pointcloud_label_to_new_label.find(label)->second;
+	//   std::cout << "Save label :" << pointcloud_label_to_new_label.find(label)->first << " at index: " << index << std::endl;
+	
 	    //Map label to point
 	    segment_indice.at(index)->indices.push_back(cloud_iter - lccp_labeled_cloud->begin());
-	    
-	  }
-	
+	  
       }
-      std::cout << "Number of labels : " << segment_indice.size() << std::endl;
+      pcl::console::print_highlight("Cloud has %d LCCP segments\n", segment_indice.size());
+   //   pcl::console::print_highlight("Number of labels : %d\n", segment_indice.size());
       
       CloudT::Ptr segment_cloud (new CloudT);
       pcl::PointCloud<pcl::PointXYZL>::Ptr labled_cloud (new pcl::PointCloud<pcl::PointXYZL>);
@@ -480,14 +530,14 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
       ///Segment iterator
    //   for(uint32_t i = 0; i<= segment_indice.size()-1; i++){
 	  //Get all supervoxels in one segment
-	  std::map<uint32_t, std::vector<uint32_t> >::iterator seg_iter;
+	  std::map<uint32_t, pcl::PointIndices::Ptr >::iterator seg_iter;
 	//  std::cout << "segment_supervoxel_map size: " << segment_supervoxel_map.size() << std::endl;
-	  for(seg_iter = segment_supervoxel_map.begin(); seg_iter != segment_supervoxel_map.end(); seg_iter++) {
+	  for(seg_iter = segment_indice.begin(); seg_iter != segment_indice.end(); seg_iter++) {
 		///First get the label
 		uint32_t segment_label = seg_iter->first;
-		std::cout << "-------------------VoxelID's for segment --------------------------" << std::endl;
-		std::vector<uint32_t> supervoxels_in_segment = seg_iter->second;
-	        std::cout << "Number of supervoxels in segment: " << supervoxels_in_segment.size() << std::endl;
+		std::cout << "-------------------Segment " << segment_label << " --------------------------" << std::endl;
+	/*	std::vector<uint32_t> supervoxels_in_segment = seg_iter->second;
+	           pcl::console::print_highlight("Number of supervoxels in segment: %d\n ",supervoxels_in_segment.size());
 		  ///Supervoxel iterator in one segment
 		  float theta_avg = 0;
 		  for(uint32_t j = 0; j< supervoxels_in_segment.size(); j++){
@@ -501,80 +551,105 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
 		  //  std::cout << " theta: " << theta << " phi: " << phi << std::endl;
 		  }
 		  float samples = (float(supervoxels_in_segment.size())); 
+		  */
 		 // std::cout << " samples: " << samples << std::endl;
 		 // std::cout << " theta_acc: " << theta_avg << std::endl;
-		  std::cout << " theta_avg: " << theta_avg/samples << std::endl;
-		  theta_avg = theta_avg/samples;
+		//  pcl::console::print_highlight(" theta_avg: %f\n", theta_avg/samples);
+		//  theta_avg = theta_avg/samples;
 		  
-		  int label = std::distance(segment_supervoxel_map.begin(), seg_iter);
-		  //std::cout << " label inliers: " << label << std::endl;
-		  pcl::PointIndices::Ptr inliers =segment_indice.at(label);
-		  if (inliers->indices.size () != 0){
+		
+		  pcl::PointIndices::Ptr inliers = segment_indice.at(segment_label);
+		  if (inliers->indices.size () != 0)
+		  {
 		      extract.setIndices (inliers);
 		      extract.setNegative (false);
 		      extract.filter (*segment_cloud);
-		      if(segment_cloud->points.size() > 10){ //only fitting plane for clouds larger than 10 points
-			 //Estimate the plane coefficients
-			 pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
+		      
+		      pcl::console::print_highlight("%d points in segment\n",segment_cloud->points.size());
+		      ///Only consider clouds larger than 10 points
+		      if(segment_cloud->points.size() > 10)
+		      { 
+		        //Estimate the plane coefficients
+			 pcl::ModelCoefficients::Ptr seg_coefficients (new pcl::ModelCoefficients);
 			 seg.setInputCloud (segment_cloud);
-			 seg.segment (*inliers_sac, *coefficients);
+			 seg.segment (*inliers_sac, *seg_coefficients);
 			 
 			 if (inliers_sac->indices.size () == 0)
 				PCL_ERROR ("Could not estimate a planar model for the given dataset.");
 	      
-			 std::cerr << "Model coefficients: "  << coefficients->values[0] << " "
-								  << coefficients->values[1] << " "
-								  << coefficients->values[2] << " "
-								  << coefficients->values[3] << std::endl;
 			 //coefficients.reset();
+			 pcl::PointNormal segment_normal;
+			 segment_normal.normal_x = seg_coefficients->values[0];
+			 segment_normal.normal_y = seg_coefficients->values[1];
+			 segment_normal.normal_z = seg_coefficients->values[2];
+			 
 			 pcl::PointNormal plane_normal;
 			 plane_normal.normal_x = coefficients->values[0];
 			 plane_normal.normal_y = coefficients->values[1];
 			 plane_normal.normal_z = coefficients->values[2];
-			 float radius, theta,  phi = 0;
-		         toSpherical(plane_normal, radius, theta, phi); 
-			 std::cout <<"radius: " << radius << " theta: " << theta << " phi: " << phi << std::endl;
-			   
+			 
+			 float seg_radius, seg_theta,  seg_phi = 0;
+		         toSpherical(segment_normal, seg_radius, seg_theta, seg_phi); 
+			 std::cout <<"Segment - radius: " << seg_radius << " theta: " << seg_theta << " phi: " << seg_phi << std::endl;
+		   
+			 float plane_radius, plane_theta,  plane_phi = 0;
+			 toSpherical(plane_normal, plane_radius, plane_theta, plane_phi); 
+			 std::cout <<"table plane - radius: " << plane_radius << " theta: " << plane_theta << " phi: " << plane_phi << std::endl;
+		   
 			  //Compute centroid 
 			  Eigen::Vector4d centroid;
 			  pcl::compute3DCentroid(*segment_cloud,centroid);
-			//  computePrincipalCurvature(segment_cloud);
 			  
-			  std::cout << "Centroid: " << centroid << std::endl;
-			    
-			 pcl::PointCloud<pcl::PointXYZL>::Ptr temp_label_cloud (new pcl::PointCloud<pcl::PointXYZL> );
-			 //Only add segments smaller than t= 5000
-			 //if(centroid[2] < 1.14f && centroid[2] > 1.05f && theta < 2.20f && (theta_avg < 2.20f)){//(theta < 1.50f || centroid[2] > 1.10) && (theta_avg > 2.00f)){
-			 if(theta < 1.00f && (theta_avg < 2.20f)){//(theta < 1.50f || centroid[2] > 1.10) && (theta_avg > 2.00f)){
+			  //Dertermine if the segment lies on the table plane solve ax * by *cz = d 
+			  float value = coefficients->values[0] * centroid[0] + coefficients->values[1] * centroid[1] + coefficients->values[2] * centroid[2];
+			  std::cout << "value: " << value << std::endl;
+			  std::cout << "d: " << coefficients->values[3] << std::endl;
+			  std::cout << "diff: " << coefficients->values[3] - std::abs(value)  << std::endl;
+			  
+			  pcl::PointCloud<pcl::PointXYZL>::Ptr temp_label_cloud (new pcl::PointCloud<pcl::PointXYZL> );
+			
+			  std::cout << "normal diff: " << std::abs(plane_theta -seg_theta) << std::endl;
 			   
+			  if((std::abs(coefficients->values[3] - std::abs(value)) > 0.001) &&
+			     (std::abs(plane_theta -seg_theta) > 0.005))
+			  {
+			  //  computePrincipalCurvature(segment_cloud)
 			   CloudT::Ptr temp (new CloudT);
 			            
-			      //Deep copy
-			      *temp = *segment_cloud; 
-			      label_cloud(segment_cloud,temp_label_cloud, 1);
-			      *labled_cloud += *temp_label_cloud;
-			      ROS_ERROR("Valid cluster found!");
-			     // std::stringstream ss;
-			     // std::cout << "Saving segment " << label <<  "..."<< std::endl;
-			     // ss << "/home/thso/segment_" << label; ss << ".pcd";
-			     // pcl::io::savePCDFile(ss.str(),*segment_cloud);
-			
-			      clusters.push_back(*temp);
+			  //Deep copy
+			  *temp = *segment_cloud; 
+			  label_cloud(segment_cloud,temp_label_cloud, 1);
+			  *labled_cloud += *temp_label_cloud;
+			  PCL_WARN("Valid cluster found!\n");
+			  // std::stringstream ss;
+			  // std::cout << "Saving segment " << label <<  "..."<< std::endl;
+			  // ss << "/home/thso/segment_" << label; ss << ".pcd";
+			  // pcl::io::savePCDFile(ss.str(),*segment_cloud);
+		    
+			  clusters.push_back(*temp);
 			 }else{
 			    label_cloud(segment_cloud,temp_label_cloud, 2);
 			   *labled_cloud += *temp_label_cloud;
 			 }
+			 
+			  
+		      }else{
+			PCL_WARN("To few points in segment = %d\n", segment_cloud->points.size());
 		      }
+		      
 		  }else{
-		      std::cerr << "No inliers!!!!" << std::endl;
+		      PCL_ERROR("No inliers!!!!\n");
 		  }
 		
 	
 	 segment_cloud->clear();
-	 pcl::io::savePCDFile("/home/thso/labled_cloud.pcd",*labled_cloud);	  
-		  
-		  
+	
 	  }
+	 if(labled_cloud->points.size() > 0){
+	   std::stringstream ss;
+	   ss << "/home/thso/labled_cloud_" << view_nr; ss << ".pcd";
+	   pcl::io::savePCDFile(ss.str(),*labled_cloud);	  
+	 }	  
 	  
   //    }
      
@@ -584,7 +659,6 @@ void LCCPSegmentation(CloudT::Ptr &src_cloud,pcl::PointCloud<pcl::Normal>::Ptr i
   
    PCL_INFO ("Done .....\n");
 }
-
 
 void smooth(const std::map<int, CloudT::Ptr > &src_cloud, 
 	    CloudT::Ptr &target_cloud, const std::vector<Eigen::Matrix4f> & transforms,
@@ -599,6 +673,7 @@ void smooth(const std::map<int, CloudT::Ptr > &src_cloud,
     CloudMerge* cm = new CloudMerge(clouds,transforms);
  
     cm->SetRadius(radius);
+
     //filtered = cm->MergeSmoothing();// MergeSmoothing();
       filtered = cm->MergeCombined();
     std::cout << "Finish .... " << std::endl;
@@ -626,7 +701,7 @@ void checkForNaN(CloudT::Ptr& cloud)
       std::cout << count << " NaN's removed from the point cloud" << std::endl;
 }
 
-void radiusOutlierRemoval(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, double radius)
+void 	radiusOutlierRemoval(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, double radius, int min_neighbpr_pts)
 {
 	CloudT::Ptr cloud_filtered (new CloudT);
 
@@ -637,7 +712,7 @@ void radiusOutlierRemoval(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, dou
 	      pcl::RadiusOutlierRemoval<PointT> ror;
 	      ror.setInputCloud(src_cloud);
 	      ror.setRadiusSearch(radius);
-	      ror.setMinNeighborsInRadius(800);
+	      ror.setMinNeighborsInRadius(min_neighbpr_pts);
 	      ror.filter (*cloud_filtered);
 	      ror.setKeepOrganized(true);
 
@@ -649,6 +724,22 @@ void radiusOutlierRemoval(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, dou
 	}
 }
 
+
+void statisticalOutlierRemoval(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, int mean)
+{
+	 CloudT::Ptr cloud_filtered (new CloudT);
+
+	// Create the filtering object
+	pcl::StatisticalOutlierRemoval<PointT> sor;
+	sor.setInputCloud (src_cloud);
+	sor.setMeanK (mean);
+	sor.setStddevMulThresh (1.0);
+
+	sor.filter (*cloud_filtered);
+
+  	pcl::copyPointCloud(*cloud_filtered, *target_cloud);
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /** \brief Align a pair of PointCloud datasets and return the result
@@ -780,52 +871,42 @@ bool pairAlign (CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud, CloudT::Ptr &
   return result;
  }
 
-void MLSApproximation(CloudT::Ptr &cloud, CloudT::Ptr &target)
+void MLSApproximation(CloudT::Ptr &cloud, PointCloudNT::Ptr &target, double search_radius)
 {
 	 using namespace pcl::console;
 	 
-	 /// Create a KD-Tree
-	 pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
+	 // Create a KD-Tree
+	  pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
 
-	 /// Output has the PointNormal type in order to store the normals calculated by MLS
-	 CloudT::Ptr mls_points (new CloudT);
-	 CloudT::Ptr mls_points_f (new CloudT);
+	  // Output has the PointNormal type in order to store the normals calculated by MLS
+	  PointCloudNT::Ptr mls_points (new PointCloudNT);
 
-	 /// Init object (second point type is for the normals, even if unused)
-	 pcl::MovingLeastSquares<PointT, PointT> mls;
+	  // Init object (second point type is for the normals, even if unused)
+	  pcl::MovingLeastSquares<PointT, PointNT> mls;
 
-	 /// Set parameters
-	 mls.setInputCloud (cloud);
-	 mls.setPolynomialFit (true);
-	 mls.setSearchMethod (tree);
-	 mls.setSearchRadius (0.01); //0.03
-	 
-	 /// Reconstruct
-	 TicToc tt;
-	 tt.tic ();
-	 print_highlight("Computing smoothed point cloud using MLS algorithm....");
-	 mls.process (*mls_points);
-	 print_info ("[Done, "); print_value ("%g", tt.toc ()); print_info (" ms]\n");
-	  
-	     pcl::io::savePCDFile("/home/thso/with_nan.pcd", *mls_points);
-	 //    checkForNaN(mls_points);
-	  std::vector<int> index;
-	  pcl::removeNaNFromPointCloud(*mls_points,*mls_points_f, index);
-	    //   std::cout << "index size: " << index.size() << std::endl; 
-	  pcl::io::savePCDFile("/home/thso/without_nan.pcd", *mls_points_f);
-	  mls.setInputCloud (mls_points_f);
-	  std::cout << "point size before: " << mls_points->size() << std::endl; 
-	   
-	   mls.setDilationVoxelSize(0.0005); 
-	   mls.setSearchRadius (0.01); //0.03
-	  // mls.setPointDensity(70);
-	  // mls.setUpsamplingMethod(pcl::MovingLeastSquares< pcl::PointXYZRGBA, pcl::PointXYZRGBA >::RANDOM_UNIFORM_DENSITY);
-	    mls.setUpsamplingMethod(pcl::MovingLeastSquares< PointT, PointT >::VOXEL_GRID_DILATION);
-	   mls.process(*target);
-	  
-	   std::cout << "point size after: " << target->size() << std::endl; 
-	  //pcl::copyPointCloud(*mls_points, *target);
+	  mls.setComputeNormals (true);
+
+	  // Set parameters
+	  mls.setInputCloud (cloud);
+	  mls.setPolynomialFit (true);
+	  mls.setSearchMethod (tree);
+	  mls.setSearchRadius (search_radius); //0.025
+	  mls.setDilationVoxelSize(0.001);
+	//  mls.setPointDensity(0.0005);
+  
+         // mls.setPolynomialOrder(4); 
 	
+	  mls.setUpsamplingMethod(pcl::MovingLeastSquares<PointT, PointNT>::VOXEL_GRID_DILATION);
+	 // mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZRGBA, pcl::PointXYZRGBA>::UpsamplingMethod::VOXEL_GRID_DILATION);
+
+	  // Reconstruct
+	  TicToc tt;
+	  tt.tic ();
+	  print_highlight("Computing smoothed point cloud using MLS algorithm....");
+	  mls.process (*mls_points);
+	  print_info ("[Done, "); print_value ("%g", tt.toc ()); print_info (" ms]\n");
+
+	  pcl::copyPointCloud(*mls_points, *target);
 
 }
 
@@ -992,15 +1073,20 @@ void PassThroughFilter(CloudT::Ptr &src_cloud, CloudT::Ptr &target_cloud,
 
 bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_common_msgs::CreateObjectModel::Response &res){
 
+  std::vector<int> dummy;
+       
   /// Allocate point clouds
-  CloudT::Ptr final_cloud (new CloudT);
+  PointCloudNT::Ptr model_with_normals(new PointCloudNT);
+  PointCloudNT::Ptr final_cloud (new PointCloudNT);
   
+  SegmentationParams params;
   std::vector<CloudT,  Eigen::aligned_allocator_indirection<CloudT> > clusters;
 	
    ///Now do pre-processing for each cloud
    for(int i = 0; i< 3; i++){
        CloudT::Ptr filtered (new CloudT);
        CloudT::Ptr out (new CloudT);
+      
     // int i=0;
       ROS_INFO("Cropping cloud from view %i", i);
      Eigen::Matrix4f mat;
@@ -1023,122 +1109,77 @@ bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_com
      double rx, ry, minz, maxz;
      rx = 0.65; ry = 0.3; minz = -0.2; maxz = 0.8;
      CropBox(filtered,filtered,rx,ry, minz, maxz,mat, true);
+     Eigen::Matrix4f mat_inv = mat.inverse();
+     pcl::transformPointCloud(*filtered,*filtered,mat_inv);
   //   publish_marker( rx,ry,minz,maxz, mat);
 	
      ROS_INFO("Saving view %i to hard drive!!", i);
-     std::stringstream ss;
-     ss << "/home/thso/view_" << i; ss << ".pcd";
-     if(filtered->points.size() > 0) pcl::io::savePCDFile(ss.str(), *filtered  );
+     std::stringstream sst;
+     sst << "/home/thso/view_" << i; sst << ".pcd";
+     if(filtered->points.size() > 0) pcl::io::savePCDFile(sst.str(), *filtered  );
     
-/*	 
+	 
      pcl::PointCloud<pcl::Normal>::Ptr dummy_ptr;
-     LCCPSegmentation(filtered, dummy_ptr, clusters,true,false);
+     LCCPSegmentation(filtered, dummy_ptr, clusters,params,false, i);
      
       //Find the correct models
      PCL_INFO("Selecting cluster for view %i ......\n", i);
      for(int j = 0; j < clusters.size(); j++){
-       //Filtering by simple point size criterion
-       std::cout << clusters[j].points.size() << " points in cluster" << std::endl;
-       if(clusters.at(j).points.size() < 50000 && clusters.at(j).points.size() > 500){
-	 ROS_ERROR("Selecting cluster!!");
+	 ROS_INFO("Selecting cluster with %d points!!\n", (int)clusters[j].points.size() );
          *out += clusters.at(j);
-	
-       }
      }
      clusters.clear();
      
-     std::vector<int> index;
-     pcl::removeNaNFromPointCloud(*out,*final_cloud,index);
+      statisticalOutlierRemoval(out,out, 3);
+      radiusOutlierRemoval(out, out,0.01, 40);
+      extractLargestClusters(out,out,0.02);
+      
+      radiusOutlierRemoval(out, out,1.0, 800);
+      MLSApproximation(out, model_with_normals,0.0075);
+
+     pcl::transformPointCloudWithNormals<PointNT>(*model_with_normals,*final_cloud,mat);
+     pcl::removeNaNFromPointCloud(*final_cloud,*final_cloud,dummy);
      
-     if(req.sensor == 0) KinectPointCloudPCLCombined += *final_cloud;
-     else if(req.sensor == 1) StereoPointCloudPCLCombined += *final_cloud;
+       ROS_INFO("Saving model segment %i to hard drive!!", i);
+       std::stringstream ss;
+	ss << "/home/thso/model_segment_" << i; ss << ".pcd";
+       if(final_cloud->points.size() > 0) pcl::io::savePCDFile(ss.str(), *final_cloud  );
      
+     if(req.sensor == 0){// KinectPointCloudPCLCombined += *final_cloud;
+     }else if(req.sensor == 1){ StereoPointCloudPCLCombined += *final_cloud;}
      
      ss.str("");
      ss << "/home/thso/selected_cluster_" << i; ss << ".pcd";
-     pcl::io::savePCDFile(ss.str(), *final_cloud  );       
+  
+     if(final_cloud->points.size() > 0)pcl::io::savePCDFile(ss.str(), *final_cloud  );      
+     else{
+       PCL_ERROR("No points in segmented model!");
+     }
      out->clear();
      filtered->clear();
- */
-//     removePlane(filtered,filtered,0.005); //0.015 gredy 
-//     radiusOutlierRemoval(filtered,filtered,0.08); 
-
-//     pcl::io::savePCDFile("/home/thso/mls_filtered.pcd", *filtered  );
-   //  MLSApproximation(filtered, filtered);
-  
- /*    size_t erased = kinectCloudStruct.Clouds.erase(i);
-     if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(i, final_cloud)).second){
-	ROS_ERROR("Could not add cloud to map");
-     }
-   */
-     
-  }
+     final_cloud->clear();
+   }
    
-  
-  
-  
-  
-  
-  /*   if(i > 0){
-     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _src =  kinectCloudStruct.Clouds.find(i-1)->second; 
-     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _tar =  kinectCloudStruct.Clouds.find(i)->second; 
-     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr _output;
-     pairAlign(_src,_tar,_output)
-       
-     }
-    */ 
-  //   pcl::transformPointCloud(*filtered,*out,mat);
-  //   KinectPointCloudPCLCombined += *out;
-
-     //pcl::io::savePCDFile("/home/thso/scene_w_plane.pcd", KinectPointCloudPCLCombined  );
-     //smooth(kinectCloudStruct.Clouds,final_cloud,kinectCloudStruct.transform,0.5);
-   //  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model = KinectPointCloudPCLCombined.makeShared();
-
-     //std::vector<int> index;
-     //pcl::removeNaNFromPointCloud(*final_cloud,*final_cloud,index);
-    // extractClusters(final_cloud, clusters,100, 50000, 500); 
-     
-      // Create a Concave Hull representation of the projected inliers
- /*     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_hull (new pcl::PointCloud<pcl::PointXYZRGBA>);
-      pcl::ConcaveHull<pcl::PointXYZRGBA> chull;
-      chull.setInputCloud (clusters[0]);
-      chull.setDimension(3);
-      chull.setAlpha(0.006);
-      chull.setKeepInformation(true);
-      chull.reconstruct (*cloud_hull);
-*/
- 
-/*	pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
-	coefficients->values.resize (4);
-	coefficients->values[0] = coefficients->values[1] = 0;
-	coefficients->values[2] = 1.0;
-	coefficients->values[3] = 0;
-     //checkForNaN(clusters[0]);
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr proj_cloud (new pcl::PointCloud<pcl::PointXYZRGBA>);
-	pcl::ProjectInliers<pcl::PointXYZRGBA> proj;
-	proj.setModelType(pcl::SACMODEL_PLANE);
-	proj.setInputCloud(clusters[0]);
-	proj.setModelCoefficients (coefficients);
-	proj.filter (*proj_cloud);
-*/	
-	//pcl::io::savePCDFile("proj_cloud.pcd", *proj_cloud);
-      //  pcl::io::savePCDFile("model.pcd", *clusters[0]);
-	//*clusters[0]+= *proj_cloud;
-	
-  //   result->header.frame_id = "/world";
-  //  _pubAlignKinect.publish(clusters[0]);
-   
-   
-   
+   CloudT::Ptr model(new CloudT);    
    sensor_msgs::PointCloud2 cloud_model;
+   
+   //Sample model to remove redundant points 
+   pcl::VoxelGrid<PointT> vg;
+   vg.setLeafSize(0.001, 0.001, 0.001);
    
    try{
 	  if(req.sensor == 0){
-	    pcl::io::savePCDFile("/home/thso/final_kinect_model.pcd", KinectPointCloudPCLCombined);
-	    pcl::toROSMsg(KinectPointCloudPCLCombined,cloud_model);
+	    pcl::copyPointCloud(KinectPointCloudPCLCombined, *model);
+	    moveObjectFrame(model,model);
+	    pcl::io::savePCDFile("/home/thso/final_kinect_model.pcd",*model);
+	    pcl::toROSMsg(*model,cloud_model);
 	  }else if(req.sensor == 1){
-	    pcl::io::savePCDFile("/home/thso/final_stereo_model.pcd", StereoPointCloudPCLCombined);
-	    pcl::toROSMsg(StereoPointCloudPCLCombined,cloud_model);
+	    pcl::copyPointCloud(StereoPointCloudPCLCombined, *model);
+	    moveObjectFrame(model,model);
+	    vg.setInputCloud(model);
+	    vg.filter(*model);
+	    pcl::io::savePCDFile("/home/thso/final_stereo_model.pcd", *model);
+	    pcl::toROSMsg(*model,cloud_model);
 	  }
    }catch(pcl::IOException &e){
 	std::cerr << e.what() << std::endl; 
@@ -1147,6 +1188,7 @@ bool process_cloud(caros_common_msgs::CreateObjectModel::Request &req, caros_com
   KinectPointCloudPCLCombined.clear();
   StereoPointCloudPCLCombined.clear();
   
+  _pubAlignKinect.publish(*model);
   ///Send result
   res.model = cloud_model;
   res.success = true;
@@ -1163,48 +1205,55 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
   Eigen::Matrix4f mat;
   CloudT PointCloudPCL;
 
+  ROS_INFO	("Create new model request with sensor %d\n", req.sensor);
+  
   switch(req.sensor)
   {      
     case 0: //Kinect sensor
    {   
 	cloud_left = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/kinect_left/depth_registered/points", ros::Duration(5.0));
-	pcl::fromROSMsg < PointT > (*cloud_left, PointCloudPCL);
-	if(!cloud_left) {
-	  ROS_WARN("Retrieval of /kinect_left/depth_registered/points point cloud failed!");
-	  return false;
-	}
-	mat = kinectCloudStruct.transform.at(0);
-	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
-	if(kinectCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /kinect_left cloud from map!");
-	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
-	    ROS_ERROR("Could not insert /kinect_left cloud into map!");
-	}
+	 if(cloud_left) {
+	    pcl::fromROSMsg < PointT > (*cloud_left, PointCloudPCL);
+	    mat = kinectCloudStruct.transform.at(0);
+	    pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 	
+	    if(kinectCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /kinect_left cloud from map!");
+	    if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
+	      ROS_ERROR("Could not insert /kinect_left cloud into map!");
+	    }
+	 }else{
+	    ROS_WARN("Retrieval of /kinect_left/depth_registered/points point cloud failed!");
+	  return false;
+	 }
+	 
 	cloud_right = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/kinect_right/depth_registered/points", ros::Duration(5.0));
-	pcl::fromROSMsg < PointT > (*cloud_right, PointCloudPCL);
-	if(!cloud_right) {
+	if(cloud_right){
+	    pcl::fromROSMsg < PointT > (*cloud_right, PointCloudPCL);
+	    mat = kinectCloudStruct.transform.at(1);
+	    pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+	
+	    if(kinectCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /kinect_right cloud from map!");
+	    if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
+		ROS_ERROR("Could not insert /kinect_right cloud into map!");  
+	    }
+	 }else{
 	  ROS_WARN("Retrieval of /kinect_right/depth_registered/points point cloud failed!");
 	  return false;
 	}
-        mat = kinectCloudStruct.transform.at(1);
-	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
-	if(kinectCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /kinect_right cloud from map!");
-	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
-	    ROS_ERROR("Could not insert /kinect_right cloud into map!");  
-	}
 	
 	cloud_center = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/kinect_center/depth_registered/points", ros::Duration(5.0));
-	pcl::fromROSMsg <PointT > (*cloud_center, PointCloudPCL);
-	if(!cloud_center) {
+	if(cloud_center){
+	    pcl::fromROSMsg <PointT > (*cloud_center, PointCloudPCL);
+	    mat = kinectCloudStruct.transform.at(2);
+	    pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+	    if(kinectCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /kinect_center cloud from map!");
+	    if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
+	      ROS_ERROR("Could not insert /kinect_center cloud into map!"); 
+	  }
+	}else{
 	  ROS_WARN("Retrieval of /kinect_center/depth_registered/points point cloud failed!");
 	  return false;
 	}
-	mat = kinectCloudStruct.transform.at(2);
-	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
-	if(kinectCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /kinect_center cloud from map!");
-	if(!kinectCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
-          ROS_ERROR("Could not insert /kinect_center cloud into map!"); 
-      }
     
      /// All Kinect clouds are received. Lets process the clouds
       process_cloud(req,res);
@@ -1216,60 +1265,67 @@ bool create_model_callback(caros_common_msgs::CreateObjectModel::Request &req, c
       
     case 1: //Stereo sensor
    {
-	  cloud_left = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeLeft/depth_registered/points", ros::Duration(5.0));
-	  std::cout << "points received: " << cloud_left->width * cloud_left->height << std::endl;
-	pcl::fromROSMsg < PointT > (*cloud_left, PointCloudPCL);
-	if(!cloud_left) {
-	  ROS_WARN("Retrieval of /bumblebeeLeft/points point cloud failed!");
-	  return false;
-	}
-	mat = stereoCloudStruct.transform.at(0);
-	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
-	if(stereoCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /bumblebeeLeft cloud from map!");
-	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
-	    ROS_ERROR("Could not insert /bumblebeeLeft cloud into map!");
-	}
-	
-	cloud_right = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeRight/depth_registered/points", ros::Duration(5.0));
-	 std::cout << "points received: " << cloud_right->width * cloud_right->height << std::endl;
-	pcl::fromROSMsg < PointT > (*cloud_right, PointCloudPCL);
-	if(!cloud_right) {
-	  ROS_WARN("Retrieval of /bumblebeeRight/points point cloud failed!");
-	  return false;
-	}
-	mat = stereoCloudStruct.transform.at(1);
-	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+	  cloud_left = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeLeft/depth_registered/points", ros::Duration(15.0));
+	  if(cloud_left) {
+	    std::cout << "points received: " << cloud_left->width * cloud_left->height << std::endl;
+	    pcl::fromROSMsg < PointT > (*cloud_left, PointCloudPCL);
+ 
+	    mat = stereoCloudStruct.transform.at(0);
+	    pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+	    if(stereoCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /bumblebeeLeft cloud from map!");
+	    if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(0,PointCloudPCL.makeShared())).second){
+	      ROS_ERROR("Could not insert /bumblebeeLeft cloud into map!");
+	    }
+	  }else{
+	    ROS_WARN("Retrieval of /bumblebeeLeft/points point cloud failed!");
+	    return false;
+	  }
+	  
+	  
+	cloud_right = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeRight/depth_registered/points", ros::Duration(15.0));
+	if(cloud_right) {
+	  std::cout << "points received: " << cloud_right->width * cloud_right->height << std::endl;
+	  pcl::fromROSMsg < PointT > (*cloud_right, PointCloudPCL);
+	  mat = stereoCloudStruct.transform.at(1);
+	  pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
 
-	if(stereoCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /bumblebeeRight cloud from map!");
-	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
+	  if(stereoCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /bumblebeeRight cloud from map!");
+	  if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(1,PointCloudPCL.makeShared())).second){
 	    ROS_ERROR("Could not insert /bumblebeeRight cloud into map!");  
+	  }
+	}else{
+	   ROS_WARN("Retrieval of /bumblebeeRight/points point cloud failed!");
+	   return false;
 	}
 	
-	cloud_center = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeCenter/depth_registered/points", ros::Duration(5.0));
-		 std::cout << "points received: " << cloud_center->width * cloud_center->height << std::endl;
-	pcl::fromROSMsg <PointT > (*cloud_center, PointCloudPCL);
-	if(!cloud_center) {
+	cloud_center = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/bumblebeeCenter/depth_registered/points", ros::Duration(15.0));
+	if(cloud_center) {
+	  std::cout << "points received: " << cloud_center->width * cloud_center->height << std::endl;
+	  pcl::fromROSMsg <PointT > (*cloud_center, PointCloudPCL);  
+	  mat = stereoCloudStruct.transform.at(2);
+	  pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+
+	  if(stereoCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /bumblebeeCenter cloud from map!");
+	  if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
+	    ROS_ERROR("Could not insert /bumblebeeCenter cloud into map!"); 
+	  }
+	}else{
 	  ROS_WARN("Retrieval of /bumblebeeCenter/points point cloud failed!");
 	  return false;
 	}
-	mat = stereoCloudStruct.transform.at(2);
-	pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
-
-	if(stereoCloudStruct.Clouds.erase(2) < 1) ROS_ERROR("Could not erase /bumblebeeCenter cloud from map!");
-	if(!stereoCloudStruct.Clouds.insert(std::pair<int, CloudT::Ptr >(2,PointCloudPCL.makeShared())).second){
-          ROS_ERROR("Could not insert /bumblebeeCenter cloud into map!"); 
-      }
+	
         /// All stereo clouds are received. Lets process the clouds
 	process_cloud(req,res);
 	std::cout << "Extracted model has " << res.model.data.size() << " points"<< std::endl;
       
       break;
    }
-      
+   
     case 2: //Both sensors
+   {
 	  ROS_WARN("cloud_merge not implemented yet for stereo+kinect!");
       break;
-      
+   }
     default:
       
       break; 
@@ -1371,13 +1427,13 @@ void stereoPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
   
   sensor_msgs::PointCloud2 PointCloud = *PointCloudROS;
  // pointCloudCallback(PointCloud);
-  pcl::PointCloud < PointT > PointCloudPCL;
-  pcl::fromROSMsg < PointT > (PointCloud, PointCloudPCL);
+  PointCloudNT PointCloudPCL;
+  pcl::fromROSMsg < PointNT > (PointCloud, PointCloudPCL);
   
    if(received_frame.compare("/bumblebeeLeft") == 0){
     stereoCloudStruct.stereo_received[0] = true;
     Eigen::Matrix4f mat = stereoCloudStruct.transform.at(0);
-    pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+    pcl::transformPointCloudWithNormals<PointNT>(PointCloudPCL,PointCloudPCL,mat);
    //  CropBox(filtered,filtered,0.65,0.3, -0.2, 0.8,mat);
 //    if(stereoCloudStruct.Clouds.erase(0) < 1) ROS_ERROR("Could not erase /bumblebeeLeft cloud from map!");
 //    if(!stereoCloudStruct.Clouds.insert(std::pair<int, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr >(0,PointCloudPCL.makeShared())).second){
@@ -1388,7 +1444,7 @@ void stereoPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
   else if(received_frame.compare("/bumblebeeRight") == 0){
     stereoCloudStruct.stereo_received[1] = true;
     Eigen::Matrix4f mat = stereoCloudStruct.transform.at(1);
-    pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+    pcl::transformPointCloudWithNormals<PointNT>(PointCloudPCL,PointCloudPCL,mat);
 //    if(stereoCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /bumblebeeRight cloud from map!");
 //    if(!stereoCloudStruct.Clouds.insert(std::pair<int, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr >(1,PointCloudPCL.makeShared())).second){
 //      ROS_ERROR("Could not insert /bumblebeeRight cloud into map!");
@@ -1398,7 +1454,7 @@ void stereoPointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& PointCloud
   else if(received_frame.compare("/bumblebeeCenter") == 0){
     stereoCloudStruct.stereo_received[2] = true;
     Eigen::Matrix4f mat = stereoCloudStruct.transform.at(2);
-    pcl::transformPointCloud(PointCloudPCL,PointCloudPCL,mat);
+    pcl::transformPointCloudWithNormals<PointNT>(PointCloudPCL,PointCloudPCL,mat);
 //    if(stereoCloudStruct.Clouds.erase(1) < 1) ROS_ERROR("Could not erase /bumblebeeCenter cloud from map!");
 //    if(!stereoCloudStruct.Clouds.insert(std::pair<int, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr >(2,PointCloudPCL.makeShared())).second){
 //      ROS_ERROR("Could not insert /bumblebeeCenter cloud into map!");
@@ -1465,7 +1521,7 @@ int main(int argc, char **argv)
 
 	 //Publisher
         _pubAlignKinect = pcl_ros::Publisher<PointT> (nodeHandle, "kinect_aligned", 1);
-	_pubAlignStereo = pcl_ros::Publisher<PointT> (nodeHandle, "stereo_aligned", 1);
+	_pubAlignStereo = pcl_ros::Publisher<PointNT> (nodeHandle, "stereo_aligned", 1);
 	_pubAlignFull = pcl_ros::Publisher<PointT> (nodeHandle, "all_aligned", 1);
 	_pubKinectLeft = pcl_ros::Publisher<PointT> (nodeHandle, "kinect_left_global", 1);
 	_pubKinectRight = pcl_ros::Publisher<PointT> (nodeHandle, "kinect_right_global", 1);

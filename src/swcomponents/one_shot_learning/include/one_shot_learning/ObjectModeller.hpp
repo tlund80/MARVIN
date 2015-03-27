@@ -43,11 +43,13 @@ public:
 	virtual ~ObjectModeller();
 	
 	void shutdown();
-	void createmodel(pcl::PointCloud<pcl::PointXYZRGBA> in);
-	void createSolidmodel(pcl::PointCloud<pcl::PointXYZRGBA> in);
-	void alignGTModelAndSceneModel(pcl::PointCloud<pcl::PointXYZRGBA> src, pcl::PointCloud<pcl::PointXYZRGBA> tar);
-	void getCloudModel(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &model);
+	void createmodel(PointCloudT in);
+	void createSolidmodel(PointCloudT in);
+	void alignGTModelAndSceneModel(PointCloudT src, PointCloudT tar);
+	void getRawModel(PointCloudT::Ptr &model);
+	void getPostProcessedModel(PointCloudT::Ptr &model);
 	void getMeshModel(pcl::PolygonMesh &mesh);
+	void clear(){views.clear();};
 	
 public Q_SLOTS:	
 	void run();	
@@ -63,26 +65,33 @@ protected:
 	// virtual void run();	
 private:
   
-  void initial_alignment(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud,
-			  Eigen::Matrix4f &final_transform, bool downsample);
+  void initial_alignment(PointCloudNT::Ptr src_cloud,PointCloudNT::Ptr target_cloud,
+			  Eigen::Matrix4f &final_transform, bool downsample = true,
+			  bool source_has_normals = true, bool target_has_normals = true);
   
-  bool pairAlign (pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud,
-		  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &output, Eigen::Matrix4f &final_transform, bool downsample);
+  bool pairAlign (PointCloudT::Ptr &src_cloud, PointCloudT::Ptr &target_cloud,
+		  PointCloudT::Ptr &output, Eigen::Matrix4f &final_transform, bool downsample);
 
 
-  void EstimateNormals(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud,pcl::PointCloud<pcl::PointNormal>::Ptr &target_cloud);
+  void EstimateNormals(PointCloudT::Ptr &src_cloud,PointCloudNT::Ptr &target_cloud);
   
-  void removePlane(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud,
+/*  void removePlane(PointCloudT::Ptr &src_cloud, PointCloudT::Ptr &target_cloud,
 		   double dist_threads);
   
-  void CropBox(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud,
+  void CropBox(PointCloudT::Ptr &src_cloud, PointCloudT::Ptr &target_cloud,
              float rx, float ry, float minz, float maxz, Eigen::Vector3f boxTranslatation, Eigen::Vector3f boxRotation);
 
-  bool extractClusters(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr, Eigen::aligned_allocator_indirection<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> > &clusters);
+  bool extractClusters(PointCloudT::Ptr &src_cloud, std::vector<PointCloudT::Ptr, Eigen::aligned_allocator_indirection<PointCloudT::Ptr> > &clusters);
+ */ 
+  void radiusOutlierRemoval(PointCloudT::Ptr &src_cloud, PointCloudT::Ptr &target_cloud, double radius, int min_neighbpr_pts = 1);
   
-  void radiusOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double radius);
+  void statisticalOutlierRemoval(PointCloudT::Ptr &src_cloud, PointCloudT::Ptr &target_cloud, int mean_num_pts = 1);
   
-  void statisticalOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &src_cloud, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &target_cloud, double mean);
+  Eigen::Matrix4f rotateX(float radians);
+  Eigen::Matrix4f rotateY(float radians);
+  Eigen::Matrix4f rotateZ(float radians);
+  bool my_sort(std::pair<float,Eigen::Matrix4f> i,std::pair<float,Eigen::Matrix4f> j) { return (i.first < j.first); }
+
   
   QMutex					_mutexCloud;
   QMutex					_mutexMesh;
@@ -91,12 +100,15 @@ private:
   bool 						doModel;
   bool 						doSolidModel;
   bool 						doModelAlignment;
+  float						leaf_size_;
   SharedData 					*_sharedData;
   pcl::PolygonMesh	 			_mesh;
-  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr 	_cloud;
-  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr 	_tar;
+  PointCloudT::Ptr				 	_post_processed_cloud;
+  PointCloudNT::Ptr				 	_post_processed_cloud_with_normals;
+  PointCloudT::Ptr				 	_raw_model;
+  PointCloudNT::Ptr				 	_tar;
   ReconstructPointCloud 			*reconstruct;
-  std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr, Eigen::aligned_allocator_indirection<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> > views;
+  std::vector<PointCloudT::Ptr, Eigen::aligned_allocator_indirection<PointCloudT::Ptr> > views;
   
 };
 }

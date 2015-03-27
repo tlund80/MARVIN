@@ -18,7 +18,7 @@ LINK_DIRECTORIES(${COVIS_LIBRARY_DIRS})
 ########################################################################
 #### Find PCL
 ########################################################################
-find_package(PCL 1.8 REQUIRED QUIET)
+find_package(PCL 1.7 REQUIRED QUIET)
 add_definitions(${PCL_DEFINITIONS})
 
 ########################################################################

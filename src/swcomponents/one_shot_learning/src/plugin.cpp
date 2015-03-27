@@ -31,6 +31,7 @@
 //PCL includes
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/io/obj_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 //VTK includes
 #include <vtkRenderer.h>
@@ -48,33 +49,47 @@ using namespace rw::models;
 namespace dti{
 namespace one_shot_learning
 {
-One_shot_learning::One_shot_learning(): rws::RobWorkStudioPlugin("plugin", QIcon(":/DTI_logo.png")){
-  
+One_shot_learning::One_shot_learning(): rws::RobWorkStudioPlugin("plugin", QIcon(":/DTI_logo.png")),
+					 modelling_cnt(0),
+					 _grasp_scene_loaded(false),
+					 _sensor_num(0),
+					 _rotation_count(0)
+					 
+{
+     //pcl::visualization::PCLVisualizer *test_vis = new  pcl::visualization::PCLVisualizer("", false);
       setupUi(this);
-      
- /*     pviz = new  pcl::visualization::PCLVisualizer("", false);
+      //pviz = pviz("", false);
+/*      pviz.setBackgroundColor(0.5, 0.5, 0.5);
+
+      qv = new QVTKWidget;
+      qv->SetRenderWindow(pviz.getRenderWindow());
+      qv->setFocusPolicy(Qt::StrongFocus);
+      Ui_plugin::horizontalLayout->addWidget(qv);
+      Ui_plugin::horizontalLayout->update();
+      pviz.setWindowBorders(false);
+  */    
+  /*    pviz = new  pcl::visualization::PCLVisualizer("", false);
       pviz->setBackgroundColor(0.5, 0.5, 0.5);
       qv = new QVTKWidget;
-      vtkSmartPointer<vtkRenderWindow> renderWindow = pviz->getRenderWindow();
-      qv->SetRenderWindow(renderWindow);
+      qv->SetRenderWindow(pviz->getRenderWindow());
       qv->setFocusPolicy(Qt::StrongFocus);
 
       Ui_plugin::horizontalLayout->addWidget(qv);
       Ui_plugin::horizontalLayout->update();
       pviz->setWindowBorders(false);
-     
+    */ 
       ///Registre Qt meta types
       qRegisterMetaType<pcl::PointCloud<pcl::PointXYZRGBA> >("pcl::PointCloud<pcl::PointXYZRGBA>");
       qRegisterMetaType<pcl::PolygonMesh>("pcl::PolygonMesh"); 
    
-    */
-     modelling_cnt = 0; // number of refinement steps
+      
+  //   modelling_cnt = 0; // number of refinement steps
      type = dti::grasp_planning::SDH_PAR;
-     _grasp_scene_loaded = false;
-     _sensor_num = 0;
-     _rotation_count = 0;
+   //  _grasp_scene_loaded = false;
+   //  _sensor_num = 0;
+   //  _rotation_count = 0;
 
-     std::cout << "Starting GUi in thread: " << QThread::currentThreadId() << std::endl;  
+ //    std::cout << "Starting GUi in thread: " << QThread::currentThreadId() << std::endl;  
      
 }
 
@@ -245,11 +260,11 @@ void One_shot_learning::init(){
  //    connect(&modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)));
  /*   if(!connect(modeller, SIGNAL(consoleSignal(QString)), this, SLOT(consoleOut(QString)), Qt::UniqueConnection))
       std::cerr << "Could not connect consoleSignal() signal from modeller class to main thread consoleOut()" << std::endl;
-      
- //   connect(modeller, SIGNAL(modelCreated()), this, SLOT(modelCreatedCallBack()), Qt::QueuedConnection);
+   */   
+   // connect(modeller, SIGNAL(modelCreated()), this, SLOT(modelCreatedCallBack()), Qt::QueuedConnection);
     connect(modeller, SIGNAL(solidModelCreated()), this, SLOT(solidModelCreatedCallBack()), Qt::UniqueConnection);
     connect(modeller,SIGNAL(turnModel()),this,SLOT(turnModelCallBack()));
-   */
+   
    connect(_sampler,SIGNAL(status(double)),this,SLOT(sampleStatus(double)),Qt::DirectConnection);
    connect(_sampler,SIGNAL(finish_sampling(bool)),this,SLOT(sampleFinish(bool)),Qt::DirectConnection);
    
@@ -578,6 +593,9 @@ void One_shot_learning::checkBoxLogPoseChecked(bool checked){
 
 void One_shot_learning::btnCreateModelClicked(){
    m_name = Ui_plugin::lineModelName->text();
+   modelling_cnt = 0;
+   modeller->clear();
+   
    if(m_name == ""){
        QMessageBox::information(this,"Model Name", "Please add a model name!");
    }
@@ -956,10 +974,11 @@ bool One_shot_learning::btnRotateObjectClicked(){
 void One_shot_learning::modelCreatedCallBack(){
   modelling_cnt++;
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_raw(new pcl::PointCloud<pcl::PointXYZRGBA>);
    std::cout << "modelling_cnt: " << modelling_cnt << std::endl;
-  if(modelling_cnt < 2){ //Ui_plugin::spinRefinemantSteps->value()
+  if(modelling_cnt < Ui_plugin::spinRefinemantSteps->value()){
     QMessageBox::information(this,"Turn object", "Please turn the object such that the bottom is visible!");
-    std::cout << "Refining model!! "  << std::endl;
+
     Q_EMIT consoleOutSig("Refining model!!\n");
    // sharedData->getPointCloud(*cloud);
     if(!rosComm) std::cout << "Help!!" << std::endl;
@@ -970,20 +989,24 @@ void One_shot_learning::modelCreatedCallBack(){
   }else
   {
     Q_EMIT consoleOutSig("Reconstructing model and creating solid model!!\n");
-     std::cout << "Reconstructing model and creating solid model!!" << std::endl;
-    modeller->getCloudModel(cloud);
-    modeller->createSolidmodel(*cloud);
+
+    modeller->getRawModel(cloud_raw);
+    modeller->createSolidmodel(*cloud_raw);
   }
 }
 
 void One_shot_learning::solidModelCreatedCallBack(){
   Q_EMIT consoleOutSig("Solid model created!!\n");
+  
    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr unfiltered_model(new pcl::PointCloud<pcl::PointXYZRGBA>);
    pcl::PolygonMesh::Ptr mesh(new pcl::PolygonMesh);
-   modeller->getCloudModel(cloud);
-   modeller->getMeshModel(*mesh);
+   modeller->getPostProcessedModel(cloud);
+   modeller->getMeshModel(*mesh); 
+   modeller->getRawModel(unfiltered_model);
    
-  addAndSaveModels(cloud, mesh); 
+   
+  addAndSaveModels(cloud, unfiltered_model, mesh); 
   RefreshTreeWidget();
   
 //  int points = (int)cloud->size();
@@ -1036,11 +1059,11 @@ void One_shot_learning::treeWidgetClicked(QTreeWidgetItem* item, int col){
       }
       }
       
-      pviz->addCoordinateSystem(0.1,0);
+      pviz->addCoordinateSystem(0.1,"",0);
       
        //Update cloud view
        qv->update();
-      pviz->resetCamera();  //Focus the object in the center of the viewer
+ //     pviz->resetCamera();  //Focus the object in the center of the viewer
       
       //pviz.resetCameraViewpoint();
        
@@ -1228,7 +1251,8 @@ bool One_shot_learning::loadModels(){
   } 
 }
 
-void One_shot_learning::addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model, pcl::PolygonMesh::Ptr solid_model){
+void One_shot_learning::addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr model, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr unfiltered_model, 
+					  pcl::PolygonMesh::Ptr solid_model){
     QString path = QString::fromStdString(rosComm->getAbsoluteNodePath());
     QDir modelDir = QDir(path + "/models");
     
@@ -1244,6 +1268,7 @@ void One_shot_learning::addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr
       if(!modelDir.mkpath("ground_truth")) std::cout << "Could not create ground directory!!!" << std::endl;
       
       
+      QString path_estimate_unfiltered_pcd = modelDir.absolutePath() + "/estimated/" + m_name + "_raw.pcd";
       QString path_estimate_pcd = modelDir.absolutePath() + "/estimated/" + m_name + ".pcd";
       QString path_estimate_stl = modelDir.absolutePath() + "/estimated/" + m_name + ".stl";
       QString path_estimate_obj = modelDir.absolutePath() + "/estimated/" + m_name + ".obj";
@@ -1251,9 +1276,11 @@ void One_shot_learning::addAndSaveModels(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr
       std::cout << path_estimate_pcd.toStdString() << std::endl;
 
     
-    if(!QFile(path_estimate_pcd).exists() || !QFile(path_estimate_stl).exists() || !QFile(path_estimate_obj).exists())
+    if(!QFile(path_estimate_pcd).exists() || !QFile(path_estimate_stl).exists() ||
+       !QFile(path_estimate_obj).exists() || !QFile(path_estimate_unfiltered_pcd).exists())
     {
       try{
+	    pcl::io::savePCDFile(path_estimate_unfiltered_pcd.toStdString(), *unfiltered_model);
 	    pcl::io::savePCDFile(path_estimate_pcd.toStdString(), *model);
 	    pcl::io::savePolygonFileSTL(path_estimate_stl.toStdString(), *solid_model);
 	    pcl::io::saveOBJFile(path_estimate_obj.toStdString(), *solid_model);

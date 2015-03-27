@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<PropertyMap>
+
+  <Property>
+    <Name>Name</Name>
+    <Description>Name of the gripper</Description>
+    <Value>
+      <String>PG70</String>
+    </Value>
+  </Property>
+
+  <Property>
+    <Name>Port</Name>
+    <Description>Name of serial port</Description>
+    <Value>
+        <String>/dev/ttyS4</String>
+    </Value>
+  </Property>
+
+  
+</PropertyMap>
+
